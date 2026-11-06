@@ -39,7 +39,7 @@ const Breadcrumbs = () => {
           <Fragment key={label}>
             {index > 0 && <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted" aria-hidden="true" />}
             {isLast ? (
-              <span aria-current="page" className="truncate font-medium text-foreground">
+              <span aria-current="page" className="truncate font-semibold text-foreground">
                 {label}
               </span>
             ) : (

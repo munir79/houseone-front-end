@@ -20,7 +20,7 @@ const Textarea = ({ id, label, error, className, rows = 2, ...props }) => {
         aria-invalid={Boolean(error)}
         aria-describedby={error ? errorId : undefined}
         className={cn(
-          "w-full resize-none rounded-lg border bg-surface px-3 py-2 text-base text-foreground transition-colors outline-none placeholder:text-muted",
+          "w-full resize-none rounded-xl border bg-surface px-3 py-2 text-base text-foreground transition-colors outline-none placeholder:text-muted",
           "focus:ring-2 focus:ring-primary-soft",
           error ? "border-danger" : "border-border focus:border-primary"
         )}

@@ -16,7 +16,7 @@ const Input = ({ id, label, error, suffix, compact = false, className, ...props 
 
       <div
         className={cn(
-          "flex min-h-11 items-center gap-2 rounded-lg border bg-surface px-3 transition-colors",
+          "flex min-h-11 items-center gap-2 rounded-xl border bg-surface px-3 transition-colors",
           compact && "md:min-h-9",
           "focus-within:ring-2 focus-within:ring-primary-soft",
           error ? "border-danger" : "border-border focus-within:border-primary"

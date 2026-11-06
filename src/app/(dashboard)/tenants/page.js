@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { CalendarClock, ChevronRight, FileText, Search, SearchX, Users, WifiOff } from "lucide-react";
+import { Briefcase, CalendarClock, ChevronRight, FileText, Home, KeyRound, Search, SearchX, User, Users, UsersRound, WifiOff } from "lucide-react";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
@@ -34,14 +34,19 @@ const ROW_COLUMNS = "md:grid md:grid-cols-[minmax(0,2fr)_minmax(0,2fr)_minmax(0,
 const TenantRow = ({ tenancy }) => (
   <li>
     <Link href={`/tenants/${tenancy._id}`} className={`flex items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-background ${ROW_COLUMNS}`}>
-      <span className="min-w-0">
-        <span className="block text-sm font-medium wrap-break-word">{tenancy.tenantName}</span>
+      <span className="flex min-w-0 items-center gap-3">
+        <span aria-hidden="true" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary-soft font-bold text-primary">
+          {tenancy.tenantName.charAt(0).toUpperCase()}
+        </span>
+        <span className="min-w-0">
+        <span className="block text-sm font-semibold wrap-break-word">{tenancy.tenantName}</span>
         <span className="block text-xs text-muted">
           {tenancy.tenantPhone}
           {tenancy.peopleCount > 1 && ` · মোট ${toBanglaNumber(tenancy.peopleCount)} জন`}
         </span>
         <span className="block text-xs text-muted md:hidden">
           {tenancy.unitName}, {tenancy.propertyName}
+        </span>
         </span>
       </span>
       <span className="hidden min-w-0 md:block">
@@ -102,12 +107,12 @@ const TenantsPage = () => {
       <StatStrip
         isLoading={isSummaryLoading}
         items={[
-          { key: "active", label: "Tenants", value: summary?.active },
-          { key: "people", label: "Total People", value: summary?.people },
-          { key: "family", label: "Family", value: summary?.family },
-          { key: "bachelor", label: "Bachelor", value: summary?.bachelor },
-          { key: "sublet", label: "Sublet", value: summary?.sublet },
-          { key: "office", label: "Office & Shop", value: summary ? summary.office + summary.shop : undefined },
+          { key: "active", label: "Tenants", value: summary?.active, icon: Users },
+          { key: "people", label: "Total People", value: summary?.people, icon: UsersRound, tone: "violet" },
+          { key: "family", label: "Family", value: summary?.family, icon: Home, tone: "blue" },
+          { key: "bachelor", label: "Bachelor", value: summary?.bachelor, icon: User, tone: "amber" },
+          { key: "sublet", label: "Sublet", value: summary?.sublet, icon: KeyRound, tone: "red" },
+          { key: "office", label: "Office & Shop", value: summary ? summary.office + summary.shop : undefined, icon: Briefcase },
         ]}
       />
 

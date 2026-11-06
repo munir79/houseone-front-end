@@ -1,5 +1,5 @@
+import Image from "next/image";
 import { ArrowRight, BellRing, Building2, CalendarClock, ReceiptText, Users, Wallet } from "lucide-react";
-import HeroPreview from "@/components/public/HeroPreview";
 import Badge from "@/components/ui/Badge";
 import Card from "@/components/ui/Card";
 import LinkButton from "@/components/ui/LinkButton";
@@ -47,20 +47,23 @@ export default function HomePage() {
   return (
     <>
       {/* ===== Hero ===== */}
-      <section className="bg-linear-to-b from-primary-soft to-background">
-        <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-12 md:px-6 md:py-20 lg:grid-cols-2">
-          <div>
-            <Badge className="bg-surface">Made for landlords in Bangladesh</Badge>
-            <h1 className="mt-4 text-4xl leading-tight font-bold tracking-tight sm:text-5xl">
-              Your flats, tenants and rent in <span className="text-primary">one dashboard</span>
+      <section className="relative isolate overflow-hidden bg-sidebar">
+        <Image src="/images/dashboard/dahsboard1.jpg" alt="" fill priority sizes="100vw" className="-z-20 object-cover object-[72%_60%]" />
+        <div className="absolute inset-0 -z-10 bg-linear-to-r from-sidebar via-sidebar/90 to-sidebar/30" />
+
+        <div className="mx-auto max-w-6xl px-4 py-14 md:px-6 md:py-24">
+          <div className="max-w-xl">
+            <Badge className="bg-sidebar-foreground/15 text-sidebar-foreground">Made for landlords in Bangladesh</Badge>
+            <h1 className="mt-4 text-4xl leading-tight font-bold tracking-tight text-sidebar-foreground sm:text-5xl">
+              Your flats, tenants and rent in <span className="text-sidebar-accent">one dashboard</span>
             </h1>
-            <p className="mt-4 max-w-xl text-base text-muted sm:text-lg">
+            <p className="mt-4 text-base text-sidebar-foreground/90 sm:text-lg">
               Stop keeping rent in notebooks. Track every flat, see who has not paid, and send monthly receipts from
               your phone.
             </p>
 
             <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-              <LinkButton href="/register" size="lg">
+              <LinkButton href="/register" size="lg" variant="accent">
                 Start Free for 1 Month
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </LinkButton>
@@ -68,13 +71,7 @@ export default function HomePage() {
                 See Features
               </LinkButton>
             </div>
-            <p className="mt-3 text-sm text-muted">All features are free for your first month.</p>
-          </div>
-
-          <div className="flex justify-center lg:justify-end">
-            {/* নিজের ছবি দিতে: public/images/hero.png রাখুন, উপরে Image Import করুন, তারপর <HeroPreview /> এর বদলে এই লাইন দিন
-                <Image src="/images/hero.png" alt="Apartment building" width={640} height={520} priority className="rounded-3xl" /> */}
-            <HeroPreview />
+            <p className="mt-3 text-sm text-sidebar-foreground/85">All features are free for your first month.</p>
           </div>
         </div>
       </section>
@@ -135,7 +132,7 @@ export default function HomePage() {
             <p className="mx-auto mt-3 max-w-xl text-sidebar-foreground/80">
               Try every feature free for one month. Add as many houses and flats as you need.
             </p>
-            <LinkButton href="/register" size="lg" variant="outline" className="mt-6">
+            <LinkButton href="/register" size="lg" variant="accent" className="mt-6">
               Create Your Free Account
             </LinkButton>
           </div>

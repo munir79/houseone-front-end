@@ -13,7 +13,7 @@ const Logo = ({ showTagline = false, light = false, iconOnly = false }) => {
       ) : (
         <div>
           <p className={cn("text-lg leading-tight font-bold", light ? "text-sidebar-foreground" : "text-foreground")}>
-            House<span className={light ? "text-sidebar-accent" : undefined}>One</span>
+            House<span className={light ? "text-sidebar-accent" : "text-primary"}>One</span>
           </p>
           {showTagline && (
             <p className={cn("text-xs", light ? "text-sidebar-foreground/70" : "text-muted")}>{APP_TAGLINE}</p>

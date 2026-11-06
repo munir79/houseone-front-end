@@ -20,7 +20,7 @@ const Select = ({ id, label, error, options, placeholder, compact = false, class
         aria-invalid={Boolean(error)}
         aria-describedby={error ? errorId : undefined}
         className={cn(
-          "min-h-11 w-full rounded-lg border bg-surface px-3 text-base text-foreground transition-colors outline-none",
+          "min-h-11 w-full rounded-xl border bg-surface px-3 text-base text-foreground transition-colors outline-none",
           "focus:ring-2 focus:ring-primary-soft",
           compact && "md:min-h-9 md:text-sm",
           error ? "border-danger" : "border-border focus:border-primary"

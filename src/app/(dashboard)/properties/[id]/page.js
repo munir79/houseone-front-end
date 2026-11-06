@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, Building2, Image as ImageIcon, Layers, MapPin, Pencil, ReceiptText, SearchX, Trash2 } from "lucide-react";
+import { ArrowLeft, Building2, DoorOpen, Image as ImageIcon, KeyRound, Layers, LayoutGrid, MapPin, Pencil, ReceiptText, SearchX, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import ContactList from "@/components/property/ContactList";
 import PropertyFormModal from "@/components/property/PropertyFormModal";
@@ -108,10 +108,10 @@ const PropertyDetailsPage = () => {
 
       <StatStrip
         items={[
-          { key: "units", label: "Total Units", value: property.unitCount },
-          { key: "occupied", label: "Occupied", value: occupied, hint: `${occupancy}%` },
-          { key: "vacant", label: "Vacant", value: property.vacantCount },
-          { key: "floors", label: "Floors", value: property.totalFloors },
+          { key: "units", label: "Total Units", value: property.unitCount, icon: LayoutGrid },
+          { key: "occupied", label: "Occupied", value: occupied, hint: `${occupancy}%`, icon: KeyRound, tone: "blue" },
+          { key: "vacant", label: "Vacant", value: property.vacantCount, icon: DoorOpen, tone: "amber" },
+          { key: "floors", label: "Floors", value: property.totalFloors, icon: Layers, tone: "violet" },
         ]}
       />
 

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, DoorOpen, Pencil, SearchX, Trash2 } from "lucide-react";
+import { ArrowLeft, Banknote, Bath, BedDouble, DoorOpen, Layers, Pencil, SearchX, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import UnitTenantPanel from "@/components/tenant/UnitTenantPanel";
 import UnitFormModal from "@/components/unit/UnitFormModal";
@@ -104,10 +104,10 @@ const UnitDetailsPage = () => {
 
       <StatStrip
         items={[
-          { key: "rent", label: "Monthly rent", value: formatMoney(unit.rent) },
-          { key: "floor", label: "Floor", value: floorName(unit.floor) },
-          { key: "bedrooms", label: "Bedrooms", value: unit.bedrooms ?? "—" },
-          { key: "bathrooms", label: "Bathrooms", value: unit.bathrooms ?? "—" },
+          { key: "rent", label: "Monthly rent", value: formatMoney(unit.rent), icon: Banknote },
+          { key: "floor", label: "Floor", value: floorName(unit.floor), icon: Layers, tone: "violet" },
+          { key: "bedrooms", label: "Bedrooms", value: unit.bedrooms ?? "—", icon: BedDouble, tone: "blue" },
+          { key: "bathrooms", label: "Bathrooms", value: unit.bathrooms ?? "—", icon: Bath, tone: "amber" },
         ]}
       />
 

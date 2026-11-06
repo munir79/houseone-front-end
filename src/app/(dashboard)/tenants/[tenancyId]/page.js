@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { ArrowLeft, CalendarClock, KeyRound, LogOut, MessageCircle, Pencil, Phone, SearchX, User } from "lucide-react";
+import { ArrowLeft, Banknote, CalendarClock, CalendarDays, Clock, KeyRound, LogOut, MessageCircle, Pencil, Phone, SearchX, User, Users } from "lucide-react";
 import { toast } from "sonner";
 import DateActionModal from "@/components/tenant/DateActionModal";
 import DocumentsPanel from "@/components/tenant/DocumentsPanel";
@@ -168,10 +168,10 @@ const TenancyDetailsPage = () => {
 
       <StatStrip
         items={[
-          { key: "rent", label: "Monthly rent", value: formatMoney(tenancy.rent) },
-          { key: "dueDay", label: "Rent day", value: `Day ${tenancy.dueDay}` },
-          { key: "stay", label: "Staying for", value: formatStay(tenancy.startDate, tenancy.endDate) },
-          { key: "people", label: "People", value: tenancy.peopleCount },
+          { key: "rent", label: "Monthly rent", value: formatMoney(tenancy.rent), icon: Banknote },
+          { key: "dueDay", label: "Rent day", value: `Day ${tenancy.dueDay}`, icon: CalendarDays, tone: "blue" },
+          { key: "stay", label: "Staying for", value: formatStay(tenancy.startDate, tenancy.endDate), icon: Clock, tone: "amber" },
+          { key: "people", label: "People", value: tenancy.peopleCount, icon: Users, tone: "violet" },
         ]}
       />
 

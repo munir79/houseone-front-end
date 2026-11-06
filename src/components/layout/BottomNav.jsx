@@ -19,11 +19,13 @@ const BottomNav = () => {
             href={href}
             aria-current={isActive ? "page" : undefined}
             className={cn(
-              "flex min-h-14 flex-1 flex-col items-center justify-center gap-0.5 text-xs font-medium",
+              "flex min-h-16 flex-1 flex-col items-center justify-center gap-0.5 text-xs font-semibold",
               isActive ? "text-primary" : "text-muted"
             )}
           >
-            <Icon className="h-5 w-5" aria-hidden="true" />
+            <span className={cn("flex h-7 w-12 items-center justify-center rounded-full", isActive && "bg-primary-soft")}>
+              <Icon className="h-5 w-5" aria-hidden="true" />
+            </span>
             {label}
           </Link>
         );

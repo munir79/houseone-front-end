@@ -3,6 +3,7 @@ import { cn } from "@/lib/cn";
 
 const variants = {
   primary: "bg-primary text-primary-foreground hover:bg-primary-hover",
+  accent: "bg-linear-to-r from-accent to-accent-strong text-accent-foreground hover:opacity-90",
   secondary: "bg-primary-soft text-primary hover:bg-border",
   outline: "border border-border bg-surface text-foreground shadow-card hover:bg-background",
   ghost: "text-foreground hover:bg-primary-soft",
@@ -19,7 +20,7 @@ const sizes = {
 // LinkButton ও একই Style ব্যবহার করে
 export const buttonClasses = ({ variant = "primary", size = "md", fullWidth = false, className } = {}) =>
   cn(
-    "inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors",
+    "inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition-colors",
     "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
     "disabled:cursor-not-allowed disabled:opacity-60",
     variants[variant],

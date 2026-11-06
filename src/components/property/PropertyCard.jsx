@@ -1,12 +1,13 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Building2, MapPin } from "lucide-react";
+import Badge from "@/components/ui/Badge";
 import Card from "@/components/ui/Card";
 import { cloudinaryLoader } from "@/lib/cloudinaryLoader";
 
 const Metric = ({ value, label }) => (
   <div className="px-3 py-2.5 text-center">
-    <p className="text-sm font-semibold tabular-nums">{value}</p>
+    <p className="text-base font-bold tabular-nums">{value}</p>
     <p className="text-xs text-muted">{label}</p>
   </div>
 );
@@ -15,7 +16,7 @@ const PropertyCard = ({ property }) => {
   const { unitCount, vacantCount } = property;
 
   return (
-    <Link href={`/properties/${property._id}`} className="group block rounded-xl focus-visible:outline-2 focus-visible:outline-primary">
+    <Link href={`/properties/${property._id}`} className="group block rounded-2xl focus-visible:outline-2 focus-visible:outline-primary">
       <Card flush className="flex h-full flex-col overflow-hidden transition-shadow group-hover:shadow-md">
         <div className="relative flex aspect-[16/9] items-center justify-center bg-primary-soft">
           {property.photos?.[0] ? (
@@ -28,12 +29,17 @@ const PropertyCard = ({ property }) => {
               className="object-cover"
             />
           ) : (
-            <Building2 className="h-8 w-8 text-muted" strokeWidth={1.5} aria-hidden="true" />
+            <Building2 className="h-8 w-8 text-primary" strokeWidth={1.5} aria-hidden="true" />
+          )}
+          {unitCount > 0 && (
+            <Badge variant={vacantCount > 0 ? "warning" : "success"} className="absolute top-2.5 left-2.5 shadow-card">
+              {vacantCount > 0 ? `${vacantCount} Vacant` : "Fully Rented"}
+            </Badge>
           )}
         </div>
 
         <div className="min-w-0 flex-1 px-4 py-3">
-          <h2 className="truncate text-[15px] font-semibold">{property.name}</h2>
+          <h2 className="truncate text-base font-bold">{property.name}</h2>
           <p className="mt-0.5 flex items-center gap-1 text-sm text-muted">
             <MapPin className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
             <span className="truncate">

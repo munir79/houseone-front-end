@@ -1,4 +1,5 @@
 import { CheckCircle2 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import GuestGuard from "@/components/auth/GuestGuard";
 import Card from "@/components/ui/Card";
@@ -10,7 +11,10 @@ export default function AuthLayout({ children }) {
   return (
     <GuestGuard>
       <div className="flex min-h-screen">
-        <aside className="hidden w-5/12 flex-col justify-between bg-linear-to-b from-sidebar to-sidebar-end p-10 lg:flex">
+        <aside className="relative isolate hidden w-5/12 flex-col justify-between overflow-hidden bg-sidebar p-10 lg:flex">
+          <Image src="/images/dashboard/sidenavbar.jpg" alt="" fill priority sizes="42vw" className="-z-20 object-cover object-bottom" />
+          <div className="absolute inset-0 -z-10 bg-linear-to-b from-sidebar via-sidebar/70 to-transparent" />
+
           <Link href="/" className="w-fit">
             <Logo showTagline light />
           </Link>
@@ -22,7 +26,7 @@ export default function AuthLayout({ children }) {
             <ul className="mt-6 flex flex-col gap-3">
               {highlights.map((item) => (
                 <li key={item} className="flex items-center gap-2.5 text-sidebar-foreground/90">
-                  <CheckCircle2 className="h-5 w-5 shrink-0" aria-hidden="true" />
+                  <CheckCircle2 className="h-5 w-5 shrink-0 text-sidebar-accent" aria-hidden="true" />
                   {item}
                 </li>
               ))}

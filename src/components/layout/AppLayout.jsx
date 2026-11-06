@@ -65,7 +65,7 @@ const AppLayout = ({ children }) => {
       <RealtimeSync />
       <div className="min-h-screen">
         <Sidebar isCollapsed={isCollapsed} />
-        <div className={cn("pb-20 transition-[padding] duration-200 md:pb-6", isCollapsed ? "md:pl-20" : "md:pl-64")}>
+        <div className={cn("pb-22 transition-[padding] duration-200 md:pb-6", isCollapsed ? "md:pl-20" : "md:pl-68")}>
           <Topbar user={data.data} onLogout={handleLogout} isCollapsed={isCollapsed} onToggleSidebar={toggleSidebar} />
           <main className="px-4 py-4 md:px-6">{children}</main>
         </div>

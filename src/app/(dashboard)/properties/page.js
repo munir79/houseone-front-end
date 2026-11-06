@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Building2, Plus, Search, SearchX, WifiOff } from "lucide-react";
+import { Building2, DoorOpen, KeyRound, LayoutGrid, Plus, Search, SearchX, WifiOff } from "lucide-react";
 import PropertyCard from "@/components/property/PropertyCard";
 import PropertyFormModal from "@/components/property/PropertyFormModal";
 import Button from "@/components/ui/Button";
@@ -101,16 +101,16 @@ const PropertiesPage = () => {
       <StatStrip
         isLoading={isSummaryLoading}
         items={[
-          { key: "houses", label: "Total Houses", value: summary?.houses },
-          { key: "units", label: "Total Units", value: summary?.units },
-          { key: "occupied", label: "Occupied", value: summary?.occupied, hint: `${occupancy}%` },
-          { key: "vacant", label: "Vacant", value: summary?.vacant },
+          { key: "houses", label: "Total Houses", value: summary?.houses, icon: Building2 },
+          { key: "units", label: "Total Units", value: summary?.units, icon: LayoutGrid, tone: "violet" },
+          { key: "occupied", label: "Occupied", value: summary?.occupied, hint: `${occupancy}%`, icon: KeyRound, tone: "blue" },
+          { key: "vacant", label: "Vacant", value: summary?.vacant, icon: DoorOpen, tone: "amber" },
         ]}
       />
 
       <div className="flex flex-col gap-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-sm font-semibold">
+          <h2 className="text-lg font-bold">
             All houses {meta && <span className="font-normal text-muted tabular-nums">{meta.total}</span>}
           </h2>
           <Input

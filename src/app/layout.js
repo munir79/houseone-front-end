@@ -17,6 +17,8 @@ const bangla = localFont({
   variable: "--font-bangla",
   weight: "100 900",
   display: "swap",
+  // একই মাপে বাংলা ইংরেজির চেয়ে ছোট দেখায়
+  declarations: [{ prop: "size-adjust", value: "108%" }],
 });
 
 export const metadata = {
