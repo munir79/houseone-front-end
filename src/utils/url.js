@@ -51,5 +51,15 @@ export const TENANCY_NOTICE = (id) => API_BASE_URL + `tenancy/${id}/notice`;
 export const TENANCY_END = (id) => API_BASE_URL + `tenancy/${id}/end`;
 export const UNIT_TENANCIES = (id) => API_BASE_URL + `unit/${id}/tenancies`;
 
+// Tenant Form
+export const TENANT_FORMS = API_BASE_URL + 'tenant-form';
+export const TENANT_FORM_BY_ID = (id) => API_BASE_URL + `tenant-form/${id}`;
+export const TENANT_FORM_BY_UNIT = (unitId) => API_BASE_URL + `tenant-form/unit/${unitId}`;
+export const TENANT_FORM_ACTION = (id, action) => API_BASE_URL + `tenant-form/${id}/${action}`;
+export const FORM_SETTINGS = (propertyId) => API_BASE_URL + `property/${propertyId}/form-settings`;
+export const PUBLIC_FORM = (token) => API_BASE_URL + `public/tenant-form/${token}`;
+export const PUBLIC_FORM_SIGNATURE = (token) => API_BASE_URL + `public/tenant-form/${token}/signature`;
+export const PUBLIC_FORM_SUBMIT = (token) => API_BASE_URL + `public/tenant-form/${token}/submit`;
+
 // Socket
 export const socketUri = baseUriBackend;

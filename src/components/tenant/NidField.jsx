@@ -4,14 +4,12 @@ import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/lib/getErrorMessage";
-import { useRevealNidMutation } from "@/redux/features/tenancy/tenancyApi";
 
 // পুরো NID শুধু চাপলে দেখায়, আর দেখার রেকর্ড Log এ থাকে
-const NidField = ({ tenant }) => {
+const NidField = ({ last4, isLoading, onReveal }) => {
   const [fullNid, setFullNid] = useState("");
-  const [revealNid, { isLoading }] = useRevealNidMutation();
 
-  if (!tenant.nidLast4) return <p className="text-sm text-muted">দেওয়া হয়নি</p>;
+  if (!last4) return <p className="text-sm text-muted">দেওয়া হয়নি</p>;
 
   const handleToggle = async () => {
     if (fullNid) {
@@ -20,7 +18,7 @@ const NidField = ({ tenant }) => {
     }
 
     try {
-      const response = await revealNid(tenant._id).unwrap();
+      const response = await onReveal();
       setFullNid(response.data.nid);
     } catch (err) {
       toast.error(getErrorMessage(err, "NID দেখানো যায়নি।"));
@@ -29,7 +27,7 @@ const NidField = ({ tenant }) => {
 
   return (
     <div className="flex items-center gap-1">
-      <span className="text-sm font-medium tabular-nums">{fullNid || `•••••••${tenant.nidLast4}`}</span>
+      <span className="text-sm font-medium tabular-nums">{fullNid || `•••••••${last4}`}</span>
       <button
         type="button"
         onClick={handleToggle}

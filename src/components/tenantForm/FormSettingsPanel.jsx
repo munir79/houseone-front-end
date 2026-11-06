@@ -1,0 +1,128 @@
+"use client";
+
+import { useState } from "react";
+import { Plus, X } from "lucide-react";
+import { toast } from "sonner";
+import Button from "@/components/ui/Button";
+import Card from "@/components/ui/Card";
+import Input from "@/components/ui/Input";
+import SegmentedControl from "@/components/ui/SegmentedControl";
+import Select from "@/components/ui/Select";
+import Skeleton from "@/components/ui/Skeleton";
+import { getErrorMessage } from "@/lib/getErrorMessage";
+import { FIELD_STATE_OPTIONS, FORM_FIELDS } from "@/lib/tenantFormOptions";
+import { useGetFormSettingsQuery, useUpdateFormSettingsMutation } from "@/redux/features/tenantForm/tenantFormApi";
+
+const TYPES = ["Family", "Bachelor", "Office"];
+const MAX_QUESTIONS = 5;
+
+const SettingsEditor = ({ propertyId, initial }) => {
+  const [types, setTypes] = useState(initial);
+  const [type, setType] = useState("Family");
+  const [updateSettings, { isLoading }] = useUpdateFormSettingsMutation();
+
+  const current = types[type];
+
+  const change = (update) => setTypes((prev) => ({ ...prev, [type]: { ...prev[type], ...update } }));
+
+  const handleSave = async () => {
+    // তিন ধরনই একসাথে সেভ হয়, তাই যে ধরনে ভুল সেটাই সামনে আনা হয়
+    const invalidType = TYPES.find((item) => types[item].maxMembers === "" || types[item].questions.some((question) => !question.trim()));
+    if (invalidType) {
+      setType(invalidType);
+      toast.error(`${invalidType}: সদস্য সংখ্যা দিন, আর খালি প্রশ্ন লিখুন বা মুছে দিন`);
+      return;
+    }
+
+    try {
+      await updateSettings({ propertyId, types }).unwrap();
+      toast.success("ফর্মের সেটিং সেভ হয়েছে");
+    } catch (err) {
+      toast.error(getErrorMessage(err, "সেভ হয়নি। আবার চেষ্টা করুন।"));
+    }
+  };
+
+  return (
+    <Card flush className="overflow-hidden">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border p-3 sm:p-4">
+        <SegmentedControl label="Tenant type" options={TYPES} value={type} onChange={setType} />
+        <Button size="sm" isLoading={isLoading} onClick={handleSave}>
+          Save Settings
+        </Button>
+      </div>
+
+      <div className="flex flex-col gap-5 p-4 sm:p-5">
+        <p className="text-sm text-muted">ভাড়াটিয়া কোন তথ্য দেবেন ঠিক করুন। নাম ও মোবাইল সবসময় লাগবে। Off করলে সেই ঘর ফর্মে দেখাবে না।</p>
+
+        <Input
+          id="maxMembers"
+          type="number"
+          inputMode="numeric"
+          min="0"
+          max="30"
+          label="Maximum members"
+          value={current.maxMembers}
+          onChange={(e) => change({ maxMembers: e.target.value === "" ? "" : Number(e.target.value) })}
+          className="max-w-40"
+        />
+
+        <div className="grid gap-x-6 gap-y-3 md:grid-cols-2">
+          {FORM_FIELDS.map(({ key, label }) => (
+            <div key={key} className="flex items-center justify-between gap-3">
+              <span className="min-w-0 text-sm">{label}</span>
+              <Select
+                id={`field-${key}`}
+                compact
+                aria-label={label}
+                options={FIELD_STATE_OPTIONS}
+                value={current.fields[key]}
+                onChange={(e) => change({ fields: { ...current.fields, [key]: e.target.value } })}
+                className="w-32 shrink-0"
+              />
+            </div>
+          ))}
+        </div>
+
+        <div className="flex flex-col gap-2 border-t border-border pt-4">
+          <p className="text-sm font-medium">নিজের প্রশ্ন</p>
+          {current.questions.map((question, index) => (
+            <div key={index} className="flex items-center gap-2">
+              <Input
+                id={`question-${index}`}
+                aria-label={`Question ${index + 1}`}
+                placeholder="যেমন: গ্রামের বাড়ির থানা"
+                value={question}
+                onChange={(e) => change({ questions: current.questions.map((item, itemIndex) => (itemIndex === index ? e.target.value : item)) })}
+                className="min-w-0 flex-1"
+              />
+              <button
+                type="button"
+                onClick={() => change({ questions: current.questions.filter((_, itemIndex) => itemIndex !== index) })}
+                aria-label={`Remove question ${index + 1}`}
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-muted hover:bg-primary-soft"
+              >
+                <X className="h-4 w-4" aria-hidden="true" />
+              </button>
+            </div>
+          ))}
+          {current.questions.length < MAX_QUESTIONS && (
+            <Button variant="outline" size="sm" onClick={() => change({ questions: [...current.questions, ""] })} className="w-fit">
+              <Plus className="h-4 w-4" aria-hidden="true" />
+              Add Question
+            </Button>
+          )}
+        </div>
+      </div>
+    </Card>
+  );
+};
+
+const FormSettingsPanel = ({ propertyId }) => {
+  const { data, isLoading } = useGetFormSettingsQuery(propertyId);
+
+  if (isLoading || !data) return <Skeleton className="h-64 w-full rounded-xl" />;
+
+  return <SettingsEditor propertyId={propertyId} initial={data.data} />;
+};
+
+export default FormSettingsPanel;

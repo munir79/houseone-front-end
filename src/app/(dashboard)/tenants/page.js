@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { CalendarClock, ChevronRight, Search, SearchX, Users, WifiOff } from "lucide-react";
+import { CalendarClock, ChevronRight, FileText, Search, SearchX, Users, WifiOff } from "lucide-react";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
@@ -18,7 +18,9 @@ import StatStrip from "@/components/ui/StatStrip";
 import { formatMoney } from "@/lib/formatMoney";
 import { getErrorMessage } from "@/lib/getErrorMessage";
 import { OCCUPANT_TYPE_OPTIONS, formatDate } from "@/lib/tenancyOptions";
+import { FORM_STATUS } from "@/lib/tenantFormOptions";
 import { useGetTenanciesQuery, useGetTenancySummaryQuery } from "@/redux/features/tenancy/tenancyApi";
+import { useGetOpenFormsQuery } from "@/redux/features/tenantForm/tenantFormApi";
 
 const SEARCH_DEBOUNCE_MS = 350;
 const CURRENT = "Current";
@@ -80,11 +82,13 @@ const TenantsPage = () => {
     status: view === CURRENT ? "Active" : "Ended",
   });
   const { data: summaryData, isLoading: isSummaryLoading } = useGetTenancySummaryQuery();
+  const { data: formsData } = useGetOpenFormsQuery();
 
   const tenancies = data?.data?.data || [];
   const meta = data?.data?.meta;
   const summary = summaryData?.data;
   const leavingSoon = summary?.leavingSoon || [];
+  const openForms = formsData?.data || [];
   const isFiltered = Boolean(search || occupantType);
 
   return (
@@ -102,6 +106,30 @@ const TenantsPage = () => {
           { key: "office", label: "Office", value: summary?.office },
         ]}
       />
+
+      {openForms.length > 0 && (
+        <Card flush className="overflow-hidden">
+          <div className="flex items-center gap-2 border-b border-border px-4 py-3">
+            <FileText className="h-4 w-4 text-muted" aria-hidden="true" />
+            <h2 className="text-sm font-semibold">Tenant forms</h2>
+          </div>
+          <ul className="divide-y divide-border">
+            {openForms.map((form) => (
+              <li key={form._id}>
+                <Link href={`/tenants/forms/${form._id}`} className="flex items-center justify-between gap-3 px-4 py-2.5 hover:bg-background">
+                  <span className="min-w-0">
+                    <span className="block text-sm wrap-break-word">{form.name || form.unitName}</span>
+                    <span className="block text-xs text-muted">
+                      {form.unitName}, {form.propertyName}
+                    </span>
+                  </span>
+                  <Badge variant={FORM_STATUS[form.status].variant}>{FORM_STATUS[form.status].label}</Badge>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
 
       {leavingSoon.length > 0 && (
         <Card flush className="overflow-hidden">

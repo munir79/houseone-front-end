@@ -7,16 +7,18 @@ import { ChevronRight } from "lucide-react";
 import { isNavActive, navItems } from "@/lib/navigation";
 import { useGetPropertyQuery } from "@/redux/features/property/propertyApi";
 import { useGetTenancyQuery } from "@/redux/features/tenancy/tenancyApi";
+import { useGetTenantFormQuery } from "@/redux/features/tenantForm/tenantFormApi";
 import { useGetUnitQuery } from "@/redux/features/unit/unitApi";
 
 // Page এর নিজের Query ই ব্যবহার করে, তাই আলাদা Request যায় না
 const Breadcrumbs = () => {
   const pathname = usePathname();
-  const { id, unitId, tenancyId } = useParams();
+  const { id, unitId, tenancyId, formId } = useParams();
 
   const { data: property } = useGetPropertyQuery(id, { skip: !id });
   const { data: unit } = useGetUnitQuery(unitId, { skip: !unitId });
   const { data: tenancy } = useGetTenancyQuery(tenancyId, { skip: !tenancyId });
+  const { data: form } = useGetTenantFormQuery(formId, { skip: !formId });
 
   const page = navItems.find(({ href }) => isNavActive(pathname, href));
 
@@ -25,6 +27,7 @@ const Breadcrumbs = () => {
     id && { label: property?.data?.name, href: `/properties/${id}` },
     unitId && { label: unit?.data?.name },
     tenancyId && { label: tenancy?.data?.tenantName },
+    formId && { label: form?.data?.name || form?.data?.unitName },
   ].filter((crumb) => crumb?.label);
 
   return (

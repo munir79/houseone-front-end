@@ -28,6 +28,7 @@ import {
   useEndTenancyMutation,
   useGetTenancyQuery,
   useGiveNoticeMutation,
+  useRevealNidMutation,
 } from "@/redux/features/tenancy/tenancyApi";
 
 const MEMBER_FIELDS = [
@@ -60,6 +61,7 @@ const TenancyDetailsPage = () => {
   const [giveNotice, { isLoading: isSavingNotice }] = useGiveNoticeMutation();
   const [cancelNotice, { isLoading: isCancelling }] = useCancelNoticeMutation();
   const [endTenancy, { isLoading: isEnding }] = useEndTenancyMutation();
+  const [revealNid, { isLoading: isRevealing }] = useRevealNidMutation();
 
   const tenancy = data?.data;
 
@@ -209,11 +211,15 @@ const TenancyDetailsPage = () => {
               <div className="min-w-0">
                 <dt className="text-xs text-muted">NID</dt>
                 <dd>
-                  <NidField tenant={tenant} />
+                  <NidField last4={tenant.nidLast4} isLoading={isRevealing} onReveal={() => revealNid(tenant._id).unwrap()} />
                 </dd>
               </div>
               <InfoRow label="Occupation">{tenant.occupation}</InfoRow>
               <InfoRow label="Email">{tenant.email}</InfoRow>
+              {tenant.workplace && <InfoRow label="Workplace">{tenant.workplace}</InfoRow>}
+              {tenant.companyName && <InfoRow label="Company">{tenant.companyName}</InfoRow>}
+              {tenant.previousAddress && <InfoRow label="Previous address">{tenant.previousAddress}</InfoRow>}
+              {tenant.formAnswers?.map(({ question, answer }) => answer && <InfoRow key={question} label={question}>{answer}</InfoRow>)}
               <InfoRow label="Permanent address">{tenant.permanentAddress}</InfoRow>
               <InfoRow label="Emergency contact">{[tenant.emergencyName, tenant.emergencyPhone].filter(Boolean).join(", ")}</InfoRow>
               <InfoRow label="Moved in">{formatDate(tenancy.startDate)}</InfoRow>

@@ -7,6 +7,7 @@ import { ArrowLeft, Building2, Image as ImageIcon, Layers, MapPin, Pencil, Recei
 import { toast } from "sonner";
 import ContactList from "@/components/property/ContactList";
 import PropertyFormModal from "@/components/property/PropertyFormModal";
+import FormSettingsPanel from "@/components/tenantForm/FormSettingsPanel";
 import UnitList from "@/components/unit/UnitList";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
@@ -123,6 +124,7 @@ const PropertyDetailsPage = () => {
             { value: "units", label: "Units", count: property.unitCount },
             { value: "photos", label: "Photos", count: property.photos?.length || 0 },
             { value: "contacts", label: "Contacts" },
+            { value: "form", label: "Tenant Form" },
             { value: "details", label: "Details" },
           ]}
         />
@@ -147,6 +149,7 @@ const PropertyDetailsPage = () => {
           </Card>
         )}
         {activeTab === "contacts" && <ContactList propertyId={id} />}
+        {activeTab === "form" && <FormSettingsPanel propertyId={id} />}
         {activeTab === "details" && (
           <Card>
             <dl className="grid gap-4 sm:grid-cols-2">

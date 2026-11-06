@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ChevronRight, UserPlus, Users } from "lucide-react";
+import { ChevronRight, FileText, Send, UserPlus, Users } from "lucide-react";
 import AddTenantModal from "./AddTenantModal";
+import SendFormModal from "@/components/tenantForm/SendFormModal";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
@@ -11,7 +12,9 @@ import EmptyState from "@/components/ui/EmptyState";
 import Skeleton from "@/components/ui/Skeleton";
 import { formatMoney } from "@/lib/formatMoney";
 import { formatDate, formatStay } from "@/lib/tenancyOptions";
+import { FORM_STATUS } from "@/lib/tenantFormOptions";
 import { useGetUnitTenanciesQuery } from "@/redux/features/tenancy/tenancyApi";
+import { useGetUnitFormQuery } from "@/redux/features/tenantForm/tenantFormApi";
 
 const TenancyRow = ({ tenancy }) => (
   <li>
@@ -33,16 +36,27 @@ const TenancyRow = ({ tenancy }) => (
 
 const UnitTenantPanel = ({ unit }) => {
   const [isAddOpen, setIsAddOpen] = useState(false);
+  const [isSendOpen, setIsSendOpen] = useState(false);
   const { data, isLoading } = useGetUnitTenanciesQuery(unit._id);
+  const { data: formData } = useGetUnitFormQuery(unit._id);
 
   const tenancies = data?.data || [];
   const hasActive = tenancies.some(({ status }) => status === "Active");
+  const openForm = formData?.data;
 
   const addButton = (
-    <Button size="sm" onClick={() => setIsAddOpen(true)}>
-      <UserPlus className="h-4 w-4" aria-hidden="true" />
-      Add Tenant
-    </Button>
+    <div className="flex flex-wrap justify-center gap-2">
+      {!openForm && (
+        <Button variant="outline" size="sm" onClick={() => setIsSendOpen(true)}>
+          <Send className="h-4 w-4" aria-hidden="true" />
+          Send Form
+        </Button>
+      )}
+      <Button size="sm" onClick={() => setIsAddOpen(true)}>
+        <UserPlus className="h-4 w-4" aria-hidden="true" />
+        Add Tenant
+      </Button>
+    </div>
   );
 
   return (
@@ -52,12 +66,25 @@ const UnitTenantPanel = ({ unit }) => {
         {!hasActive && tenancies.length > 0 && addButton}
       </div>
 
+      {openForm && (
+        <Link href={`/tenants/forms/${openForm._id}`} className="flex items-center justify-between gap-3 border-b border-border bg-background px-4 py-3">
+          <span className="flex min-w-0 items-center gap-2 text-sm font-medium">
+            <FileText className="h-4 w-4 shrink-0 text-muted" aria-hidden="true" />
+            <span className="truncate">{openForm.name || "Tenant form"}</span>
+          </span>
+          <span className="flex shrink-0 items-center gap-2">
+            <Badge variant={FORM_STATUS[openForm.status].variant}>{FORM_STATUS[openForm.status].label}</Badge>
+            <ChevronRight className="h-4 w-4 text-muted" aria-hidden="true" />
+          </span>
+        </Link>
+      )}
+
       {isLoading ? (
         <div className="p-4">
           <Skeleton className="h-12 w-full" />
         </div>
       ) : tenancies.length === 0 ? (
-        <EmptyState icon={Users} title="No tenant yet" description="ভাড়াটিয়া যোগ করলে এই ইউনিট নিজে থেকেই Occupied হবে।" action={addButton} />
+        <EmptyState icon={Users} title="No tenant yet" description="নিজে যোগ করুন, অথবা ফর্ম পাঠান, ভাড়াটিয়া নিজেই তথ্য দেবেন।" action={addButton} />
       ) : (
         <ul className="divide-y divide-border">
           {tenancies.map((tenancy) => (
@@ -67,6 +94,7 @@ const UnitTenantPanel = ({ unit }) => {
       )}
 
       {isAddOpen && <AddTenantModal unit={unit} onClose={() => setIsAddOpen(false)} />}
+      {isSendOpen && <SendFormModal unit={unit} onClose={() => setIsSendOpen(false)} />}
     </Card>
   );
 };
