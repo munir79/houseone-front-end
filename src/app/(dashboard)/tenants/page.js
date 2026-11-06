@@ -29,7 +29,7 @@ const FORMER = "Former";
 
 const TYPE_FILTERS = [{ value: "", label: "All types" }, ...OCCUPANT_TYPE_OPTIONS];
 
-const ROW_COLUMNS = "md:grid md:grid-cols-[minmax(0,2fr)_minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_20px] md:gap-4";
+const ROW_COLUMNS = "xl:grid xl:grid-cols-[minmax(0,2fr)_minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_20px] xl:gap-4";
 
 const TenantRow = ({ tenancy }) => (
   <li>
@@ -44,17 +44,17 @@ const TenantRow = ({ tenancy }) => (
           {tenancy.tenantPhone}
           {tenancy.peopleCount > 1 && ` · মোট ${toBanglaNumber(tenancy.peopleCount)} জন`}
         </span>
-        <span className="block text-xs text-muted md:hidden">
+        <span className="block text-xs text-muted xl:hidden">
           {tenancy.unitName}, {tenancy.propertyName}
         </span>
         </span>
       </span>
-      <span className="hidden min-w-0 md:block">
+      <span className="hidden min-w-0 xl:block">
         <span className="block truncate text-sm">{tenancy.unitName}</span>
         <span className="block truncate text-xs text-muted">{tenancy.propertyName}</span>
       </span>
-      <span className="hidden text-sm text-muted md:block">{tenancy.occupantType}</span>
-      <span className="hidden text-sm tabular-nums md:block">{formatMoney(tenancy.rent)}</span>
+      <span className="hidden text-sm text-muted xl:block">{tenancy.occupantType}</span>
+      <span className="hidden text-sm tabular-nums xl:block">{formatMoney(tenancy.rent)}</span>
       <span className="shrink-0">
         {tenancy.notice ? (
           <Badge variant="warning">Leaving</Badge>
@@ -64,7 +64,7 @@ const TenantRow = ({ tenancy }) => (
           <Badge variant="success">Active</Badge>
         )}
       </span>
-      <ChevronRight className="hidden h-4 w-4 text-muted md:block" aria-hidden="true" />
+      <ChevronRight className="hidden h-4 w-4 text-muted xl:block" aria-hidden="true" />
     </Link>
   </li>
 );

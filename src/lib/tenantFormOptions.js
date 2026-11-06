@@ -31,9 +31,9 @@ export const GENDERS = [
 ];
 
 export const FORM_STATUS = {
-  Sent: { label: "Waiting for tenant", variant: "info" },
+  Sent: { label: "Form sent", variant: "info" },
   SentBack: { label: "Sent back", variant: "warning" },
-  Submitted: { label: "Ready to review", variant: "success" },
+  Submitted: { label: "Needs approval", variant: "success" },
   Approved: { label: "Approved", variant: "primary" },
   Cancelled: { label: "Cancelled", variant: "primary" },
 };

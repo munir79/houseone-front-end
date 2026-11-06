@@ -1,7 +1,7 @@
 import Skeleton from "./Skeleton";
 import { cn } from "@/lib/cn";
 
-const COLUMNS = { 4: "lg:grid-cols-4", 6: "lg:grid-cols-3 2xl:grid-cols-6" };
+const COLUMNS = { 4: "xl:grid-cols-4", 6: "lg:grid-cols-3 2xl:grid-cols-6" };
 
 const TONES = {
   green: "bg-primary text-primary-foreground",

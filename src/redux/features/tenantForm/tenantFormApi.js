@@ -50,7 +50,7 @@ export const tenantFormApi = apiSlice.injectEndpoints({
     //6. CREATE LINK
     createTenantForm: builder.mutation({
       query: (body) => ({ url: TENANT_FORMS, method: 'POST', body }),
-      invalidatesTags: ["TenantForm"],
+      invalidatesTags: CHANGED_TAGS,
     }),
 
     //7. SEND BACK, EXTEND, CANCEL

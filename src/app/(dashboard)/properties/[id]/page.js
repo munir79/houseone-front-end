@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, Building2, DoorOpen, Image as ImageIcon, KeyRound, Layers, LayoutGrid, MapPin, Pencil, ReceiptText, SearchX, Trash2 } from "lucide-react";
+import { ArrowLeft, BellRing, Building2, DoorOpen, Image as ImageIcon, KeyRound, Layers, LayoutGrid, MapPin, Pencil, ReceiptText, SearchX, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import ContactList from "@/components/property/ContactList";
 import PropertyFormModal from "@/components/property/PropertyFormModal";
@@ -20,7 +20,9 @@ import Skeleton from "@/components/ui/Skeleton";
 import StatStrip from "@/components/ui/StatStrip";
 import Tabs from "@/components/ui/Tabs";
 import { getErrorMessage } from "@/lib/getErrorMessage";
+import { unitActivity } from "@/lib/unitActivity";
 import { useDeletePropertyMutation, useGetPropertyQuery } from "@/redux/features/property/propertyApi";
+import { useGetPropertyUnitsQuery } from "@/redux/features/unit/unitApi";
 
 const DetailRow = ({ icon: Icon, label, value }) => (
   <div className="flex gap-3">
@@ -40,6 +42,7 @@ const PropertyDetailsPage = () => {
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
   const { data, error, isLoading } = useGetPropertyQuery(id);
+  const { data: unitsData } = useGetPropertyUnitsQuery(id);
   const [deleteProperty, { isLoading: isDeleting }] = useDeletePropertyMutation();
 
   const property = data?.data;
@@ -79,6 +82,7 @@ const PropertyDetailsPage = () => {
   }
 
   const occupied = property.unitCount - property.vacantCount;
+  const actionCount = (unitsData?.data || []).filter((unit) => unitActivity(unit)?.needsAction).length;
   const occupancy = property.unitCount ? Math.round((occupied / property.unitCount) * 100) : 0;
 
   return (
@@ -111,7 +115,7 @@ const PropertyDetailsPage = () => {
           { key: "units", label: "Total Units", value: property.unitCount, icon: LayoutGrid },
           { key: "occupied", label: "Occupied", value: occupied, hint: `${occupancy}%`, icon: KeyRound, tone: "blue" },
           { key: "vacant", label: "Vacant", value: property.vacantCount, icon: DoorOpen, tone: "amber" },
-          { key: "floors", label: "Floors", value: property.totalFloors, icon: Layers, tone: "violet" },
+          { key: "action", label: "Needs Action", value: actionCount, icon: BellRing, tone: "red" },
         ]}
       />
 

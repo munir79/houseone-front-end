@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Building2, CalendarClock, DoorOpen, Home, ReceiptText, UserPlus, Users, Wallet } from "lucide-react";
+import { ArrowRight, BellRing, Building2, CalendarClock, DoorOpen, Home, ReceiptText, UserPlus, Users, Wallet } from "lucide-react";
 import PropertyCard from "@/components/property/PropertyCard";
 import Card from "@/components/ui/Card";
 import EmptyState from "@/components/ui/EmptyState";
@@ -74,6 +74,40 @@ const OccupancyCard = ({ summary }) => {
           </div>
         </dl>
       </div>
+    </Card>
+  );
+};
+
+// সব বাড়ি মিলিয়ে যা করতে হবে — শূন্য হলে বাড়তি জায়গা নেয় না
+const NeedsActionCard = ({ needsAction }) => {
+  const rows = [
+    { key: "approvals", label: "Needs approval", count: needsAction.approvals },
+    { key: "sentBack", label: "Sent back", count: needsAction.sentBack },
+    { key: "expired", label: "Link expired", count: needsAction.expired },
+    { key: "leaving", label: "Leaving soon", count: needsAction.leaving },
+  ].filter(({ count }) => count > 0);
+
+  return (
+    <Card flush data-needs-action={needsAction.total} className="overflow-hidden">
+      <h2 className="flex items-center gap-2 border-b border-border px-4 py-3 text-base font-bold">
+        <BellRing className="h-5 w-5 text-danger" aria-hidden="true" />
+        Needs Action
+        <span className="ml-auto text-lg tabular-nums">{needsAction.total}</span>
+      </h2>
+      {rows.length === 0 ? (
+        <p className="px-4 py-3 text-sm text-muted">এখন আপনার কোনো কাজ বাকি নেই।</p>
+      ) : (
+        <ul className="divide-y divide-border">
+          {rows.map(({ key, label, count }) => (
+            <li key={key}>
+              <Link href="/tenants" className="flex min-h-11 items-center justify-between gap-3 px-4 py-2 text-sm font-medium hover:bg-background">
+                {label}
+                <span className="font-bold tabular-nums">{count}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
     </Card>
   );
 };
@@ -173,6 +207,7 @@ const DashboardPage = () => {
         </div>
 
         <div className="flex min-w-0 flex-col gap-4">
+          {propertySummary && <NeedsActionCard needsAction={propertySummary.needsAction} />}
           {propertySummary ? <OccupancyCard summary={propertySummary} /> : <Skeleton className="h-44 w-full rounded-2xl" />}
 
           <Card>

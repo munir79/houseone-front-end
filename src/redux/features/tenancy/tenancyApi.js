@@ -55,7 +55,7 @@ export const tenancyApi = apiSlice.injectEndpoints({
     //6. UPDATE
     updateTenancy: builder.mutation({
       query: ({ id, ...body }) => ({ url: TENANCY_BY_ID(id), method: 'PATCH', body }),
-      invalidatesTags: ["Tenancy"],
+      invalidatesTags: CHANGED_TAGS,
     }),
 
     //7. NOTICE
@@ -79,18 +79,18 @@ export const tenancyApi = apiSlice.injectEndpoints({
     //10. MEMBERS
     addMember: builder.mutation({
       query: ({ id, ...body }) => ({ url: TENANCY_MEMBERS(id), method: 'POST', body }),
-      invalidatesTags: ["Tenancy"],
+      invalidatesTags: CHANGED_TAGS,
     }),
 
     updateMember: builder.mutation({
       query: ({ id, memberId, ...body }) => ({ url: TENANCY_MEMBER(id, memberId), method: 'PATCH', body }),
-      invalidatesTags: ["Tenancy"],
+      invalidatesTags: CHANGED_TAGS,
     }),
 
     // left, returned, primary
     memberAction: builder.mutation({
       query: ({ id, memberId, action, ...body }) => ({ url: `${TENANCY_MEMBER(id, memberId)}/${action}`, method: 'POST', body }),
-      invalidatesTags: ["Tenancy"],
+      invalidatesTags: CHANGED_TAGS,
     }),
 
     revealMemberNid: builder.mutation({
@@ -110,7 +110,7 @@ export const tenancyApi = apiSlice.injectEndpoints({
     //12. UPDATE TENANT
     updateTenant: builder.mutation({
       query: ({ id, ...body }) => ({ url: TENANT_BY_ID(id), method: 'PATCH', body }),
-      invalidatesTags: ["Tenancy"],
+      invalidatesTags: CHANGED_TAGS,
     }),
 
     //13. FULL NID — Mutation, তাই Browser এর Cache এ থাকে না
