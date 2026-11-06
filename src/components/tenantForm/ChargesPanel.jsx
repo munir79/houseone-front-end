@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import TermsEditor from "./TermsEditor";
 import Button from "@/components/ui/Button";
@@ -11,9 +12,9 @@ import { getErrorMessage } from "@/lib/getErrorMessage";
 import { FORM_TYPES } from "@/lib/tenantFormOptions";
 import { useGetFormSettingsQuery, useUpdateFormSettingsMutation } from "@/redux/features/tenantForm/tenantFormApi";
 
-const ChargesEditor = ({ propertyId, initial }) => {
+const ChargesEditor = ({ propertyId, initial, initialType }) => {
   const [types, setTypes] = useState(initial);
-  const [type, setType] = useState("Family");
+  const [type, setType] = useState(initialType);
   const [updateSettings, { isLoading }] = useUpdateFormSettingsMutation();
 
   const handleSave = async () => {
@@ -52,9 +53,13 @@ const ChargesEditor = ({ propertyId, initial }) => {
 const ChargesPanel = ({ propertyId }) => {
   const { data, isFetching } = useGetFormSettingsQuery(propertyId);
 
+  // Send Form থেকে এলে যে ধরনের চার্জ বাকি, সেটাই খোলে
+  const requestedType = useSearchParams().get("type");
+  const initialType = FORM_TYPES.includes(requestedType) ? requestedType : FORM_TYPES[0];
+
   if (isFetching || !data) return <Skeleton className="h-64 w-full rounded-2xl" />;
 
-  return <ChargesEditor propertyId={propertyId} initial={data.data} />;
+  return <ChargesEditor propertyId={propertyId} initial={data.data} initialType={initialType} />;
 };
 
 export default ChargesPanel;

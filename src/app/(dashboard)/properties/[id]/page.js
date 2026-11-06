@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, BellRing, Building2, DoorOpen, Image as ImageIcon, KeyRound, Layers, LayoutGrid, MapPin, Pencil, ReceiptText, SearchX, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import ContactList from "@/components/property/ContactList";
@@ -38,7 +38,8 @@ const DetailRow = ({ icon: Icon, label, value }) => (
 const PropertyDetailsPage = () => {
   const { id } = useParams();
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState("units");
+  const searchParams = useSearchParams();
+  const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "units");
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
