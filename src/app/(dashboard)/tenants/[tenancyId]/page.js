@@ -232,6 +232,18 @@ const TenancyDetailsPage = () => {
           </Card>
         )}
 
+        {activeTab === "overview" && tenancy.rules?.length > 0 && (
+          <Card>
+            <h2 className="text-base font-bold">House rules</h2>
+            {tenancy.rulesAcceptedAt && <p className="mb-2 text-sm text-muted">{formatDate(tenancy.rulesAcceptedAt)} তারিখে সম্মতি দিয়েছেন</p>}
+            <ol className="flex list-decimal flex-col gap-1 pl-5 text-sm">
+              {tenancy.rules.map((rule, index) => (
+                <li key={index}>{rule}</li>
+              ))}
+            </ol>
+          </Card>
+        )}
+
         {activeTab === "members" && <MembersPanel tenancy={tenancy} />}
 
         {activeTab === "items" && (

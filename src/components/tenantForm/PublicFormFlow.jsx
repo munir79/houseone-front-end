@@ -73,7 +73,7 @@ const Summary = ({ label, value }) =>
 
 const PublicFormFlow = ({ token, form, onDone }) => {
   const { config, values } = form;
-  const { fields, mainCount, maxMembers, othersFull, questions } = config;
+  const { fields, mainCount, maxMembers, othersFull, questions, rules = [] } = config;
   const labelFor = (index) => personLabel(index, { mainCount, occupantType: form.occupantType });
 
   const [draft] = useState(() => readDraft(token, form.status));
@@ -84,6 +84,7 @@ const PublicFormFlow = ({ token, form, onDone }) => {
   );
   const [answers, setAnswers] = useState(draft?.answers || questions.map((_, index) => values.answers[index]?.answer || ""));
   const [consent, setConsent] = useState(false);
+  const [rulesAccepted, setRulesAccepted] = useState(false);
   const [errors, setErrors] = useState({});
   const [view, setView] = useState({ name: "list" });
 
@@ -168,6 +169,10 @@ const PublicFormFlow = ({ token, form, onDone }) => {
   };
 
   const handleSubmit = async () => {
+    if (rules.length > 0 && !rulesAccepted) {
+      setErrors({ rules: "নিয়মে সম্মতি দিন" });
+      return;
+    }
     if (!consent) {
       setErrors({ consent: "সম্মতিতে টিক দিন" });
       return;
@@ -175,7 +180,7 @@ const PublicFormFlow = ({ token, form, onDone }) => {
 
     try {
       const payload = people.map(({ key, nidLast4, ...person }) => person);
-      await submitForm({ token, people: payload, totalPeople: Number(totalPeople), ...extra, answers, consent }).unwrap();
+      await submitForm({ token, people: payload, totalPeople: Number(totalPeople), ...extra, answers, consent, rulesAccepted }).unwrap();
       clearDraft(token);
       onDone();
     } catch (err) {
@@ -306,6 +311,27 @@ const PublicFormFlow = ({ token, form, onDone }) => {
                 <Summary key={index} label={question} value={answers[index]} />
               ))}
             </dl>
+          </Card>
+        )}
+
+        {rules.length > 0 && (
+          <Card className="flex flex-col gap-3">
+            <h2 className="text-sm font-semibold">বাড়ির নিয়ম</h2>
+            <ol className="flex list-decimal flex-col gap-1.5 pl-5 text-sm">
+              {rules.map((rule, index) => (
+                <li key={index}>{rule}</li>
+              ))}
+            </ol>
+            <Checkbox
+              id="rulesAccepted"
+              label="আমি সব নিয়ম পড়েছি এবং মেনে চলব"
+              checked={rulesAccepted}
+              onChange={(e) => {
+                setRulesAccepted(e.target.checked);
+                setErrors({});
+              }}
+            />
+            {errors.rules && <p className="text-sm text-danger">{errors.rules}</p>}
           </Card>
         )}
 

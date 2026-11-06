@@ -15,6 +15,7 @@ import { FIELD_STATE_OPTIONS, FORM_FIELDS, FORM_TYPES, MAIN_COUNT_OPTIONS } from
 import { useGetFormSettingsQuery, useUpdateFormSettingsMutation } from "@/redux/features/tenantForm/tenantFormApi";
 
 const MAX_QUESTIONS = 5;
+const MAX_RULES = 15;
 
 const SettingsEditor = ({ propertyId, initial }) => {
   const [types, setTypes] = useState(initial);
@@ -27,10 +28,10 @@ const SettingsEditor = ({ propertyId, initial }) => {
 
   const handleSave = async () => {
     // তিন ধরনই একসাথে সেভ হয়, তাই যে ধরনে ভুল সেটাই সামনে আনা হয়
-    const invalidType = FORM_TYPES.find((item) => Number(types[item].maxMembers) < types[item].mainCount || types[item].questions.some((question) => !question.trim()));
+    const invalidType = FORM_TYPES.find((item) => Number(types[item].maxMembers) < types[item].mainCount || [...types[item].questions, ...types[item].rules].some((text) => !text.trim()));
     if (invalidType) {
       setType(invalidType);
-      toast.error(`${invalidType}: সদস্য সংখ্যা দিন, আর খালি প্রশ্ন লিখুন বা মুছে দিন`);
+      toast.error(`${invalidType}: সদস্য সংখ্যা দিন, আর খালি প্রশ্ন বা নিয়ম লিখুন অথবা মুছে দিন`);
       return;
     }
 
@@ -125,6 +126,38 @@ const SettingsEditor = ({ propertyId, initial }) => {
             <Button variant="outline" size="sm" onClick={() => change({ questions: [...current.questions, ""] })} className="w-fit">
               <Plus className="h-4 w-4" aria-hidden="true" />
               Add Question
+            </Button>
+          )}
+        </div>
+
+        <div className="flex flex-col gap-2 border-t border-border pt-4">
+          <div>
+            <p className="text-sm font-medium">বাড়ির নিয়ম</p>
+            <p className="text-sm text-muted">ভাড়াটিয়া জমা দেওয়ার আগে পড়ে সম্মতি দেবেন। সংখ্যা, সময় বা পুরো লেখা বদলাতে পারবেন।</p>
+          </div>
+          {current.rules.map((rule, index) => (
+            <div key={index} className="flex items-center gap-2">
+              <Input
+                id={`rule-${index}`}
+                aria-label={`Rule ${index + 1}`}
+                value={rule}
+                onChange={(e) => change({ rules: current.rules.map((item, itemIndex) => (itemIndex === index ? e.target.value : item)) })}
+                className="min-w-0 flex-1"
+              />
+              <button
+                type="button"
+                onClick={() => change({ rules: current.rules.filter((_, itemIndex) => itemIndex !== index) })}
+                aria-label={`Remove rule ${index + 1}`}
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-muted hover:bg-primary-soft"
+              >
+                <X className="h-4 w-4" aria-hidden="true" />
+              </button>
+            </div>
+          ))}
+          {current.rules.length < MAX_RULES && (
+            <Button variant="outline" size="sm" onClick={() => change({ rules: [...current.rules, ""] })} className="w-fit">
+              <Plus className="h-4 w-4" aria-hidden="true" />
+              Add Rule
             </Button>
           )}
         </div>

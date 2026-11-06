@@ -20,7 +20,7 @@ import Select from "@/components/ui/Select";
 import Skeleton from "@/components/ui/Skeleton";
 import { getErrorMessage } from "@/lib/getErrorMessage";
 import { toBanglaNumber } from "@/lib/toBanglaNumber";
-import { DEFAULT_RENT_DAY, RENT_DAY_OPTIONS, todayInput } from "@/lib/tenancyOptions";
+import { DEFAULT_RENT_DAY, RENT_DAY_OPTIONS, formatDate, todayInput } from "@/lib/tenancyOptions";
 import { FORM_STATUS } from "@/lib/tenantFormOptions";
 import {
   useFormActionMutation,
@@ -279,6 +279,18 @@ const TenantFormPage = () => {
             </Card>
           )}
         </>
+      )}
+
+      {form.rulesAcceptedAt && (
+        <Card>
+          <h2 className="text-sm font-semibold">House rules</h2>
+          <p className="mb-2 text-sm text-muted">{formatDate(form.rulesAcceptedAt)} তারিখে সম্মতি দিয়েছেন</p>
+          <ol className="flex list-decimal flex-col gap-1 pl-5 text-sm">
+            {form.config.rules.map((rule, index) => (
+              <li key={index}>{rule}</li>
+            ))}
+          </ol>
+        </Card>
       )}
 
       {openPerson && (
