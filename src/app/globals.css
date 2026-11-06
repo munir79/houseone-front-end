@@ -1,26 +1,53 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ✅ সব রঙ শুধু এখানে — এক জায়গায় বদলালে পুরো Software এ বদলাবে
+   Component এ কখনো সরাসরি রঙ লেখা যাবে না (bg-primary লিখুন, bg-indigo-600 না) */
+@theme {
+  /* Brand */
+  --color-primary: #1f2329;
+  --color-primary-hover: #3a4048;
+  --color-primary-foreground: #ffffff;
+  --color-primary-soft: #e9ebee;
+
+  /* Sidebar */
+  --color-sidebar: #1c1f24;
+  --color-sidebar-end: #2e3238;
+  --color-sidebar-accent: #34d399;
+  --color-sidebar-foreground: #ffffff;
+
+  /* Surface */
+  --color-background: #f7f8fa;
+  --color-surface: #ffffff;
+  --color-border: #e7e9ee;
+
+  /* Text */
+  --color-foreground: #14171a;
+  --color-muted: #5f6672;
+
+  /* Status — Paid, Partial, Unpaid, তথ্য */
+  --color-success: #16a34a;
+  --color-success-soft: #dcfce7;
+  --color-success-foreground: #166534;
+  --color-warning: #f97316;
+  --color-warning-soft: #ffedd5;
+  --color-warning-foreground: #9a3412;
+  --color-danger: #ef4444;
+  --color-danger-soft: #fee2e2;
+  --color-danger-foreground: #991b1b;
+  --color-info: #2563eb;
+  --color-info-soft: #dbeafe;
+  --color-info-foreground: #1e40af;
+
+  --shadow-card: 0 1px 2px rgb(16 24 40 / 0.05);
 }
 
+/* next/font এর Variable ব্যবহার করে, তাই inline */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-sans: var(--font-jakarta), var(--font-hind), system-ui, sans-serif;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
 }
