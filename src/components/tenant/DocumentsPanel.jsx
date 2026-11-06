@@ -82,7 +82,7 @@ const DocumentsPanel = ({ tenant }) => {
           ছবিগুলো private, শুধু আপনি দেখতে পারবেন
         </p>
         <div className="flex gap-2">
-          {documents.length > 0 && (
+          {(documents.length > 0 || tenant.photo) && (
             <Button variant="outline" size="sm" isLoading={isOpening} onClick={handleView}>
               <Eye className="h-4 w-4" aria-hidden="true" />
               View

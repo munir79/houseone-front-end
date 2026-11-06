@@ -8,7 +8,7 @@ export const UNIT_STATUS_OPTIONS = [
   { value: "Occupied", label: "Occupied" },
 ];
 
-export const PREFERRED_TENANT_OPTIONS = ["Any", "Family", "Bachelor", "Office"].map((value) => ({ value, label: value }));
+export const PREFERRED_TENANT_OPTIONS = ["Any", "Family", "Bachelor", "Office", "Shop"].map((value) => ({ value, label: value }));
 
 export const floorName = (floor) => {
   if (floor === 0) return "Ground Floor";

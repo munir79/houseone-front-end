@@ -19,6 +19,7 @@ import { formatMoney } from "@/lib/formatMoney";
 import { getErrorMessage } from "@/lib/getErrorMessage";
 import { OCCUPANT_TYPE_OPTIONS, formatDate } from "@/lib/tenancyOptions";
 import { FORM_STATUS } from "@/lib/tenantFormOptions";
+import { toBanglaNumber } from "@/lib/toBanglaNumber";
 import { useGetTenanciesQuery, useGetTenancySummaryQuery } from "@/redux/features/tenancy/tenancyApi";
 import { useGetOpenFormsQuery } from "@/redux/features/tenantForm/tenantFormApi";
 
@@ -35,7 +36,10 @@ const TenantRow = ({ tenancy }) => (
     <Link href={`/tenants/${tenancy._id}`} className={`flex items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-background ${ROW_COLUMNS}`}>
       <span className="min-w-0">
         <span className="block text-sm font-medium wrap-break-word">{tenancy.tenantName}</span>
-        <span className="block text-xs text-muted">{tenancy.tenantPhone}</span>
+        <span className="block text-xs text-muted">
+          {tenancy.tenantPhone}
+          {tenancy.peopleCount > 1 && ` · মোট ${toBanglaNumber(tenancy.peopleCount)} জন`}
+        </span>
         <span className="block text-xs text-muted md:hidden">
           {tenancy.unitName}, {tenancy.propertyName}
         </span>
@@ -103,7 +107,7 @@ const TenantsPage = () => {
           { key: "family", label: "Family", value: summary?.family },
           { key: "bachelor", label: "Bachelor", value: summary?.bachelor },
           { key: "sublet", label: "Sublet", value: summary?.sublet },
-          { key: "office", label: "Office", value: summary?.office },
+          { key: "office", label: "Office & Shop", value: summary ? summary.office + summary.shop : undefined },
         ]}
       />
 

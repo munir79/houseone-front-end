@@ -43,7 +43,7 @@
 
 /* next/font এর Variable ব্যবহার করে, তাই inline */
 @theme inline {
-  --font-sans: var(--font-jakarta), var(--font-hind), system-ui, sans-serif;
+  --font-sans: var(--font-jakarta), var(--font-bangla), system-ui, sans-serif;
 }
 
 body {

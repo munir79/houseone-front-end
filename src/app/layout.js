@@ -1,4 +1,5 @@
-import { Hind_Siliguri, Plus_Jakarta_Sans } from "next/font/google";
+import { Plus_Jakarta_Sans } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import ReduxProvider from "@/redux/reduxProvider/ReduxProvider";
 import { Toaster } from "sonner";
@@ -10,11 +11,11 @@ const jakarta = Plus_Jakarta_Sans({
   display: "swap",
 });
 
-// বাংলা লেখার জন্য — ইংরেজি Font এ বাংলা অক্ষর নেই
-const hind = Hind_Siliguri({
-  variable: "--font-hind",
-  subsets: ["bengali"],
-  weight: ["400", "500", "600", "700"],
+// বাংলা লেখার জন্য — ইংরেজি Font এ বাংলা অক্ষর নেই। সংখ্যা স্পষ্ট, আর ফাইলটা নিজেদের কাছেই থাকে
+const bangla = localFont({
+  src: "./fonts/NotoSansBengali-Variable.woff2",
+  variable: "--font-bangla",
+  weight: "100 900",
   display: "swap",
 });
 
@@ -25,7 +26,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${jakarta.variable} ${hind.variable}`}>
+    <html lang="en" className={`${jakarta.variable} ${bangla.variable}`}>
       <body className="antialiased">
         {/* নিচে, যাতে Notification ঘণ্টা ঢেকে না যায় — মোবাইলে BottomNav এর উপরে */}
         <Toaster richColors position="bottom-right" closeButton mobileOffset={{ bottom: "72px" }} />

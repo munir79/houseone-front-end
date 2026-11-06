@@ -5,6 +5,8 @@ import {
   TENANCIES,
   TENANCY_BY_ID,
   TENANCY_END,
+  TENANCY_MEMBER,
+  TENANCY_MEMBERS,
   TENANCY_NOTICE,
   TENANCY_SUMMARY,
   TENANTS,
@@ -74,24 +76,49 @@ export const tenancyApi = apiSlice.injectEndpoints({
       invalidatesTags: CHANGED_TAGS,
     }),
 
-    //10. PICK AN EXISTING TENANT
+    //10. MEMBERS
+    addMember: builder.mutation({
+      query: ({ id, ...body }) => ({ url: TENANCY_MEMBERS(id), method: 'POST', body }),
+      invalidatesTags: ["Tenancy"],
+    }),
+
+    updateMember: builder.mutation({
+      query: ({ id, memberId, ...body }) => ({ url: TENANCY_MEMBER(id, memberId), method: 'PATCH', body }),
+      invalidatesTags: ["Tenancy"],
+    }),
+
+    // left, returned, primary
+    memberAction: builder.mutation({
+      query: ({ id, memberId, action, ...body }) => ({ url: `${TENANCY_MEMBER(id, memberId)}/${action}`, method: 'POST', body }),
+      invalidatesTags: ["Tenancy"],
+    }),
+
+    revealMemberNid: builder.mutation({
+      query: ({ id, memberId }) => `${TENANCY_MEMBER(id, memberId)}/nid`,
+    }),
+
+    getMemberDocuments: builder.mutation({
+      query: ({ id, memberId }) => `${TENANCY_MEMBER(id, memberId)}/documents`,
+    }),
+
+    //11. PICK AN EXISTING TENANT
     searchTenants: builder.query({
       query: (search) => ({ url: TENANTS, params: { search } }),
       providesTags: ["Tenancy"],
     }),
 
-    //11. UPDATE TENANT
+    //12. UPDATE TENANT
     updateTenant: builder.mutation({
       query: ({ id, ...body }) => ({ url: TENANT_BY_ID(id), method: 'PATCH', body }),
       invalidatesTags: ["Tenancy"],
     }),
 
-    //12. FULL NID — Mutation, তাই Browser এর Cache এ থাকে না
+    //13. FULL NID — Mutation, তাই Browser এর Cache এ থাকে না
     revealNid: builder.mutation({
       query: (id) => TENANT_NID(id),
     }),
 
-    //13. DOCUMENT LINKS
+    //14. DOCUMENT LINKS
     getDocumentLinks: builder.mutation({
       query: (id) => TENANT_DOCUMENTS(id),
     }),
@@ -108,6 +135,11 @@ export const {
   useGiveNoticeMutation,
   useCancelNoticeMutation,
   useEndTenancyMutation,
+  useAddMemberMutation,
+  useUpdateMemberMutation,
+  useMemberActionMutation,
+  useRevealMemberNidMutation,
+  useGetMemberDocumentsMutation,
   useSearchTenantsQuery,
   useUpdateTenantMutation,
   useRevealNidMutation,

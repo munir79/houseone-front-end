@@ -36,6 +36,7 @@ const EditTenancyModal = ({ tenancy, onClose }) => {
     subletNote: tenancy.subletNote,
     subletPeople: String(tenancy.subletPeople),
     note: tenancy.note,
+    declaredPeople: tenancy.declaredPeople ? String(tenancy.declaredPeople) : "",
   });
   const [errors, setErrors] = useState({});
 
@@ -115,6 +116,7 @@ const EditTenancyModal = ({ tenancy, onClose }) => {
             <Select id="dueDay" label="Rent day" options={RENT_DAY_OPTIONS} value={rental.dueDay} onChange={changeRental("dueDay")} />
             <Input id="tenancyRent" type="number" inputMode="numeric" min="0" label="Monthly rent (৳)" value={rental.rent} onChange={changeRental("rent")} error={errors.rent} />
             <Input id="tenancyAdvance" type="number" inputMode="numeric" min="0" label="Advance (৳)" value={rental.advance} onChange={changeRental("advance")} />
+            <Input id="declaredPeople" type="number" inputMode="numeric" min="0" label="Total people (optional)" value={rental.declaredPeople} onChange={changeRental("declaredPeople")} />
           </div>
         </FormSection>
 

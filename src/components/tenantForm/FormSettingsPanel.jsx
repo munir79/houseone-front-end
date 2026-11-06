@@ -5,15 +5,15 @@ import { Plus, X } from "lucide-react";
 import { toast } from "sonner";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
+import Checkbox from "@/components/ui/Checkbox";
 import Input from "@/components/ui/Input";
 import SegmentedControl from "@/components/ui/SegmentedControl";
 import Select from "@/components/ui/Select";
 import Skeleton from "@/components/ui/Skeleton";
 import { getErrorMessage } from "@/lib/getErrorMessage";
-import { FIELD_STATE_OPTIONS, FORM_FIELDS } from "@/lib/tenantFormOptions";
+import { FIELD_STATE_OPTIONS, FORM_FIELDS, FORM_TYPES, MAIN_COUNT_OPTIONS } from "@/lib/tenantFormOptions";
 import { useGetFormSettingsQuery, useUpdateFormSettingsMutation } from "@/redux/features/tenantForm/tenantFormApi";
 
-const TYPES = ["Family", "Bachelor", "Office"];
 const MAX_QUESTIONS = 5;
 
 const SettingsEditor = ({ propertyId, initial }) => {
@@ -27,7 +27,7 @@ const SettingsEditor = ({ propertyId, initial }) => {
 
   const handleSave = async () => {
     // তিন ধরনই একসাথে সেভ হয়, তাই যে ধরনে ভুল সেটাই সামনে আনা হয়
-    const invalidType = TYPES.find((item) => types[item].maxMembers === "" || types[item].questions.some((question) => !question.trim()));
+    const invalidType = FORM_TYPES.find((item) => Number(types[item].maxMembers) < types[item].mainCount || types[item].questions.some((question) => !question.trim()));
     if (invalidType) {
       setType(invalidType);
       toast.error(`${invalidType}: সদস্য সংখ্যা দিন, আর খালি প্রশ্ন লিখুন বা মুছে দিন`);
@@ -45,7 +45,7 @@ const SettingsEditor = ({ propertyId, initial }) => {
   return (
     <Card flush className="overflow-hidden">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border p-3 sm:p-4">
-        <SegmentedControl label="Tenant type" options={TYPES} value={type} onChange={setType} />
+        <SegmentedControl label="Tenant type" options={FORM_TYPES} value={type} onChange={setType} />
         <Button size="sm" isLoading={isLoading} onClick={handleSave}>
           Save Settings
         </Button>
@@ -54,16 +54,32 @@ const SettingsEditor = ({ propertyId, initial }) => {
       <div className="flex flex-col gap-5 p-4 sm:p-5">
         <p className="text-sm text-muted">ভাড়াটিয়া কোন তথ্য দেবেন ঠিক করুন। নাম ও মোবাইল সবসময় লাগবে। Off করলে সেই ঘর ফর্মে দেখাবে না।</p>
 
-        <Input
-          id="maxMembers"
-          type="number"
-          inputMode="numeric"
-          min="0"
-          max="30"
-          label="Maximum members"
-          value={current.maxMembers}
-          onChange={(e) => change({ maxMembers: e.target.value === "" ? "" : Number(e.target.value) })}
-          className="max-w-40"
+        <div className="grid max-w-md grid-cols-2 gap-4">
+          <Input
+            id="maxMembers"
+            type="number"
+            inputMode="numeric"
+            min="1"
+            max="30"
+            label="Maximum people"
+            value={current.maxMembers}
+            onChange={(e) => change({ maxMembers: e.target.value === "" ? "" : Number(e.target.value) })}
+          />
+          <Select
+            id="mainCount"
+            label="প্রধান দায়িত্বশীল"
+            options={MAIN_COUNT_OPTIONS}
+            value={String(current.mainCount)}
+            onChange={(e) => change({ mainCount: Number(e.target.value) })}
+          />
+        </div>
+
+        <Checkbox
+          id="othersFull"
+          label="বাকি সবাইকেও পুরো তথ্য দিতে হবে"
+          description="না দিলে শুধু প্রধানদের তথ্য বাধ্যতামূলক। প্রতিটি ফ্ল্যাটের আলাদা সীমা Send Form-এর সময় দেওয়া যাবে।"
+          checked={current.othersFull}
+          onChange={(e) => change({ othersFull: e.target.checked })}
         />
 
         <div className="grid gap-x-6 gap-y-3 md:grid-cols-2">

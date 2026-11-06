@@ -1,6 +1,6 @@
 import { toBanglaNumber } from "./toBanglaNumber";
 
-export const OCCUPANT_TYPE_OPTIONS = ["Family", "Bachelor", "Sublet", "Office"].map((type) => ({ value: type, label: type }));
+export const OCCUPANT_TYPE_OPTIONS = ["Family", "Bachelor", "Sublet", "Office", "Shop"].map((type) => ({ value: type, label: type }));
 
 export const RENT_DAY_OPTIONS = Array.from({ length: 28 }, (_, index) => ({
   value: String(index + 1),

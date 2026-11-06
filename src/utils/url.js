@@ -49,6 +49,8 @@ export const TENANCY_SUMMARY = API_BASE_URL + 'tenancy/summary';
 export const TENANCY_BY_ID = (id) => API_BASE_URL + `tenancy/${id}`;
 export const TENANCY_NOTICE = (id) => API_BASE_URL + `tenancy/${id}/notice`;
 export const TENANCY_END = (id) => API_BASE_URL + `tenancy/${id}/end`;
+export const TENANCY_MEMBERS = (id) => API_BASE_URL + `tenancy/${id}/members`;
+export const TENANCY_MEMBER = (id, memberId) => API_BASE_URL + `tenancy/${id}/members/${memberId}`;
 export const UNIT_TENANCIES = (id) => API_BASE_URL + `unit/${id}/tenancies`;
 
 // Tenant Form

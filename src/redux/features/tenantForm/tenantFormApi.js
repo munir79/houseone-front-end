@@ -61,12 +61,12 @@ export const tenantFormApi = apiSlice.injectEndpoints({
 
     //8. FULL NID
     revealFormNid: builder.mutation({
-      query: (id) => `${TENANT_FORM_BY_ID(id)}/nid`,
+      query: ({ id, personId }) => `${TENANT_FORM_BY_ID(id)}/people/${personId}/nid`,
     }),
 
     //9. DOCUMENT LINKS
     getFormDocumentLinks: builder.mutation({
-      query: (id) => `${TENANT_FORM_BY_ID(id)}/documents`,
+      query: ({ id, personId }) => `${TENANT_FORM_BY_ID(id)}/people/${personId}/documents`,
     }),
 
     //10. TENANT SIDE — OPEN THE FORM

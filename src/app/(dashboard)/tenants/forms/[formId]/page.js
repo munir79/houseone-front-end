@@ -3,9 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, Eye, FileText, SearchX } from "lucide-react";
+import { ArrowLeft, ChevronRight, FileText, SearchX } from "lucide-react";
 import { toast } from "sonner";
-import NidField from "@/components/tenant/NidField";
+import PersonDetailsModal from "@/components/tenantForm/PersonDetailsModal";
 import ShareForm from "@/components/tenantForm/ShareForm";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
@@ -19,6 +19,7 @@ import Modal from "@/components/ui/Modal";
 import Select from "@/components/ui/Select";
 import Skeleton from "@/components/ui/Skeleton";
 import { getErrorMessage } from "@/lib/getErrorMessage";
+import { toBanglaNumber } from "@/lib/toBanglaNumber";
 import { DEFAULT_RENT_DAY, RENT_DAY_OPTIONS, todayInput } from "@/lib/tenancyOptions";
 import { FORM_STATUS } from "@/lib/tenantFormOptions";
 import {
@@ -28,14 +29,6 @@ import {
   useRevealFormNidMutation,
 } from "@/redux/features/tenantForm/tenantFormApi";
 import { useGetUnitQuery } from "@/redux/features/unit/unitApi";
-
-const Row = ({ label, value }) =>
-  value ? (
-    <div className="min-w-0">
-      <dt className="text-xs text-muted">{label}</dt>
-      <dd className="text-sm wrap-break-word">{value}</dd>
-    </div>
-  ) : null;
 
 const ApproveModal = ({ form, onClose }) => {
   const router = useRouter();
@@ -142,12 +135,12 @@ const TenantFormPage = () => {
   const { formId } = useParams();
   const router = useRouter();
   const [dialog, setDialog] = useState(null);
-  const [links, setLinks] = useState(null);
+  const [openPersonId, setOpenPersonId] = useState(null);
 
   const { data, error, isLoading } = useGetTenantFormQuery(formId);
   const [formAction, { isLoading: isActing }] = useFormActionMutation();
   const [revealNid, { isLoading: isRevealing }] = useRevealFormNidMutation();
-  const [getLinks, { isLoading: isOpening }] = useGetFormDocumentLinksMutation();
+  const [getLinks] = useGetFormDocumentLinksMutation();
 
   const form = data?.data;
 
@@ -170,15 +163,6 @@ const TenantFormPage = () => {
     }
   };
 
-  const handleView = async () => {
-    try {
-      const response = await getLinks(formId).unwrap();
-      setLinks(response.data);
-    } catch (err) {
-      toast.error(getErrorMessage(err, "ছবি খোলা যায়নি।"));
-    }
-  };
-
   if (isLoading) {
     return (
       <div className="flex flex-col gap-4">
@@ -197,6 +181,7 @@ const TenantFormPage = () => {
   }
 
   const status = FORM_STATUS[form.status];
+  const openPerson = form.people.find(({ _id }) => _id === openPersonId);
   const isSubmitted = form.status === "Submitted";
   const isWaiting = ["Sent", "SentBack"].includes(form.status);
   const isExpired = isWaiting && new Date(form.expiresAt) <= new Date();
@@ -248,55 +233,65 @@ const TenantFormPage = () => {
 
       {form.submittedAt && (
         <>
-          <Card>
-            <h2 className="mb-3 text-sm font-semibold">Tenant details</h2>
-            <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              <Row label="Name" value={form.name} />
-              <Row label="Mobile" value={form.phone} />
-              <div className="min-w-0">
-                <dt className="text-xs text-muted">NID</dt>
-                <dd>
-                  <NidField last4={form.nidLast4} isLoading={isRevealing} onReveal={() => revealNid(formId).unwrap()} />
-                </dd>
-              </div>
-              <Row label="Occupation" value={form.occupation} />
-              <Row label="Workplace" value={form.workplace} />
-              <Row label="Company" value={form.companyName} />
-              <Row label="Permanent address" value={form.permanentAddress} />
-              <Row label="Previous address" value={form.previousAddress} />
-              <Row label="Emergency contact" value={[form.emergencyName, form.emergencyPhone].filter(Boolean).join(", ")} />
-              {form.answers.map(({ question, answer }) => (
-                <Row key={question} label={question} value={answer} />
-              ))}
-            </dl>
-          </Card>
+          <p className="text-sm text-muted">
+            মোট {toBanglaNumber(form.totalPeople)} জন থাকবেন, {toBanglaNumber(form.people.length)} জনের তথ্য দেওয়া হয়েছে।
+          </p>
 
-          {form.documents.length > 0 && (
+          <div className="grid gap-3 sm:grid-cols-2">
+            {form.people.map((person) => (
+              <button
+                key={person._id}
+                type="button"
+                data-review-person
+                onClick={() => setOpenPersonId(person._id)}
+                className="flex min-h-16 items-center justify-between gap-3 rounded-xl border border-border bg-surface p-4 text-left shadow-card hover:bg-background"
+              >
+                <span className="min-w-0">
+                  <span className="block text-sm font-medium wrap-break-word">{person.name}</span>
+                  <span className="block text-xs text-muted">{[person.relation, person.occupation, person.phone].filter(Boolean).join(" · ")}</span>
+                </span>
+                <span className="flex shrink-0 items-center gap-2">
+                  {person.isMain && <Badge variant="info">প্রধান</Badge>}
+                  <ChevronRight className="h-4 w-4 text-muted" aria-hidden="true" />
+                </span>
+              </button>
+            ))}
+          </div>
+
+          {(form.companyName || form.tradeLicense || form.emergencyName || form.answers.some(({ answer }) => answer)) && (
             <Card>
-              <div className="flex items-center justify-between gap-2">
-                <h2 className="text-sm font-semibold">Documents ({form.documents.length})</h2>
-                <Button variant="outline" size="sm" isLoading={isOpening} onClick={handleView}>
-                  <Eye className="h-4 w-4" aria-hidden="true" />
-                  View
-                </Button>
-              </div>
-            </Card>
-          )}
-
-          {form.members.length > 0 && (
-            <Card flush className="overflow-hidden">
-              <h2 className="border-b border-border px-4 py-3 text-sm font-semibold">Members ({form.members.length})</h2>
-              <ul className="divide-y divide-border">
-                {form.members.map((member, index) => (
-                  <li key={index} className="px-4 py-2.5">
-                    <p className="text-sm font-medium wrap-break-word">{member.name}</p>
-                    <p className="text-xs text-muted">{[member.relation, member.occupation, member.phone].filter(Boolean).join(" · ")}</p>
-                  </li>
-                ))}
-              </ul>
+              <h2 className="mb-3 text-sm font-semibold">Other details</h2>
+              <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {[
+                  ["Company", form.companyName],
+                  ["Trade License", form.tradeLicense],
+                  ["Emergency contact", [form.emergencyName, form.emergencyPhone].filter(Boolean).join(", ")],
+                  ...form.answers.map(({ question, answer }) => [question, answer]),
+                ]
+                  .filter(([, value]) => value)
+                  .map(([label, value]) => (
+                    <div key={label} className="min-w-0">
+                      <dt className="text-xs text-muted">{label}</dt>
+                      <dd className="text-sm wrap-break-word">{value}</dd>
+                    </div>
+                  ))}
+              </dl>
             </Card>
           )}
         </>
+      )}
+
+      {openPerson && (
+        <PersonDetailsModal
+          key={openPerson._id}
+          person={openPerson}
+          isMain={openPerson.isMain}
+          hasImages={Boolean(openPerson.nidFront || openPerson.nidBack || openPerson.photo)}
+          isRevealing={isRevealing}
+          onReveal={() => revealNid({ id: formId, personId: openPerson._id }).unwrap()}
+          loadImages={() => getLinks({ id: formId, personId: openPerson._id }).unwrap()}
+          onClose={() => setOpenPersonId(null)}
+        />
       )}
 
       {dialog === "approve" && <ApproveModal form={form} onClose={() => setDialog(null)} />}
@@ -312,17 +307,6 @@ const TenantFormPage = () => {
         />
       )}
 
-      {links && (
-        <Modal title="Documents" onClose={() => setLinks(null)} size="lg">
-          <div className="flex flex-col gap-3">
-            {links.map(({ publicId, url }, index) => (
-              // Private ছবির স্বাক্ষরিত লিংক, CDN এর ভেতর দিয়ে যায় না
-              // eslint-disable-next-line @next/next/no-img-element
-              <img key={publicId} src={url} alt={`Document ${index + 1}`} className="w-full rounded-lg border border-border" />
-            ))}
-          </div>
-        </Modal>
-      )}
     </div>
   );
 };

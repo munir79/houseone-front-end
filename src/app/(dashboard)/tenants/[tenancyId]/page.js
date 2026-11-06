@@ -3,12 +3,13 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { ArrowLeft, CalendarClock, KeyRound, LogOut, MessageCircle, Pencil, Phone, SearchX, User, Users } from "lucide-react";
+import { ArrowLeft, CalendarClock, KeyRound, LogOut, MessageCircle, Pencil, Phone, SearchX, User } from "lucide-react";
 import { toast } from "sonner";
 import DateActionModal from "@/components/tenant/DateActionModal";
 import DocumentsPanel from "@/components/tenant/DocumentsPanel";
 import EditTenancyModal from "@/components/tenant/EditTenancyModal";
 import EditableList from "@/components/tenant/EditableList";
+import MembersPanel from "@/components/tenant/MembersPanel";
 import NidField from "@/components/tenant/NidField";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
@@ -22,6 +23,7 @@ import Tabs from "@/components/ui/Tabs";
 import { formatMoney } from "@/lib/formatMoney";
 import { getErrorMessage } from "@/lib/getErrorMessage";
 import { formatDate, formatStay, todayInput } from "@/lib/tenancyOptions";
+import { GENDERS } from "@/lib/tenantFormOptions";
 import { toBanglaNumber } from "@/lib/toBanglaNumber";
 import {
   useCancelNoticeMutation,
@@ -30,13 +32,6 @@ import {
   useGiveNoticeMutation,
   useRevealNidMutation,
 } from "@/redux/features/tenancy/tenancyApi";
-
-const MEMBER_FIELDS = [
-  { key: "name", label: "Name", placeholder: "সদস্যের নাম", required: true, requiredMessage: "নাম লিখুন" },
-  { key: "relation", label: "Relation", placeholder: "স্ত্রী, ছেলে, ভাই ইত্যাদি", required: true, requiredMessage: "সম্পর্ক লিখুন" },
-  { key: "phone", label: "Mobile (optional)", placeholder: "01XXXXXXXXX", type: "tel" },
-  { key: "occupation", label: "Occupation (optional)", placeholder: "পেশা" },
-];
 
 const ITEM_FIELDS = [
   { key: "name", label: "Item", placeholder: "বিদ্যুৎ কার্ড, গ্যাস কার্ড, চাবি", required: true, requiredMessage: "জিনিসের নাম লিখুন" },
@@ -187,7 +182,7 @@ const TenancyDetailsPage = () => {
           onChange={setActiveTab}
           tabs={[
             { value: "overview", label: "Overview" },
-            { value: "members", label: "Members", count: tenancy.members.length },
+            { value: "members", label: "Members", count: tenancy.members.filter(({ leftAt }) => !leftAt).length },
             { value: "items", label: "Items given", count: tenancy.handoverItems.length },
             { value: "documents", label: "Documents", count: tenant.documents?.length || 0 },
           ]}
@@ -215,9 +210,12 @@ const TenancyDetailsPage = () => {
                 </dd>
               </div>
               <InfoRow label="Occupation">{tenant.occupation}</InfoRow>
+              {tenant.gender && <InfoRow label="Gender">{GENDERS.find(({ value }) => value === tenant.gender)?.label}</InfoRow>}
+              {tenant.age !== null && tenant.age !== undefined && <InfoRow label="Age">{tenant.age}</InfoRow>}
               <InfoRow label="Email">{tenant.email}</InfoRow>
               {tenant.workplace && <InfoRow label="Workplace">{tenant.workplace}</InfoRow>}
               {tenant.companyName && <InfoRow label="Company">{tenant.companyName}</InfoRow>}
+              {tenant.tradeLicense && <InfoRow label="Trade License">{tenant.tradeLicense}</InfoRow>}
               {tenant.previousAddress && <InfoRow label="Previous address">{tenant.previousAddress}</InfoRow>}
               {tenant.formAnswers?.map(({ question, answer }) => answer && <InfoRow key={question} label={question}>{answer}</InfoRow>)}
               <InfoRow label="Permanent address">{tenant.permanentAddress}</InfoRow>
@@ -234,24 +232,7 @@ const TenancyDetailsPage = () => {
           </Card>
         )}
 
-        {activeTab === "members" && (
-          <EditableList
-            tenancyId={tenancyId}
-            field="members"
-            items={tenancy.members}
-            fields={MEMBER_FIELDS}
-            addLabel="Add Member"
-            emptyIcon={Users}
-            emptyTitle="No members yet"
-            emptyText="এই ফ্ল্যাটে আর কে কে থাকেন, এখানে যোগ করুন।"
-            renderRow={(member) => (
-              <>
-                <p className="text-sm font-medium wrap-break-word">{member.name}</p>
-                <p className="text-xs text-muted">{[member.relation, member.occupation, member.phone].filter(Boolean).join(" · ")}</p>
-              </>
-            )}
-          />
-        )}
+        {activeTab === "members" && <MembersPanel tenancy={tenancy} />}
 
         {activeTab === "items" && (
           <EditableList

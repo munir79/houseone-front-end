@@ -1,19 +1,33 @@
-export const FORM_TYPE_OPTIONS = ["Family", "Bachelor", "Office"].map((type) => ({ value: type, label: type }));
+export const FORM_TYPES = ["Family", "Bachelor", "Office", "Shop"];
 
-export const FORM_TYPE_LABELS = { Family: "পরিবার", Bachelor: "ব্যাচেলর", Office: "অফিস" };
+export const FORM_TYPE_LABELS = { Family: "পরিবার", Bachelor: "ব্যাচেলর", Office: "অফিস", Shop: "দোকান" };
 
 export const FIELD_STATE_OPTIONS = ["Required", "Optional", "Off"].map((state) => ({ value: state, label: state }));
 
+export const MAIN_COUNT_OPTIONS = [
+  { value: "2", label: "২ জন" },
+  { value: "1", label: "১ জন" },
+];
+
 // ফর্মের ঘর — বাড়িওয়ালার সেটিং ও ভাড়াটিয়ার ফর্ম দুটোতেই একই নাম
 export const FORM_FIELDS = [
-  { key: "nid", label: "NID নম্বর" },
-  { key: "nidPhoto", label: "NID-এর ছবি" },
+  { key: "gender", label: "লিঙ্গ" },
   { key: "occupation", label: "পেশা" },
   { key: "workplace", label: "কর্মস্থলের নাম" },
-  { key: "companyName", label: "প্রতিষ্ঠানের নাম" },
   { key: "permanentAddress", label: "স্থায়ী ঠিকানা" },
   { key: "previousAddress", label: "আগের ঠিকানা" },
+  { key: "nid", label: "NID নম্বর" },
+  { key: "nidPhoto", label: "NID-এর দুই পিঠের ছবি" },
+  { key: "photo", label: "Passport size ছবি" },
   { key: "emergency", label: "জরুরি যোগাযোগ" },
+  { key: "companyName", label: "প্রতিষ্ঠান বা দোকানের নাম" },
+  { key: "tradeLicense", label: "Trade License নম্বর" },
+];
+
+export const GENDERS = [
+  { value: "Male", label: "পুরুষ" },
+  { value: "Female", label: "মহিলা" },
+  { value: "Other", label: "অন্যান্য" },
 ];
 
 export const FORM_STATUS = {

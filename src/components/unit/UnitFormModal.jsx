@@ -28,6 +28,7 @@ const UnitFormModal = ({ propertyId, totalFloors, unit, onClose }) => {
     bedrooms: toText(unit?.bedrooms),
     bathrooms: toText(unit?.bathrooms),
     sizeSqft: toText(unit?.sizeSqft),
+    maxPeople: toText(unit?.maxPeople),
     availableFrom: unit?.availableFrom?.slice(0, 10) || "",
     electricityMeter: unit?.electricityMeter || "",
     gasInfo: unit?.gasInfo || "",
@@ -145,6 +146,17 @@ const UnitFormModal = ({ propertyId, totalFloors, unit, onClose }) => {
               placeholder="1200"
               value={form.sizeSqft}
               onChange={handleChange("sizeSqft")}
+            />
+            <Input
+              id="unitMaxPeople"
+              type="number"
+              inputMode="numeric"
+              min="1"
+              max="30"
+              label="Maximum people"
+              placeholder="বাড়ির সেটিং"
+              value={form.maxPeople}
+              onChange={handleChange("maxPeople")}
             />
           </div>
         </FormSection>
