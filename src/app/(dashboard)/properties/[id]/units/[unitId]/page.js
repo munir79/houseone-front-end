@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, DoorOpen, Pencil, SearchX, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import UnitTenantPanel from "@/components/tenant/UnitTenantPanel";
 import UnitFormModal from "@/components/unit/UnitFormModal";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
@@ -68,6 +69,7 @@ const UnitDetailsPage = () => {
 
   const details = [
     ["Type", unit.type],
+    ["Prefer to rent to", unit.preferredTenant],
     ["Size", unit.sizeSqft ? `${unit.sizeSqft.toLocaleString("en-IN")} sq ft` : "Not set"],
     ["Available from", unit.availableFrom ? formatDate(unit.availableFrom) : "Not set"],
     ["Electricity meter", unit.electricityMeter || "Not set"],
@@ -109,8 +111,10 @@ const UnitDetailsPage = () => {
         ]}
       />
 
+      <UnitTenantPanel unit={unit} />
+
       <Card>
-        <dl className="grid grid-cols-2 gap-4 lg:grid-cols-5">
+        <dl className="grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-6">
           {details.map(([label, value]) => (
             <div key={label} className="min-w-0">
               <dt className="text-xs text-muted">{label}</dt>

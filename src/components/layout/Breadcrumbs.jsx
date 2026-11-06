@@ -6,15 +6,17 @@ import { useParams, usePathname } from "next/navigation";
 import { ChevronRight } from "lucide-react";
 import { isNavActive, navItems } from "@/lib/navigation";
 import { useGetPropertyQuery } from "@/redux/features/property/propertyApi";
+import { useGetTenancyQuery } from "@/redux/features/tenancy/tenancyApi";
 import { useGetUnitQuery } from "@/redux/features/unit/unitApi";
 
 // Page এর নিজের Query ই ব্যবহার করে, তাই আলাদা Request যায় না
 const Breadcrumbs = () => {
   const pathname = usePathname();
-  const { id, unitId } = useParams();
+  const { id, unitId, tenancyId } = useParams();
 
   const { data: property } = useGetPropertyQuery(id, { skip: !id });
   const { data: unit } = useGetUnitQuery(unitId, { skip: !unitId });
+  const { data: tenancy } = useGetTenancyQuery(tenancyId, { skip: !tenancyId });
 
   const page = navItems.find(({ href }) => isNavActive(pathname, href));
 
@@ -22,6 +24,7 @@ const Breadcrumbs = () => {
     { label: page?.label, href: page?.href },
     id && { label: property?.data?.name, href: `/properties/${id}` },
     unitId && { label: unit?.data?.name },
+    tenancyId && { label: tenancy?.data?.tenantName },
   ].filter((crumb) => crumb?.label);
 
   return (

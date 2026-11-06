@@ -27,6 +27,7 @@ export const uploadImage = async (file, signature) => {
   form.append("allowed_formats", signature.allowed_formats);
   form.append("transformation", signature.transformation);
   form.append("signature", signature.signature);
+  if (signature.type) form.append("type", signature.type);
 
   const response = await fetch(`https://api.cloudinary.com/v1_1/${signature.cloudName}/image/upload`, {
     method: "POST",
@@ -40,5 +41,6 @@ export const uploadImage = async (file, signature) => {
     version: result.version,
     signature: result.signature,
     url: result.secure_url,
+    format: result.format,
   };
 };

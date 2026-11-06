@@ -17,7 +17,7 @@ import {
 export const mainNav = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { label: "Properties", href: "/properties", icon: Home },
-  { label: "Tenants", icon: Users, soon: true },
+  { label: "Tenants", href: "/tenants", icon: Users },
   { label: "Billing", icon: ClipboardList, soon: true },
   { label: "Receipts", icon: FileText, soon: true },
   { label: "Shared Access", icon: Handshake, soon: true },

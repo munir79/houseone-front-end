@@ -9,7 +9,7 @@ import Modal from "@/components/ui/Modal";
 import MultiImageUpload from "@/components/ui/MultiImageUpload";
 import Select from "@/components/ui/Select";
 import { getErrorMessage } from "@/lib/getErrorMessage";
-import { UNIT_STATUS_OPTIONS, UNIT_TYPE_OPTIONS, floorOptions } from "@/lib/unitOptions";
+import { PREFERRED_TENANT_OPTIONS, UNIT_STATUS_OPTIONS, UNIT_TYPE_OPTIONS, floorOptions } from "@/lib/unitOptions";
 import { useCreateUnitMutation, useUpdateUnitMutation } from "@/redux/features/unit/unitApi";
 
 const toText = (value) => (value === null || value === undefined ? "" : String(value));
@@ -23,6 +23,7 @@ const UnitFormModal = ({ propertyId, totalFloors, unit, onClose }) => {
     floor: toText(unit?.floor),
     type: unit?.type || "Flat",
     status: unit?.status || "Vacant",
+    preferredTenant: unit?.preferredTenant || "Any",
     rent: toText(unit?.rent),
     bedrooms: toText(unit?.bedrooms),
     bathrooms: toText(unit?.bathrooms),
@@ -160,6 +161,13 @@ const UnitFormModal = ({ propertyId, totalFloors, unit, onClose }) => {
               label="Available from (optional)"
               value={form.availableFrom}
               onChange={handleChange("availableFrom")}
+            />
+            <Select
+              id="unitPreferred"
+              label="Prefer to rent to"
+              options={PREFERRED_TENANT_OPTIONS}
+              value={form.preferredTenant}
+              onChange={handleChange("preferredTenant")}
             />
             <Input
               id="unitMeter"

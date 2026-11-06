@@ -37,5 +37,19 @@ export const PROPERTY_UNITS = (id) => API_BASE_URL + `property/${id}/units`;
 export const PROPERTY_UNITS_BULK = (id) => API_BASE_URL + `property/${id}/units/bulk`;
 export const UNIT_BY_ID = (id) => API_BASE_URL + `unit/${id}`;
 
+// Tenant
+export const TENANTS = API_BASE_URL + 'tenant';
+export const TENANT_BY_ID = (id) => API_BASE_URL + `tenant/${id}`;
+export const TENANT_NID = (id) => API_BASE_URL + `tenant/${id}/nid`;
+export const TENANT_DOCUMENTS = (id) => API_BASE_URL + `tenant/${id}/documents`;
+
+// Tenancy
+export const TENANCIES = API_BASE_URL + 'tenancy';
+export const TENANCY_SUMMARY = API_BASE_URL + 'tenancy/summary';
+export const TENANCY_BY_ID = (id) => API_BASE_URL + `tenancy/${id}`;
+export const TENANCY_NOTICE = (id) => API_BASE_URL + `tenancy/${id}/notice`;
+export const TENANCY_END = (id) => API_BASE_URL + `tenancy/${id}/end`;
+export const UNIT_TENANCIES = (id) => API_BASE_URL + `unit/${id}/tenancies`;
+
 // Socket
 export const socketUri = baseUriBackend;
