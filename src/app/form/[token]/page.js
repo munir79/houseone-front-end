@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useParams } from "next/navigation";
 import { CheckCircle2, Lock, X } from "lucide-react";
+import FormCopy from "@/components/tenantForm/FormCopy";
 import PublicFormFlow from "@/components/tenantForm/PublicFormFlow";
 import Card from "@/components/ui/Card";
 import Logo from "@/components/ui/Logo";
@@ -31,11 +32,14 @@ const Message = ({ icon: Icon, title, text }) => (
 const PublicFormPage = () => {
   const { token } = useParams();
   const [isDone, setIsDone] = useState(false);
-  const { data, error, isLoading } = useGetPublicFormQuery(token);
+  const { data, error, isLoading, isFetching, refetch } = useGetPublicFormQuery(token);
 
-  if (isDone) return <Message icon={CheckCircle2} title="ধন্যবাদ, ফর্ম জমা হয়েছে" text="বাড়িওয়ালা আপনার তথ্য দেখে নেবেন। এখন এই পেজ বন্ধ করতে পারেন।" />;
+  const handleDone = async () => {
+    await refetch();
+    setIsDone(true);
+  };
 
-  if (isLoading) {
+  if (isLoading || (isDone && isFetching)) {
     return (
       <Shell>
         <Skeleton className="h-96 w-full rounded-xl" />
@@ -46,12 +50,19 @@ const PublicFormPage = () => {
   const form = data?.data;
 
   if (error || !form) return <Message icon={X} title="লিংকটি সঠিক নয়" text="বাড়িওয়ালার কাছ থেকে সঠিক লিংকটি নিন।" />;
+  if (form.copy) {
+    return (
+      <Shell>
+        <FormCopy form={form} justSubmitted={isDone} />
+      </Shell>
+    );
+  }
   if (form.isExpired) return <Message icon={Lock} title="লিংকের মেয়াদ শেষ" text="বাড়িওয়ালাকে বলুন, তিনি আবার মেয়াদ বাড়িয়ে দিতে পারবেন।" />;
   if (!form.canFill) return <Message icon={CheckCircle2} title="এই ফর্মটি বন্ধ হয়ে গেছে" text="ফর্মটি আগেই জমা হয়েছে বা বাতিল হয়েছে। কিছু বদলাতে হলে বাড়িওয়ালাকে বলুন।" />;
 
   return (
     <Shell>
-      <PublicFormFlow token={token} form={form} onDone={() => setIsDone(true)} />
+      <PublicFormFlow token={token} form={form} onDone={handleDone} />
     </Shell>
   );
 };

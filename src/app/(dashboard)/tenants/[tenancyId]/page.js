@@ -10,9 +10,10 @@ import DocumentsPanel from "@/components/tenant/DocumentsPanel";
 import EditTenancyModal from "@/components/tenant/EditTenancyModal";
 import EditableList from "@/components/tenant/EditableList";
 import MembersPanel from "@/components/tenant/MembersPanel";
+import TermsCard from "@/components/tenantForm/TermsCard";
 import NidField from "@/components/tenant/NidField";
 import Badge from "@/components/ui/Badge";
-import Button from "@/components/ui/Button";
+import Button, { buttonClasses } from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import DetailHeader from "@/components/ui/DetailHeader";
 import EmptyState from "@/components/ui/EmptyState";
@@ -130,6 +131,11 @@ const TenancyDetailsPage = () => {
         badge={isActive ? <Badge variant="success">{tenancy.occupantType}</Badge> : <Badge>Former</Badge>}
         actions={
           <div className="flex flex-wrap gap-2">
+            {tenancy.copyToken && (
+              <a href={`/form/${tenancy.copyToken}`} target="_blank" rel="noreferrer" className={buttonClasses({ variant: "outline", size: "sm" })}>
+                Tenant Copy
+              </a>
+            )}
             <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
               <Pencil className="h-4 w-4" aria-hidden="true" />
               Edit
@@ -231,6 +237,8 @@ const TenancyDetailsPage = () => {
             </dl>
           </Card>
         )}
+
+        {activeTab === "overview" && tenancy.terms && <TermsCard terms={tenancy.terms} />}
 
         {activeTab === "overview" && tenancy.rules?.length > 0 && (
           <Card>

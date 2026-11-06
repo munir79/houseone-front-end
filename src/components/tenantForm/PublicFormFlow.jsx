@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, Check, CheckCircle2, ChevronRight, Pencil, Plus } from "lucide-react";
 import { toast } from "sonner";
 import PersonEditor from "./PersonEditor";
+import TermsCard from "./TermsCard";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
@@ -85,6 +86,7 @@ const PublicFormFlow = ({ token, form, onDone }) => {
   const [answers, setAnswers] = useState(draft?.answers || questions.map((_, index) => values.answers[index]?.answer || ""));
   const [consent, setConsent] = useState(false);
   const [rulesAccepted, setRulesAccepted] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [errors, setErrors] = useState({});
   const [view, setView] = useState({ name: "list" });
 
@@ -169,6 +171,10 @@ const PublicFormFlow = ({ token, form, onDone }) => {
   };
 
   const handleSubmit = async () => {
+    if (form.terms && !termsAccepted) {
+      setErrors({ terms: "ভাড়ার হিসাবে সম্মতি দিন" });
+      return;
+    }
     if (rules.length > 0 && !rulesAccepted) {
       setErrors({ rules: "নিয়মে সম্মতি দিন" });
       return;
@@ -180,7 +186,7 @@ const PublicFormFlow = ({ token, form, onDone }) => {
 
     try {
       const payload = people.map(({ key, nidLast4, ...person }) => person);
-      await submitForm({ token, people: payload, totalPeople: Number(totalPeople), ...extra, answers, consent, rulesAccepted }).unwrap();
+      await submitForm({ token, people: payload, totalPeople: Number(totalPeople), ...extra, answers, consent, rulesAccepted, termsAccepted }).unwrap();
       clearDraft(token);
       onDone();
     } catch (err) {
@@ -314,6 +320,24 @@ const PublicFormFlow = ({ token, form, onDone }) => {
           </Card>
         )}
 
+        {form.terms && (
+          <>
+            <TermsCard terms={form.terms} />
+            <Card>
+              <Checkbox
+                id="termsAccepted"
+                label="আমি এই ভাড়া ও চার্জে রাজি"
+                checked={termsAccepted}
+                onChange={(e) => {
+                  setTermsAccepted(e.target.checked);
+                  setErrors({});
+                }}
+              />
+              {errors.terms && <p className="text-sm text-danger">{errors.terms}</p>}
+            </Card>
+          </>
+        )}
+
         {rules.length > 0 && (
           <Card className="flex flex-col gap-3">
             <h2 className="text-sm font-semibold">বাড়ির নিয়ম</h2>
@@ -364,6 +388,8 @@ const PublicFormFlow = ({ token, form, onDone }) => {
           {form.propertyName}, {form.unitName} · {FORM_TYPE_LABELS[form.occupantType]}
         </p>
       </div>
+
+      {form.terms && <TermsCard terms={form.terms} />}
 
       {form.ownerNote && (
         <p className="rounded-xl border border-warning/40 bg-warning-soft px-4 py-3 text-sm text-warning-foreground">বাড়িওয়ালার নোট: {form.ownerNote}</p>

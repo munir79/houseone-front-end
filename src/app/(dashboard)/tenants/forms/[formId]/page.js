@@ -6,9 +6,10 @@ import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, ChevronRight, FileText, SearchX } from "lucide-react";
 import { toast } from "sonner";
 import PersonDetailsModal from "@/components/tenantForm/PersonDetailsModal";
+import TermsCard from "@/components/tenantForm/TermsCard";
 import ShareForm from "@/components/tenantForm/ShareForm";
 import Badge from "@/components/ui/Badge";
-import Button from "@/components/ui/Button";
+import Button, { buttonClasses } from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import DetailHeader from "@/components/ui/DetailHeader";
@@ -50,7 +51,7 @@ const ApproveModal = ({ form, onClose }) => {
     e.preventDefault();
     const newErrors = {};
     if (!values.startDate) newErrors.startDate = "ওঠার তারিখ দিন";
-    if (rent === "") newErrors.rent = "মাসিক ভাড়া লিখুন";
+    if (!form.terms && rent === "") newErrors.rent = "মাসিক ভাড়া লিখুন";
     setErrors(newErrors);
     if (Object.keys(newErrors).length > 0) return;
 
@@ -66,11 +67,13 @@ const ApproveModal = ({ form, onClose }) => {
   return (
     <Modal title="Approve Tenant" onClose={onClose}>
       <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
-        <p className="text-sm text-muted">ফর্মের সব তথ্য এই ইউনিটে বসে যাবে, আর ইউনিট Occupied হবে।</p>
+        <p className="text-sm text-muted">
+          {form.terms ? "ভাড়াটিয়া যে হিসাবে রাজি হয়েছেন সেটাই বসবে। বদলাতে হলে Send Back করুন।" : "ফর্মের সব তথ্য এই ইউনিটে বসে যাবে, আর ইউনিট Occupied হবে।"}
+        </p>
         <div className="grid grid-cols-2 gap-4">
           <Input id="startDate" type="date" label="Move-in date" value={values.startDate} onChange={change("startDate")} error={errors.startDate} />
-          <Select id="dueDay" label="Rent day" options={RENT_DAY_OPTIONS} value={values.dueDay} onChange={change("dueDay")} />
-          <Input
+          {!form.terms && <Select id="dueDay" label="Rent day" options={RENT_DAY_OPTIONS} value={values.dueDay} onChange={change("dueDay")} />}
+          {!form.terms && <Input
             id="approveRent"
             type="number"
             inputMode="numeric"
@@ -82,8 +85,8 @@ const ApproveModal = ({ form, onClose }) => {
               change("rent")(e);
             }}
             error={errors.rent}
-          />
-          <Input id="approveAdvance" type="number" inputMode="numeric" min="0" label="Advance (৳)" value={values.advance} onChange={change("advance")} />
+          />}
+          {!form.terms && <Input id="approveAdvance" type="number" inputMode="numeric" min="0" label="Advance (৳)" value={values.advance} onChange={change("advance")} />}
         </div>
         <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <Button variant="outline" onClick={onClose}>
@@ -211,6 +214,11 @@ const TenantFormPage = () => {
                   </Button>
                 </>
               )}
+              {isSubmitted && (
+                <a href={`/form/${form.token}`} target="_blank" rel="noreferrer" className={buttonClasses({ variant: "outline", size: "sm" })}>
+                  Tenant Copy
+                </a>
+              )}
               {isExpired && (
                 <Button size="sm" isLoading={isActing} onClick={handleExtend}>
                   Extend 7 Days
@@ -280,6 +288,8 @@ const TenantFormPage = () => {
           )}
         </>
       )}
+
+      {form.terms && <TermsCard terms={form.terms} title={form.termsAcceptedAt ? "ভাড়ার হিসাব (ভাড়াটিয়া রাজি)" : "ভাড়ার হিসাব"} />}
 
       {form.rulesAcceptedAt && (
         <Card>

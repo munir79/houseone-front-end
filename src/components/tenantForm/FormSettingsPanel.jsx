@@ -167,9 +167,9 @@ const SettingsEditor = ({ propertyId, initial }) => {
 };
 
 const FormSettingsPanel = ({ propertyId }) => {
-  const { data, isLoading } = useGetFormSettingsQuery(propertyId);
+  const { data, isFetching } = useGetFormSettingsQuery(propertyId);
 
-  if (isLoading || !data) return <Skeleton className="h-64 w-full rounded-xl" />;
+  if (isFetching || !data) return <Skeleton className="h-64 w-full rounded-xl" />;
 
   return <SettingsEditor propertyId={propertyId} initial={data.data} />;
 };

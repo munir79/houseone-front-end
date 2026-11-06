@@ -7,6 +7,7 @@ import { ArrowLeft, BellRing, Building2, DoorOpen, Image as ImageIcon, KeyRound,
 import { toast } from "sonner";
 import ContactList from "@/components/property/ContactList";
 import PropertyFormModal from "@/components/property/PropertyFormModal";
+import ChargesPanel from "@/components/tenantForm/ChargesPanel";
 import FormSettingsPanel from "@/components/tenantForm/FormSettingsPanel";
 import UnitList from "@/components/unit/UnitList";
 import Button from "@/components/ui/Button";
@@ -128,6 +129,7 @@ const PropertyDetailsPage = () => {
             { value: "units", label: "Units", count: property.unitCount },
             { value: "photos", label: "Photos", count: property.photos?.length || 0 },
             { value: "contacts", label: "Contacts" },
+            { value: "charges", label: "Charges" },
             { value: "form", label: "Tenant Form" },
             { value: "details", label: "Details" },
           ]}
@@ -153,6 +155,7 @@ const PropertyDetailsPage = () => {
           </Card>
         )}
         {activeTab === "contacts" && <ContactList propertyId={id} />}
+        {activeTab === "charges" && <ChargesPanel propertyId={id} />}
         {activeTab === "form" && <FormSettingsPanel propertyId={id} />}
         {activeTab === "details" && (
           <Card>
