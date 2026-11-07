@@ -2,10 +2,13 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { ChevronRight, LayoutGrid, ListChecks, Plus, Search, SearchX, Zap } from "lucide-react";
+import { CheckCircle2, ChevronRight, LayoutGrid, ListChecks, Plus, ReceiptText, Search, SearchX, Zap } from "lucide-react";
 import BulkSetupModal from "./BulkSetupModal";
 import QuickAddUnitsModal from "./QuickAddUnitsModal";
 import UnitFormModal from "./UnitFormModal";
+import GenerateBillsModal from "@/components/bill/GenerateBillsModal";
+import SendBillButton from "@/components/bill/SendBillButton";
+import PayModal from "@/components/payment/PayModal";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
@@ -15,14 +18,17 @@ import SegmentedControl from "@/components/ui/SegmentedControl";
 import Select from "@/components/ui/Select";
 import Skeleton from "@/components/ui/Skeleton";
 import { formatMoney } from "@/lib/formatMoney";
-import { billStatus } from "@/lib/billOptions";
+import { billStatus, currentMonth } from "@/lib/billOptions";
 import { OCCUPANT_TYPE_OPTIONS } from "@/lib/tenancyOptions";
 import { toBanglaNumber } from "@/lib/toBanglaNumber";
 import { unitActivity } from "@/lib/unitActivity";
 import { floorName } from "@/lib/unitOptions";
+import { useGetBillsQuery } from "@/redux/features/bill/billApi";
 import { useGetPropertyUnitsQuery } from "@/redux/features/unit/unitApi";
 
-const NEEDS_ACTION = "Needs Action";
+export const NEEDS_ACTION = "Needs Action";
+// এই মাসের বিল হয়নি বা টাকা বাকি
+export const RENT_PENDING = "Rent Pending";
 const ALL_TYPES = "All Types";
 
 const SORT_OPTIONS = [
@@ -38,16 +44,36 @@ const SORTERS = {
   name: (a, b) => a.name.localeCompare(b.name),
 };
 
-const ROW_COLUMNS = "xl:grid xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.1fr)_180px_20px] xl:gap-4";
+const ROW_COLUMNS = "xl:grid xl:grid-cols-[minmax(0,1.7fr)_minmax(0,0.9fr)_minmax(0,0.9fr)_minmax(0,0.9fr)_minmax(0,1.5fr)_150px_20px] xl:gap-4";
 
 // ভাড়াটিয়া থাকলে তাঁর ধরন, খালি হলে যাঁকে ভাড়া দিতে চান
-// এই মাসের ভাড়া — বিল না হলে সেটাই বলে
-const ThisMonth = ({ unit }) => {
-  if (!unit.tenancy) return <span className="text-sm text-muted">—</span>;
-  if (!unit.bill) return <span className="text-sm text-muted">বিল হয়নি</span>;
+const isRentPending = (unit) => Boolean(unit.tenancy) && (!unit.bill || unit.bill.balance > 0);
 
-  const { label, variant } = billStatus(unit.bill);
-  return <Badge variant={variant}>{label}</Badge>;
+// এই মাসের ভাড়া — অবস্থা আর পরের একটি কাজ: বিল তৈরি, পাঠানো, নাকি টাকা নেওয়া
+const ThisMonth = ({ unit, bill, onCreateBill, onPay }) => {
+  if (!unit.tenancy) return <span className="text-sm text-muted">—</span>;
+
+  const status = unit.bill ? billStatus(unit.bill) : null;
+  const canAct = bill && bill.status !== "Carried" && bill.balance > 0;
+
+  return (
+    <span className="relative z-10 flex flex-col items-end gap-1.5 whitespace-nowrap xl:flex-row xl:flex-wrap xl:items-center">
+      {status ? <Badge variant={status.variant}>{status.label}</Badge> : <span className="text-sm text-muted">বিল হয়নি</span>}
+      {!unit.bill && (
+        <Button size="sm" variant="outline" onClick={onCreateBill} aria-label={`Create bill for ${unit.name}`}>
+          <ReceiptText className="h-4 w-4" aria-hidden="true" />
+          Create Bill
+        </Button>
+      )}
+      {canAct && !bill.sentAt && <SendBillButton bill={bill} size="sm" />}
+      {canAct && bill.sentAt && (
+        <Button size="sm" variant="outline" onClick={onPay} aria-label={`Mark ${unit.name} as paid`}>
+          <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
+          Mark Paid
+        </Button>
+      )}
+    </span>
+  );
 };
 
 const tenantTypeLabel = ({ tenancy, preferredTenant, type }) => {
@@ -56,7 +82,7 @@ const tenantTypeLabel = ({ tenancy, preferredTenant, type }) => {
 };
 
 // পুরো সারি ইউনিটের Link, শুধু কাজের Badge আলাদা Link — সরাসরি ফর্ম বা ভাড়াটিয়ার পেজে যায়
-const UnitRow = ({ propertyId, unit }) => {
+const UnitRow = ({ propertyId, unit, bill, onCreateBill, onPay }) => {
   const activity = unitActivity(unit);
   const typeLabel = tenantTypeLabel(unit);
   // ভাড়াটিয়া থাকলে তাঁর আসল ভাড়া, খালি হলে ফ্ল্যাটের ভাড়া
@@ -91,13 +117,13 @@ const UnitRow = ({ propertyId, unit }) => {
           {unit.tenancy ? formatMoney(unit.tenancy.advance) : "—"}
         </span>
         <span data-unit-month className="hidden xl:block">
-          <ThisMonth unit={unit} />
+          <ThisMonth unit={unit} bill={bill} onCreateBill={onCreateBill} onPay={onPay} />
         </span>
         <span className="flex shrink-0 flex-col items-end gap-1 xl:flex-row xl:flex-wrap xl:items-center xl:justify-start">
           <Badge variant={unit.status === "Vacant" ? "warning" : "success"}>{unit.status}</Badge>
           {unit.tenancy && (
             <span className="xl:hidden">
-              <ThisMonth unit={unit} />
+              <ThisMonth unit={unit} bill={bill} onCreateBill={onCreateBill} onPay={onPay} />
             </span>
           )}
           {activity && (
@@ -112,7 +138,7 @@ const UnitRow = ({ propertyId, unit }) => {
   );
 };
 
-// initialFilter — বাড়ির ⋮ মেনুর Needs Action থেকে এলে
+// initialFilter — বাড়ির ⋮ মেনুর Needs Action বা এই মাসের পরামর্শ থেকে এলে
 const UnitList = ({ property, initialFilter = "All" }) => {
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isQuickOpen, setIsQuickOpen] = useState(false);
@@ -122,12 +148,20 @@ const UnitList = ({ property, initialFilter = "All" }) => {
   const [occupantType, setOccupantType] = useState(ALL_TYPES);
   const [sort, setSort] = useState("floor");
   const [search, setSearch] = useState("");
+  const [billingTenancy, setBillingTenancy] = useState(null);
+  const [payingId, setPayingId] = useState(null);
 
   const { data, isLoading } = useGetPropertyUnitsQuery(property._id);
+  // বাড়ির পেজের আদায় কার্ডের একই Query — আলাদা Request হয় না
+  const { data: billsData } = useGetBillsQuery({ month: currentMonth(), propertyId: property._id });
+  const billByTenancy = useMemo(() => new Map((billsData?.data?.bills || []).map((bill) => [bill.tenancy, bill])), [billsData]);
 
   const units = useMemo(() => data?.data || [], [data]);
   const actionCount = useMemo(() => units.filter((unit) => unitActivity(unit)?.needsAction).length, [units]);
   const actionLabel = actionCount > 0 ? `${NEEDS_ACTION} (${actionCount})` : NEEDS_ACTION;
+  const pendingCount = useMemo(() => units.filter(isRentPending).length, [units]);
+  const pendingLabel = pendingCount > 0 ? `${RENT_PENDING} (${pendingCount})` : RENT_PENDING;
+  const FILTER_LABELS = { [NEEDS_ACTION]: actionLabel, [RENT_PENDING]: pendingLabel };
 
   // গণনাও এখানেই, ফিল্টারও — শূন্য ধরন দেখানো হয় না
   const typeOptions = useMemo(() => {
@@ -140,7 +174,11 @@ const UnitList = ({ property, initialFilter = "All" }) => {
     const text = search.trim().toLowerCase();
     return units
       .filter((unit) => !activeType || unit.tenancy?.occupantType === activeType.value)
-      .filter((unit) => (filter === NEEDS_ACTION ? unitActivity(unit)?.needsAction : filter === "All" || unit.status === filter))
+      .filter((unit) => {
+        if (filter === NEEDS_ACTION) return unitActivity(unit)?.needsAction;
+        if (filter === RENT_PENDING) return isRentPending(unit);
+        return filter === "All" || unit.status === filter;
+      })
       .filter((unit) => !text || unit.name.toLowerCase().includes(text))
       .sort(SORTERS[sort]);
   }, [units, activeType, filter, search, sort]);
@@ -158,9 +196,9 @@ const UnitList = ({ property, initialFilter = "All" }) => {
         <div className="flex flex-wrap items-center justify-between gap-2">
           <SegmentedControl
             label="Filter units"
-            options={["All", "Vacant", "Occupied", actionLabel]}
-            value={filter === NEEDS_ACTION ? actionLabel : filter}
-            onChange={(next) => setFilter(next === actionLabel ? NEEDS_ACTION : next)}
+            options={["All", "Vacant", "Occupied", pendingLabel, actionLabel]}
+            value={FILTER_LABELS[filter] ?? filter}
+            onChange={(next) => setFilter(Object.keys(FILTER_LABELS).find((key) => FILTER_LABELS[key] === next) ?? next)}
           />
           <div className="flex flex-wrap gap-2">
             {units.length > 0 && (
@@ -239,8 +277,10 @@ const UnitList = ({ property, initialFilter = "All" }) => {
       ) : shownUnits.length === 0 ? (
         <EmptyState
           icon={SearchX}
-          title={filter === NEEDS_ACTION ? "All caught up" : "No unit found"}
-          description={filter === NEEDS_ACTION ? "এই বাড়িতে এখন আপনার কোনো কাজ বাকি নেই।" : "এই ফিল্টারে কোনো ইউনিট নেই।"}
+          title={filter === NEEDS_ACTION || filter === RENT_PENDING ? "All caught up" : "No unit found"}
+          description={
+            filter === RENT_PENDING ? "এই মাসের সব বিল তৈরি হয়েছে, সব ভাড়াও আদায় হয়েছে।" : filter === NEEDS_ACTION ? "এই বাড়িতে এখন আপনার কোনো কাজ বাকি নেই।" : "এই ফিল্টারে কোনো ইউনিট নেই।"
+          }
         />
       ) : (
         <>
@@ -255,11 +295,21 @@ const UnitList = ({ property, initialFilter = "All" }) => {
           </div>
           <ul className="divide-y divide-border">
             {shownUnits.map((unit) => (
-              <UnitRow key={unit._id} propertyId={property._id} unit={unit} />
+              <UnitRow
+                key={unit._id}
+                propertyId={property._id}
+                unit={unit}
+                bill={unit.tenancy && billByTenancy.get(unit.tenancy._id)}
+                onCreateBill={() => setBillingTenancy(unit.tenancy._id)}
+                onPay={() => setPayingId(billByTenancy.get(unit.tenancy._id)?._id)}
+              />
             ))}
           </ul>
         </>
       )}
+
+      {billingTenancy && <GenerateBillsModal month={currentMonth()} tenancyId={billingTenancy} onClose={() => setBillingTenancy(null)} />}
+      {payingId && <PayModal key={payingId} bill={[...billByTenancy.values()].find(({ _id }) => _id === payingId)} onClose={() => setPayingId(null)} />}
 
       {isAddOpen && (
         <UnitFormModal propertyId={property._id} totalFloors={property.totalFloors} onClose={() => setIsAddOpen(false)} />

@@ -1,7 +1,7 @@
 'use client';
 
 import { apiSlice } from "@/redux/api/apiSlice";
-import { BILLS, BILL_ADJUST, BILL_BY_ID, BILL_GENERATE, BILL_PREVIEW, TENANCY_BILLS } from "@/utils/url";
+import { BILLS, BILL_ADJUST, BILL_BY_ID, BILL_GENERATE, BILL_PREVIEW, BILL_SENT, PUBLIC_BILL, TENANCY_BILLS } from "@/utils/url";
 
 // বিল বদলালে বাড়ির টেবিল ও ড্যাশবোর্ডের সংখ্যাও বদলায়
 const CHANGED_TAGS = ["Bill", "Unit", "Tenancy", "Property"];
@@ -50,6 +50,17 @@ export const billApi = apiSlice.injectEndpoints({
       query: (id) => ({ url: BILL_BY_ID(id), method: 'DELETE' }),
       invalidatesTags: CHANGED_TAGS,
     }),
+
+    //8. BILL SENT TO TENANT
+    markBillSent: builder.mutation({
+      query: (id) => ({ url: BILL_SENT(id), method: 'POST' }),
+      invalidatesTags: CHANGED_TAGS,
+    }),
+
+    //9. TENANT SIDE — BILL
+    getPublicBill: builder.query({
+      query: (token) => PUBLIC_BILL(token),
+    }),
   }),
 });
 
@@ -61,4 +72,6 @@ export const {
   useUpdateBillMutation,
   useAddBillAdjustmentMutation,
   useDeleteBillMutation,
+  useMarkBillSentMutation,
+  useGetPublicBillQuery,
 } = billApi;

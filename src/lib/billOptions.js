@@ -53,7 +53,13 @@ export const rentStatusLine = (bills) => {
 // শেষ সময় ভাড়ার দিনের রাত ১২টা, তাই এক মুহূর্ত আগের তারিখটাই ভাড়ার দিন
 export const billLastDay = (bill) => new Date(new Date(bill.dueDate).getTime() - 1);
 
+export const billLink = (token) => `${window.location.origin}/bill/${token}`;
+
+// WhatsApp এর বিল — হিসাবসহ, আর ভাড়াটিয়া লিংকে পুরো বিল দেখেন
 export const billReminderLink = (bill) => {
-  const message = `${bill.propertyName}, ${bill.unitName}: ${monthLabel(bill.month)} মাসের বিল ${formatMoney(bill.balance)}। ${toBanglaNumber(billLastDay(bill).getDate())} তারিখের মধ্যে দিন। ধন্যবাদ।`;
+  const lines = bill.lines.map(({ name, amount }) => `${name}: ${formatMoney(amount)}`).join("\n");
+  const paid = bill.paid > 0 ? `\nদিয়েছেন: ${formatMoney(bill.paid)}` : "";
+  const link = bill.token ? `\nবিল দেখুন: ${billLink(bill.token)}` : "";
+  const message = `${bill.tenantName}, ${bill.propertyName}, ${bill.unitName}-এর ${monthLabel(bill.month)} মাসের বিল:\n${lines}\nমোট: ${formatMoney(bill.total)}${paid}\nবাকি: ${formatMoney(bill.balance)}\n${toBanglaNumber(billLastDay(bill).getDate())} তারিখের মধ্যে দিন। ধন্যবাদ।${link}`;
   return `https://wa.me/88${bill.tenantPhone}?text=${encodeURIComponent(message)}`;
 };

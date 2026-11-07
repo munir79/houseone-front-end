@@ -6,13 +6,13 @@ import {
   CheckCircle2,
   ChevronRight,
   CircleAlert,
-  MessageCircle,
   ReceiptText,
   Wallet,
   WalletCards,
 } from "lucide-react";
 import BillDetailsModal from "./BillDetailsModal";
 import GenerateBillsModal from "./GenerateBillsModal";
+import SendBillButton from "./SendBillButton";
 import PayModal from "@/components/payment/PayModal";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
@@ -23,7 +23,6 @@ import Select from "@/components/ui/Select";
 import Skeleton from "@/components/ui/Skeleton";
 import StatStrip from "@/components/ui/StatStrip";
 import {
-  billReminderLink,
   billStatus,
   currentMonth,
   monthLabel,
@@ -86,15 +85,7 @@ const BillRow = ({ bill, onOpen, onPay }) => {
           </button>
         )}
         {bill.balance > 0 ? (
-          <a
-            href={billReminderLink(bill)}
-            target="_blank"
-            rel="noreferrer"
-            aria-label={`Remind ${bill.tenantName} on WhatsApp`}
-            className="relative z-10 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-muted hover:bg-primary-soft"
-          >
-            <MessageCircle className="h-5 w-5" aria-hidden="true" />
-          </a>
+          <SendBillButton bill={bill} isIcon />
         ) : (
           <ChevronRight
             className="mx-3.5 h-4 w-4 shrink-0 text-muted"

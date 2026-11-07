@@ -12,10 +12,11 @@ const TONES = {
 };
 
 // সংখ্যার কার্ড — গোল রঙিন আইকন, নাম ও মান
+// extra — মানের নিচে বাড়তি অংশ (যেমন Progress bar), highlight — কাজ শেষ হলে সবুজ কার্ড
 const StatStrip = ({ items, isLoading = false }) => {
   return (
     <div className={cn("grid grid-cols-2 gap-3 sm:gap-4", COLUMNS[items.length])}>
-      {items.map(({ key, label, value, hint, icon: Icon, tone = "green", onClick }) => {
+      {items.map(({ key, label, value, hint, icon: Icon, tone = "green", onClick, extra, highlight, isLoading: isItemLoading }) => {
         const Box = onClick ? "button" : "div";
         return (
         <Box
@@ -25,7 +26,8 @@ const StatStrip = ({ items, isLoading = false }) => {
           onClick={onClick}
           className={cn(
             "flex min-w-0 flex-col gap-2 rounded-2xl border border-border bg-surface p-3.5 text-left shadow-card sm:flex-row sm:items-center sm:gap-3 sm:p-4",
-            onClick && "transition-colors hover:border-primary"
+            onClick && "transition-colors hover:border-primary",
+            highlight && "border-primary bg-primary-soft"
           )}
         >
           {Icon && (
@@ -33,9 +35,9 @@ const StatStrip = ({ items, isLoading = false }) => {
               <Icon className="h-5 w-5" aria-hidden="true" />
             </span>
           )}
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <p className="text-xs font-semibold text-foreground sm:text-sm">{label}</p>
-            {isLoading ? (
+            {isLoading || isItemLoading ? (
               <Skeleton className="mt-1 h-7 w-14" />
             ) : (
               <div className="flex flex-wrap items-baseline gap-x-2">
@@ -45,6 +47,7 @@ const StatStrip = ({ items, isLoading = false }) => {
                 {hint && <span className="text-sm font-medium text-muted">{hint}</span>}
               </div>
             )}
+            {extra && !isLoading && !isItemLoading && <div className="mt-2">{extra}</div>}
           </div>
         </Box>
         );

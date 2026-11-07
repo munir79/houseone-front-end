@@ -1,18 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { CheckCircle2, MessageCircle, Plus, Trash2 } from "lucide-react";
+import { CheckCircle2, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import SendBillButton from "./SendBillButton";
 import PayModal from "@/components/payment/PayModal";
 import PaymentList from "@/components/payment/PaymentList";
 import Badge from "@/components/ui/Badge";
-import Button, { buttonClasses } from "@/components/ui/Button";
+import Button from "@/components/ui/Button";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import Input from "@/components/ui/Input";
 import Modal from "@/components/ui/Modal";
 import {
   billLastDay,
-  billReminderLink,
   billStatus,
   isFixedLine,
   monthLabel,
@@ -106,6 +106,11 @@ const BillDetailsModal = ({ bill, onClose }) => {
               <p className="text-sm text-muted">
                 শেষ তারিখ {formatDate(billLastDay(bill))}
               </p>
+              {!isCarried && (
+                <p data-bill-sent className="text-sm text-muted">
+                  {bill.sentAt ? `বিল পাঠানো হয়েছে · ${formatDate(bill.sentAt)}` : "ভাড়াটিয়াকে বিল এখনো পাঠানো হয়নি"}
+                </p>
+              )}
             </div>
             <Badge variant={status.variant}>{status.label}</Badge>
           </div>
@@ -241,17 +246,7 @@ const BillDetailsModal = ({ bill, onClose }) => {
                 Delete
               </Button>
             )}
-            {canRemind && !editing && (
-              <a
-                href={billReminderLink(bill)}
-                target="_blank"
-                rel="noreferrer"
-                className={buttonClasses({ variant: "outline" })}
-              >
-                <MessageCircle className="h-4 w-4" aria-hidden="true" />
-                WhatsApp
-              </a>
-            )}
+            {canRemind && !editing && <SendBillButton bill={bill} />}
             {canRemind && !editing && (
               <Button onClick={() => setIsPaying(true)}>
                 <CheckCircle2 className="h-4 w-4" aria-hidden="true" />

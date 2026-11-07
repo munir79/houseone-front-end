@@ -17,7 +17,8 @@ import {
 } from "@/utils/url";
 
 // ভাড়াটিয়া ওঠা-নামায় ইউনিট ও বাড়ির সংখ্যাও বদলায়
-const CHANGED_TAGS = ["Tenancy", "Unit", "Property"];
+// নতুন ভাড়াটিয়া বা ভাড়া বদলালে এই মাসের বিল বাকির হিসাবও বদলায়
+const CHANGED_TAGS = ["Tenancy", "Unit", "Property", "Bill"];
 
 export const tenancyApi = apiSlice.injectEndpoints({
   overrideExisting: true,

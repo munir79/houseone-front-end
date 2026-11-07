@@ -12,7 +12,7 @@ import {
   TENANT_FORM_BY_UNIT,
 } from "@/utils/url";
 
-const CHANGED_TAGS = ["TenantForm", "Tenancy", "Unit", "Property"];
+const CHANGED_TAGS = ["TenantForm", "Tenancy", "Unit", "Property", "Bill"];
 
 export const tenantFormApi = apiSlice.injectEndpoints({
   overrideExisting: true,
@@ -26,7 +26,8 @@ export const tenantFormApi = apiSlice.injectEndpoints({
     //2. SAVE SETTINGS
     updateFormSettings: builder.mutation({
       query: ({ propertyId, types }) => ({ url: FORM_SETTINGS(propertyId), method: 'PUT', body: types }),
-      invalidatesTags: ["TenantForm"],
+      // চার্জ বদলালে বিল না হওয়া ফ্ল্যাটের আনুমানিক টাকাও বদলায়
+      invalidatesTags: ["TenantForm", "Bill"],
     }),
 
     //3. OPEN FORMS

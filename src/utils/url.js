@@ -60,6 +60,8 @@ export const BILL_GENERATE = API_BASE_URL + 'bill/generate';
 export const BILL_BY_ID = (id) => API_BASE_URL + `bill/${id}`;
 export const BILL_ADJUST = (id) => API_BASE_URL + `bill/${id}/adjust`;
 export const TENANCY_BILLS = (id) => API_BASE_URL + `bill/tenancy/${id}`;
+export const BILL_SENT = (id) => API_BASE_URL + `bill/${id}/sent`;
+export const PUBLIC_BILL = (token) => API_BASE_URL + `public/bill/${token}`;
 
 // Payment
 export const PAYMENTS = API_BASE_URL + 'payment';

@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { CheckCircle2, ChevronRight, ReceiptText } from "lucide-react";
 import BillDetailsModal from "./BillDetailsModal";
+import SendBillButton from "./SendBillButton";
 import GenerateBillsModal from "./GenerateBillsModal";
 import AdvanceCard from "@/components/payment/AdvanceCard";
 import PayModal from "@/components/payment/PayModal";
@@ -116,6 +117,7 @@ const TenancyBills = ({ tenancy, canCreate = false }) => {
                       <CheckCircle2 className="h-5 w-5" aria-hidden="true" />
                     </button>
                   )}
+                  {bill.balance > 0 && <SendBillButton bill={bill} isIcon />}
                 </li>
               );
             })}

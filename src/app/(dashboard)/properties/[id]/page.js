@@ -7,11 +7,8 @@ import {
   ArrowLeft,
   BellRing,
   Building2,
-  DoorOpen,
   Image as ImageIcon,
-  KeyRound,
   Layers,
-  LayoutGrid,
   MapPin,
   Pencil,
   ReceiptText,
@@ -20,12 +17,12 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import ContactList from "@/components/property/ContactList";
+import HouseStats from "@/components/property/HouseStats";
 import PropertyFormModal from "@/components/property/PropertyFormModal";
 import BillBoard from "@/components/bill/BillBoard";
-import MonthCollectionCard from "@/components/bill/MonthCollectionCard";
 import ChargesPanel from "@/components/tenantForm/ChargesPanel";
 import FormSettingsPanel from "@/components/tenantForm/FormSettingsPanel";
-import UnitList from "@/components/unit/UnitList";
+import UnitList, { NEEDS_ACTION, RENT_PENDING } from "@/components/unit/UnitList";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
@@ -35,7 +32,6 @@ import EmptyState from "@/components/ui/EmptyState";
 import LinkButton from "@/components/ui/LinkButton";
 import PhotoGallery from "@/components/ui/PhotoGallery";
 import Skeleton from "@/components/ui/Skeleton";
-import StatStrip from "@/components/ui/StatStrip";
 import Tabs from "@/components/ui/Tabs";
 import { getErrorMessage } from "@/lib/getErrorMessage";
 import { unitActivity } from "@/lib/unitActivity";
@@ -109,17 +105,13 @@ const PropertyDetailsPage = () => {
     );
   }
 
-  const occupied = property.unitCount - property.vacantCount;
   const actionCount = (unitsData?.data || []).filter(
     (unit) => unitActivity(unit)?.needsAction,
   ).length;
-  const occupancy = property.unitCount
-    ? Math.round((occupied / property.unitCount) * 100)
-    : 0;
-
-  const openNeedsAction = () => {
+  // ⋮ মেনু বা পরামর্শ থেকে — Units tab নির্দিষ্ট ফিল্টারসহ
+  const openUnits = (value) => {
     setActiveTab("units");
-    setUnitFilter({ value: "Needs Action", key: Date.now() });
+    setUnitFilter({ value, key: Date.now() });
   };
 
   const actions = [
@@ -129,7 +121,7 @@ const PropertyDetailsPage = () => {
             key: "action",
             label: `Needs Action (${actionCount})`,
             icon: BellRing,
-            onClick: openNeedsAction,
+            onClick: () => openUnits(NEEDS_ACTION),
           },
         ]
       : []),
@@ -165,35 +157,10 @@ const PropertyDetailsPage = () => {
         actions={<ActionMenu items={actions} />}
       />
 
-      <MonthCollectionCard
-        propertyId={id}
-        occupied={occupied}
-        onOpen={() => setActiveTab("rent")}
-      />
-      <StatStrip
-        items={[
-          {
-            key: "units",
-            label: "Total Units",
-            value: property.unitCount,
-            icon: LayoutGrid,
-          },
-          {
-            key: "occupied",
-            label: "Occupied",
-            value: occupied,
-            hint: `${occupancy}%`,
-            icon: KeyRound,
-            tone: "blue",
-          },
-          {
-            key: "vacant",
-            label: "Vacant",
-            value: property.vacantCount,
-            icon: DoorOpen,
-            tone: "amber",
-          },
-        ]}
+      <HouseStats
+        property={property}
+        onOpenRent={() => setActiveTab("rent")}
+        onOpenPending={() => openUnits(RENT_PENDING)}
       />
 
       <div className="flex flex-col gap-4">
