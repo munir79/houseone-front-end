@@ -10,11 +10,12 @@ import { formatDate } from "@/lib/tenancyOptions";
 import { formLink } from "@/lib/tenantFormOptions";
 
 // লিংক, WhatsApp বা QR — ভাড়াটিয়া সামনে থাকলে QR সবচেয়ে সহজ
-const ShareForm = ({ form }) => {
+// message, note — আগে জমা দেওয়া ফর্মের কপি পাঠানোর সময় আলাদা লেখা
+const ShareForm = ({ form, message: customMessage, note }) => {
   const [copied, setCopied] = useState(false);
 
   const link = formLink(form.token);
-  const message = `${form.propertyName}, ${form.unitName} এর ভাড়াটিয়া ফর্ম। এই লিংকে গিয়ে পূরণ করুন: ${link}`;
+  const message = `${customMessage ?? `${form.propertyName}, ${form.unitName} এর ভাড়াটিয়া ফর্ম। এই লিংকে গিয়ে পূরণ করুন:`} ${link}`;
 
   const handleCopy = async () => {
     try {
@@ -46,7 +47,7 @@ const ShareForm = ({ form }) => {
             WhatsApp
           </a>
         </div>
-        <p className="text-xs text-muted">{formatDate(form.expiresAt)} পর্যন্ত লিংকটি কাজ করবে। জমা দিলে লিংক বন্ধ হয়ে যাবে।</p>
+        <p className="text-xs text-muted">{note ?? `${formatDate(form.expiresAt)} পর্যন্ত লিংকটি কাজ করবে। জমা দিলে লিংক বন্ধ হয়ে যাবে।`}</p>
       </div>
     </div>
   );

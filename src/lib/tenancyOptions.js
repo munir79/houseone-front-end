@@ -16,6 +16,9 @@ export const toDateInput = (date) => new Date(date).toISOString().slice(0, 10);
 
 export const todayInput = () => toDateInput(new Date());
 
+// কবে থেকে: Jan 2024 থেকে
+export const formatSince = (date) => `${new Date(date).toLocaleDateString("en-GB", { month: "short", year: "numeric" })} থেকে`;
+
 // কতদিন ধরে আছেন: ২ বছর ৩ মাস
 export const formatStay = (startDate, endDate) => {
   const start = new Date(startDate);

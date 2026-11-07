@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronRight, Crown, LogOut, Pencil, RotateCcw, UserPlus } from "lucide-react";
+import { Crown, Eye, LogOut, Pencil, RotateCcw, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import DateActionModal from "./DateActionModal";
 import MemberFormModal from "./MemberFormModal";
@@ -13,7 +13,7 @@ import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import { getErrorMessage } from "@/lib/getErrorMessage";
 import { formatDate, todayInput } from "@/lib/tenancyOptions";
 import { toBanglaNumber } from "@/lib/toBanglaNumber";
-import { useGetMemberDocumentsMutation, useMemberActionMutation, useRevealMemberNidMutation } from "@/redux/features/tenancy/tenancyApi";
+import { useGetDocumentLinksMutation, useGetMemberDocumentsMutation, useMemberActionMutation, useRevealMemberNidMutation, useRevealNidMutation } from "@/redux/features/tenancy/tenancyApi";
 
 const MemberRow = ({ member, onOpen }) => (
   <li>
@@ -26,7 +26,7 @@ const MemberRow = ({ member, onOpen }) => (
       </span>
       <span className="flex shrink-0 items-center gap-2">
         {member.isMain && <Badge variant="info">প্রধান</Badge>}
-        <ChevronRight className="h-4 w-4 text-muted" aria-hidden="true" />
+        <Eye className="h-4 w-4 text-muted" aria-hidden="true" />
       </span>
     </button>
   </li>
@@ -41,6 +41,11 @@ const MembersPanel = ({ tenancy }) => {
   const [memberAction, { isLoading: isActing }] = useMemberActionMutation();
   const [revealNid, { isLoading: isRevealing }] = useRevealMemberNidMutation();
   const [getDocuments] = useGetMemberDocumentsMutation();
+  const [revealTenantNid, { isLoading: isRevealingTenant }] = useRevealNidMutation();
+  const [getTenantDocuments] = useGetDocumentLinksMutation();
+  const [isTenantOpen, setIsTenantOpen] = useState(false);
+
+  const { tenant } = tenancy;
 
   const isActive = tenancy.status === "Active";
   const current = tenancy.members.filter(({ leftAt }) => !leftAt).sort((a, b) => Number(b.isMain) - Number(a.isMain));
@@ -72,12 +77,17 @@ const MembersPanel = ({ tenancy }) => {
       </div>
 
       <ul className="divide-y divide-border">
-        <li className="flex min-h-14 items-center justify-between gap-3 px-4 py-2.5">
-          <span className="min-w-0">
-            <span className="block text-sm font-medium wrap-break-word">{tenancy.tenantName}</span>
-            <span className="block text-xs text-muted">মূল ভাড়াটিয়া · {tenancy.tenantPhone}</span>
-          </span>
-          <Badge variant="info">প্রধান</Badge>
+        <li>
+          <button type="button" aria-label={`View ${tenancy.tenantName}`} onClick={() => setIsTenantOpen(true)} className="flex min-h-14 w-full items-center justify-between gap-3 px-4 py-2.5 text-left hover:bg-background">
+            <span className="min-w-0">
+              <span className="block text-sm font-medium wrap-break-word">{tenancy.tenantName}</span>
+              <span className="block text-xs text-muted">মূল ভাড়াটিয়া · {tenancy.tenantPhone}</span>
+            </span>
+            <span className="flex shrink-0 items-center gap-2">
+              <Badge variant="info">প্রধান</Badge>
+              <Eye className="h-4 w-4 text-muted" aria-hidden="true" />
+            </span>
+          </button>
         </li>
         {current.map((member) => (
           <MemberRow key={member._id} member={member} onOpen={() => setOpenId(member._id)} />
@@ -95,6 +105,18 @@ const MembersPanel = ({ tenancy }) => {
             ))}
           </ul>
         </>
+      )}
+
+      {isTenantOpen && (
+        <PersonDetailsModal
+          person={tenant}
+          isMain
+          hasImages={(tenant.documents?.length || 0) > 0 || Boolean(tenant.photo)}
+          isRevealing={isRevealingTenant}
+          onReveal={() => revealTenantNid(tenant._id).unwrap()}
+          loadImages={() => getTenantDocuments(tenant._id).unwrap()}
+          onClose={() => setIsTenantOpen(false)}
+        />
       )}
 
       {openMember && !dialog && (

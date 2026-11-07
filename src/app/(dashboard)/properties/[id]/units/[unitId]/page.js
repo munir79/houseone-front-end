@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import TenancyDetails from "@/components/tenant/TenancyDetails";
 import UnitTenantPanel, { PreviousTenants } from "@/components/tenant/UnitTenantPanel";
 import UnitFormModal from "@/components/unit/UnitFormModal";
+import UnitPhotosPanel from "@/components/unit/UnitPhotosPanel";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
@@ -114,10 +115,11 @@ const UnitDetailsPage = () => {
 
       {unit.photos?.length > 0 && (
         <Card>
-          <h2 className="mb-3 text-sm font-semibold">Photos</h2>
           <PhotoGallery photos={unit.photos} alt={unit.name} />
         </Card>
       )}
+
+      <UnitPhotosPanel unit={unit} />
     </div>
   );
 

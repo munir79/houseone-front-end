@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { MessageCircle, Phone } from "lucide-react";
 import { toast } from "sonner";
 import NidField from "@/components/tenant/NidField";
 import Badge from "@/components/ui/Badge";
+import { buttonClasses } from "@/components/ui/Button";
 import Modal from "@/components/ui/Modal";
 import Skeleton from "@/components/ui/Skeleton";
 import { getErrorMessage } from "@/lib/getErrorMessage";
@@ -37,6 +39,19 @@ const PersonDetailsModal = ({ person, isMain, hasImages, isRevealing, onReveal, 
         {isMain && (
           <div>
             <Badge variant="info">প্রধান দায়িত্বশীল</Badge>
+          </div>
+        )}
+
+        {person.phone && (
+          <div className="flex flex-wrap gap-2">
+            <a href={`tel:${person.phone}`} className={buttonClasses({ size: "sm" })}>
+              <Phone className="h-4 w-4" aria-hidden="true" />
+              Call
+            </a>
+            <a href={`https://wa.me/88${person.phone}`} target="_blank" rel="noreferrer" className={buttonClasses({ variant: "outline", size: "sm" })}>
+              <MessageCircle className="h-4 w-4" aria-hidden="true" />
+              WhatsApp
+            </a>
           </div>
         )}
 
