@@ -7,6 +7,7 @@ import { ArrowLeft, BellRing, Building2, DoorOpen, Image as ImageIcon, KeyRound,
 import { toast } from "sonner";
 import ContactList from "@/components/property/ContactList";
 import PropertyFormModal from "@/components/property/PropertyFormModal";
+import BillBoard from "@/components/bill/BillBoard";
 import ChargesPanel from "@/components/tenantForm/ChargesPanel";
 import FormSettingsPanel from "@/components/tenantForm/FormSettingsPanel";
 import UnitList from "@/components/unit/UnitList";
@@ -128,6 +129,7 @@ const PropertyDetailsPage = () => {
           onChange={setActiveTab}
           tabs={[
             { value: "units", label: "Units", count: property.unitCount },
+            { value: "rent", label: "Rent" },
             { value: "photos", label: "Photos", count: property.photos?.length || 0 },
             { value: "contacts", label: "Contacts" },
             { value: "charges", label: "Charges" },
@@ -137,6 +139,7 @@ const PropertyDetailsPage = () => {
         />
 
         {activeTab === "units" && <UnitList property={property} />}
+        {activeTab === "rent" && <BillBoard propertyId={id} />}
         {activeTab === "photos" && (
           <Card>
             {property.photos?.length > 0 ? (

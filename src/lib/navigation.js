@@ -18,7 +18,7 @@ export const mainNav = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { label: "Properties", href: "/properties", icon: Home },
   { label: "Tenants", href: "/tenants", icon: Users },
-  { label: "Billing", icon: ClipboardList, soon: true },
+  { label: "Billing", href: "/billing", icon: ClipboardList },
   { label: "Receipts", icon: FileText, soon: true },
   { label: "Shared Access", icon: Handshake, soon: true },
   { label: "To-Let Marketplace", icon: Megaphone, soon: true },

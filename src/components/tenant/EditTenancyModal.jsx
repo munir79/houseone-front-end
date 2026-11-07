@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
+import ChargeRows from "@/components/tenantForm/ChargeRows";
 import Button from "@/components/ui/Button";
 import Checkbox from "@/components/ui/Checkbox";
 import FormSection from "@/components/ui/FormSection";
@@ -38,6 +39,7 @@ const EditTenancyModal = ({ tenancy, onClose }) => {
     note: tenancy.note,
     declaredPeople: tenancy.declaredPeople ? String(tenancy.declaredPeople) : "",
   });
+  const [charges, setCharges] = useState(tenancy.terms?.charges ?? []);
   const [errors, setErrors] = useState({});
 
   const [updateTenant, { isLoading: isSavingTenant }] = useUpdateTenantMutation();
@@ -61,6 +63,7 @@ const EditTenancyModal = ({ tenancy, onClose }) => {
     if (!person.phone.trim()) newErrors.phone = "মোবাইল নম্বর লিখুন";
     if (rental.rent === "") newErrors.rent = "মাসিক ভাড়া লিখুন";
     if (!rental.startDate) newErrors.startDate = "ওঠার তারিখ দিন";
+    if (charges.some(({ name, amount }) => !name.trim() || amount === "")) newErrors.charges = "প্রতিটি চার্জের নাম ও টাকা লিখুন, অথবা মুছে দিন";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -71,7 +74,7 @@ const EditTenancyModal = ({ tenancy, onClose }) => {
 
     try {
       await updateTenant({ id: tenant._id, ...person, ...(nid.trim() ? { nid } : {}) }).unwrap();
-      await updateTenancy({ id: tenancy._id, ...rental, dueDay: Number(rental.dueDay) }).unwrap();
+      await updateTenancy({ id: tenancy._id, ...rental, dueDay: Number(rental.dueDay), ...(tenancy.terms || charges.length > 0 ? { charges } : {}) }).unwrap();
 
       toast.success("তথ্য সেভ হয়েছে");
       onClose();
@@ -118,6 +121,12 @@ const EditTenancyModal = ({ tenancy, onClose }) => {
             <Input id="tenancyAdvance" type="number" inputMode="numeric" min="0" label="Advance (৳)" value={rental.advance} onChange={changeRental("advance")} />
             <Input id="declaredPeople" type="number" inputMode="numeric" min="0" label="Total people (optional)" value={rental.declaredPeople} onChange={changeRental("declaredPeople")} />
           </div>
+        </FormSection>
+
+        <FormSection title="Monthly charges">
+          <p className="text-sm text-muted">{tenancy.terms ? "নতুন হিসাব পরের বিল থেকে কার্যকর হবে।" : "খালি থাকলে বাড়ির Charges থেকে আসবে।"}</p>
+          <ChargeRows charges={charges} onChange={setCharges} />
+          {errors.charges && <p className="text-sm text-danger">{errors.charges}</p>}
         </FormSection>
 
         <FormSection title="Sublet">

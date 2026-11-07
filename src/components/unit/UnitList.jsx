@@ -14,6 +14,7 @@ import SegmentedControl from "@/components/ui/SegmentedControl";
 import Select from "@/components/ui/Select";
 import Skeleton from "@/components/ui/Skeleton";
 import { formatMoney } from "@/lib/formatMoney";
+import { billStatus } from "@/lib/billOptions";
 import { OCCUPANT_TYPE_OPTIONS } from "@/lib/tenancyOptions";
 import { toBanglaNumber } from "@/lib/toBanglaNumber";
 import { unitActivity } from "@/lib/unitActivity";
@@ -36,9 +37,18 @@ const SORTERS = {
   name: (a, b) => a.name.localeCompare(b.name),
 };
 
-const ROW_COLUMNS = "xl:grid xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_210px_20px] xl:gap-4";
+const ROW_COLUMNS = "xl:grid xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.1fr)_180px_20px] xl:gap-4";
 
 // ভাড়াটিয়া থাকলে তাঁর ধরন, খালি হলে যাঁকে ভাড়া দিতে চান
+// এই মাসের ভাড়া — বিল না হলে সেটাই বলে
+const ThisMonth = ({ unit }) => {
+  if (!unit.tenancy) return <span className="text-sm text-muted">—</span>;
+  if (!unit.bill) return <span className="text-sm text-muted">বিল হয়নি</span>;
+
+  const { label, variant } = billStatus(unit.bill);
+  return <Badge variant={variant}>{label}</Badge>;
+};
+
 const tenantTypeLabel = ({ tenancy, preferredTenant, type }) => {
   if (tenancy) return tenancy.occupantType;
   return preferredTenant && preferredTenant !== "Any" ? `${preferredTenant} চাই` : type;
@@ -48,6 +58,8 @@ const tenantTypeLabel = ({ tenancy, preferredTenant, type }) => {
 const UnitRow = ({ propertyId, unit }) => {
   const activity = unitActivity(unit);
   const typeLabel = tenantTypeLabel(unit);
+  // ভাড়াটিয়া থাকলে তাঁর আসল ভাড়া, খালি হলে ফ্ল্যাটের ভাড়া
+  const rent = unit.tenancy?.rent ?? unit.rent;
 
   return (
     <li data-unit-row={unit.name} className="relative transition-colors hover:bg-background">
@@ -63,7 +75,7 @@ const UnitRow = ({ propertyId, unit }) => {
             </span>
           )}
           <span className="block text-xs text-muted xl:hidden">
-            {floorName(unit.floor)} · {typeLabel} · {formatMoney(unit.rent)}
+            {floorName(unit.floor)} · {typeLabel} · {formatMoney(rent)}
             {unit.tenancy && ` · Advance ${formatMoney(unit.tenancy.advance)}`}
           </span>
           <span className="hidden text-xs text-muted xl:block">{floorName(unit.floor)}</span>
@@ -71,12 +83,22 @@ const UnitRow = ({ propertyId, unit }) => {
         <span data-unit-type className="hidden text-sm text-muted xl:block">
           {typeLabel}
         </span>
-        <span className="hidden text-sm tabular-nums xl:block">{formatMoney(unit.rent)}</span>
+        <span data-unit-rent className="hidden text-sm tabular-nums xl:block">
+          {formatMoney(rent)}
+        </span>
         <span data-unit-advance className="hidden text-sm tabular-nums xl:block">
           {unit.tenancy ? formatMoney(unit.tenancy.advance) : "—"}
         </span>
+        <span data-unit-month className="hidden xl:block">
+          <ThisMonth unit={unit} />
+        </span>
         <span className="flex shrink-0 flex-col items-end gap-1 xl:flex-row xl:flex-wrap xl:items-center xl:justify-start">
           <Badge variant={unit.status === "Vacant" ? "warning" : "success"}>{unit.status}</Badge>
+          {unit.tenancy && (
+            <span className="xl:hidden">
+              <ThisMonth unit={unit} />
+            </span>
+          )}
           {activity && (
             <Link href={activity.href} data-activity className="relative z-10 rounded-full focus-visible:outline-2 focus-visible:outline-primary">
               <Badge variant={activity.variant}>{activity.label}</Badge>
@@ -206,6 +228,7 @@ const UnitList = ({ property }) => {
             <span>Type</span>
             <span>Rent</span>
             <span>Advance</span>
+            <span>This Month</span>
             <span>Status</span>
             <span />
           </div>

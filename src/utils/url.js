@@ -53,6 +53,14 @@ export const TENANCY_MEMBERS = (id) => API_BASE_URL + `tenancy/${id}/members`;
 export const TENANCY_MEMBER = (id, memberId) => API_BASE_URL + `tenancy/${id}/members/${memberId}`;
 export const UNIT_TENANCIES = (id) => API_BASE_URL + `unit/${id}/tenancies`;
 
+// Bill
+export const BILLS = API_BASE_URL + 'bill';
+export const BILL_PREVIEW = API_BASE_URL + 'bill/preview';
+export const BILL_GENERATE = API_BASE_URL + 'bill/generate';
+export const BILL_BY_ID = (id) => API_BASE_URL + `bill/${id}`;
+export const BILL_ADJUST = (id) => API_BASE_URL + `bill/${id}/adjust`;
+export const TENANCY_BILLS = (id) => API_BASE_URL + `bill/tenancy/${id}`;
+
 // Tenant Form
 export const TENANT_FORMS = API_BASE_URL + 'tenant-form';
 export const TENANT_FORM_BY_ID = (id) => API_BASE_URL + `tenant-form/${id}`;

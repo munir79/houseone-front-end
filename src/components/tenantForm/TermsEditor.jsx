@@ -1,18 +1,14 @@
 "use client";
 
-import { Plus, X } from "lucide-react";
-import Button from "@/components/ui/Button";
+import ChargeRows from "./ChargeRows";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import { ADVANCE_BASE_OPTIONS, ELECTRICITY_OPTIONS, GAS_OPTIONS } from "@/lib/formTerms";
 import { RENT_DAY_OPTIONS } from "@/lib/tenancyOptions";
 
-const MAX_CHARGES = 15;
-
 // চার্জ, Advance, বিদ্যুৎ ও গ্যাস — Charges tab ও Send Form দুটোতেই
 const TermsEditor = ({ value, onChange }) => {
   const change = (update) => onChange({ ...value, ...update });
-  const changeCharge = (index, update) => change({ charges: value.charges.map((charge, itemIndex) => (itemIndex === index ? { ...charge, ...update } : charge)) });
 
   return (
     <div className="flex flex-col gap-4">
@@ -21,35 +17,7 @@ const TermsEditor = ({ value, onChange }) => {
           <p className="text-sm font-medium">মাসিক চার্জ</p>
           <p className="text-sm text-muted">টাকা ০ থাকলে ভাড়াটিয়ার ফর্মে দেখাবে না।</p>
         </div>
-        {value.charges.map((charge, index) => (
-          <div key={index} className="flex items-center gap-2">
-            <Input id={`chargeName-${index}`} aria-label={`Charge ${index + 1} name`} placeholder="চার্জের নাম" value={charge.name} onChange={(e) => changeCharge(index, { name: e.target.value })} className="min-w-0 flex-1" />
-            <Input
-              id={`chargeAmount-${index}`}
-              type="number"
-              inputMode="numeric"
-              min="0"
-              aria-label={`Charge ${index + 1} amount`}
-              value={charge.amount}
-              onChange={(e) => changeCharge(index, { amount: e.target.value === "" ? "" : Number(e.target.value) })}
-              className="w-28 shrink-0"
-            />
-            <button
-              type="button"
-              onClick={() => change({ charges: value.charges.filter((_, itemIndex) => itemIndex !== index) })}
-              aria-label={`Remove charge ${index + 1}`}
-              className="flex h-11 w-9 shrink-0 items-center justify-center rounded-lg text-muted hover:bg-primary-soft"
-            >
-              <X className="h-4 w-4" aria-hidden="true" />
-            </button>
-          </div>
-        ))}
-        {value.charges.length < MAX_CHARGES && (
-          <Button variant="outline" size="sm" onClick={() => change({ charges: [...value.charges, { name: "", amount: 0 }] })} className="w-fit">
-            <Plus className="h-4 w-4" aria-hidden="true" />
-            Add Charge
-          </Button>
-        )}
+        <ChargeRows charges={value.charges} onChange={(charges) => change({ charges })} />
       </div>
 
       <div className="grid grid-cols-2 gap-4">

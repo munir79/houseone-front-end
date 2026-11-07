@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ArrowLeft, Banknote, CalendarClock, CalendarDays, Clock, KeyRound, LogOut, MessageCircle, Pencil, Phone, SearchX, User, Users } from "lucide-react";
 import { toast } from "sonner";
+import TenancyBills from "@/components/bill/TenancyBills";
 import DateActionModal from "@/components/tenant/DateActionModal";
 import DocumentsPanel from "@/components/tenant/DocumentsPanel";
 import EditTenancyModal from "@/components/tenant/EditTenancyModal";
@@ -190,6 +191,7 @@ const TenancyDetailsPage = () => {
             { value: "overview", label: "Overview" },
             { value: "members", label: "Members", count: tenancy.members.filter(({ leftAt }) => !leftAt).length },
             { value: "items", label: "Items given", count: tenancy.handoverItems.length },
+            { value: "bills", label: "Bills" },
             { value: "documents", label: "Documents", count: tenant.documents?.length || 0 },
           ]}
         />
@@ -287,6 +289,7 @@ const TenancyDetailsPage = () => {
           />
         )}
 
+        {activeTab === "bills" && <TenancyBills tenancyId={tenancyId} />}
         {activeTab === "documents" && <DocumentsPanel tenant={tenant} />}
       </div>
 

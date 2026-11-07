@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, BellRing, Building2, CalendarClock, DoorOpen, Home, ReceiptText, UserPlus, Users, Wallet } from "lucide-react";
+import { ArrowRight, BellRing, Building2, CalendarClock, DoorOpen, Home, UserPlus, Users, Wallet } from "lucide-react";
 import PropertyCard from "@/components/property/PropertyCard";
 import Card from "@/components/ui/Card";
 import EmptyState from "@/components/ui/EmptyState";
@@ -81,10 +81,11 @@ const OccupancyCard = ({ summary }) => {
 // সব বাড়ি মিলিয়ে যা করতে হবে — শূন্য হলে বাড়তি জায়গা নেয় না
 const NeedsActionCard = ({ needsAction }) => {
   const rows = [
-    { key: "approvals", label: "Needs approval", count: needsAction.approvals },
-    { key: "sentBack", label: "Sent back", count: needsAction.sentBack },
-    { key: "expired", label: "Link expired", count: needsAction.expired },
-    { key: "leaving", label: "Leaving soon", count: needsAction.leaving },
+    { key: "notBilled", label: "Bills to create", count: needsAction.notBilled, href: "/billing" },
+    { key: "approvals", label: "Needs approval", count: needsAction.approvals, href: "/tenants" },
+    { key: "sentBack", label: "Sent back", count: needsAction.sentBack, href: "/tenants" },
+    { key: "expired", label: "Link expired", count: needsAction.expired, href: "/tenants" },
+    { key: "leaving", label: "Leaving soon", count: needsAction.leaving, href: "/tenants" },
   ].filter(({ count }) => count > 0);
 
   return (
@@ -98,9 +99,9 @@ const NeedsActionCard = ({ needsAction }) => {
         <p className="px-4 py-3 text-sm text-muted">এখন আপনার কোনো কাজ বাকি নেই।</p>
       ) : (
         <ul className="divide-y divide-border">
-          {rows.map(({ key, label, count }) => (
+          {rows.map(({ key, label, count, href }) => (
             <li key={key}>
-              <Link href="/tenants" className="flex min-h-11 items-center justify-between gap-3 px-4 py-2 text-sm font-medium hover:bg-background">
+              <Link href={href} className="flex min-h-11 items-center justify-between gap-3 px-4 py-2 text-sm font-medium hover:bg-background">
                 {label}
                 <span className="font-bold tabular-nums">{count}</span>
               </Link>
@@ -241,12 +242,6 @@ const DashboardPage = () => {
             </Card>
           )}
 
-          <Card className="flex items-center gap-3">
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary-soft text-primary">
-              <ReceiptText className="h-5 w-5" aria-hidden="true" />
-            </span>
-            <p className="min-w-0 text-sm text-muted">ভাড়া আদায় ও রসিদের হিসাব Billing তৈরি হলে এখানে দেখা যাবে।</p>
-          </Card>
         </div>
       </div>
     </div>
