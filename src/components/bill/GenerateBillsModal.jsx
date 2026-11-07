@@ -18,9 +18,10 @@ import { useGenerateBillsMutation, useGetBillPreviewQuery } from "@/redux/featur
 const sumLines = (lines) => lines.reduce((sum, { amount }) => sum + amount, 0);
 
 // সেভ করার আগে সব বিল দেখে নেওয়া — শুধু মাসে মাসে বদলানো টাকা এখানে লেখা হয়
-const GenerateBillsModal = ({ month, propertyId, onClose }) => {
+// tenancyId — ইউনিটের পেজ থেকে শুধু ওই ভাড়াটিয়ার বিল
+const GenerateBillsModal = ({ month, propertyId, tenancyId, onClose }) => {
   const [inputs, setInputs] = useState({});
-  const { data, isLoading } = useGetBillPreviewQuery({ month, ...(propertyId ? { propertyId } : {}) });
+  const { data, isLoading } = useGetBillPreviewQuery({ month, ...(propertyId ? { propertyId } : {}), ...(tenancyId ? { tenancyId } : {}) });
   const [generateBills, { isLoading: isSaving }] = useGenerateBillsMutation();
 
   const rows = data?.data?.rows || [];

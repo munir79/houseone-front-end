@@ -58,7 +58,7 @@ const ApproveModal = ({ form, onClose }) => {
     try {
       const response = await formAction({ id: form._id, action: "approve", ...values, rent, dueDay: Number(values.dueDay) }).unwrap();
       toast.success("ভাড়াটিয়া যোগ হয়েছে");
-      router.replace(`/tenants/${response.data._id}`);
+      router.replace(`/properties/${form.property}/units/${form.unit}`);
     } catch (err) {
       toast.error(getErrorMessage(err, "Approve হয়নি। আবার চেষ্টা করুন।"));
     }

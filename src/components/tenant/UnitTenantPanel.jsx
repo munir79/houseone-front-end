@@ -16,9 +16,9 @@ import { FORM_STATUS } from "@/lib/tenantFormOptions";
 import { useGetUnitTenanciesQuery } from "@/redux/features/tenancy/tenancyApi";
 import { useGetUnitFormQuery } from "@/redux/features/tenantForm/tenantFormApi";
 
-const TenancyRow = ({ tenancy }) => (
+const TenancyRow = ({ tenancy, onOpen }) => (
   <li>
-    <Link href={`/tenants/${tenancy._id}`} className="flex items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-background">
+    <button type="button" onClick={() => onOpen(tenancy._id)} className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-background">
       <span className="min-w-0">
         <span className="block text-sm font-medium wrap-break-word">{tenancy.tenantName}</span>
         <span className="block text-xs text-muted">
@@ -30,11 +30,27 @@ const TenancyRow = ({ tenancy }) => (
         <Badge variant={tenancy.status === "Active" ? "success" : "primary"}>{tenancy.status === "Active" ? tenancy.occupantType : "Former"}</Badge>
         <ChevronRight className="h-4 w-4 text-muted" aria-hidden="true" />
       </span>
-    </Link>
+    </button>
   </li>
 );
 
-const UnitTenantPanel = ({ unit }) => {
+// আগের ভাড়াটিয়ারা — চাপলে এই পেজেই খোলে
+export const PreviousTenants = ({ tenancies, onOpen }) =>
+  tenancies.length === 0 ? (
+    <Card>
+      <EmptyState icon={Users} title="No previous tenants" description="এই ইউনিটে আগে কেউ ছিলেন না।" />
+    </Card>
+  ) : (
+    <Card flush className="overflow-hidden">
+      <ul className="divide-y divide-border">
+        {tenancies.map((tenancy) => (
+          <TenancyRow key={tenancy._id} tenancy={tenancy} onOpen={onOpen} />
+        ))}
+      </ul>
+    </Card>
+  );
+
+const UnitTenantPanel = ({ unit, onOpen }) => {
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isSendOpen, setIsSendOpen] = useState(false);
   const { data, isLoading } = useGetUnitTenanciesQuery(unit._id);
@@ -88,7 +104,7 @@ const UnitTenantPanel = ({ unit }) => {
       ) : (
         <ul className="divide-y divide-border">
           {tenancies.map((tenancy) => (
-            <TenancyRow key={tenancy._id} tenancy={tenancy} />
+            <TenancyRow key={tenancy._id} tenancy={tenancy} onOpen={onOpen} />
           ))}
         </ul>
       )}

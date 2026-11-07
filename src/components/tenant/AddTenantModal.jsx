@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { Check, Search } from "lucide-react";
 import { toast } from "sonner";
 import Button from "@/components/ui/Button";
@@ -20,7 +19,6 @@ const EXISTING_TENANT = "Existing tenant";
 const SEARCH_DEBOUNCE_MS = 300;
 
 const AddTenantModal = ({ unit, onClose }) => {
-  const router = useRouter();
   const [mode, setMode] = useState(NEW_TENANT);
   const [person, setPerson] = useState({ name: "", phone: "", nid: "", occupation: "", permanentAddress: "", emergencyName: "", emergencyPhone: "" });
   const [tenancy, setTenancy] = useState({
@@ -88,7 +86,7 @@ const AddTenantModal = ({ unit, onClose }) => {
     try {
       const response = await createTenancy(body).unwrap();
       toast.success(response.message);
-      router.push(`/tenants/${response.data._id}`);
+      onClose();
     } catch (err) {
       toast.error(getErrorMessage(err, "ভাড়াটিয়া যোগ হয়নি। আবার চেষ্টা করুন।"));
     }
