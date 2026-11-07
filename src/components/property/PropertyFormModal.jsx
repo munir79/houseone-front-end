@@ -221,6 +221,7 @@ const PropertyFormModal = ({ property, onClose, onSaved }) => {
               onChange={handleChange("receiptPhone")}
             />
           </div>
+          <p className="text-sm text-muted">রসিদ ও বিলে ভাড়াটিয়া এই নাম ও ফোন দেখবেন। খালি রাখলে আপনার account-এর নাম ও ফোন বসবে।</p>
         </FormSection>
 
         <div className="flex flex-col-reverse gap-2 border-t border-border pt-4 sm:flex-row sm:justify-end">

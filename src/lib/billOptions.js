@@ -1,3 +1,4 @@
+import { bdDateInput, bdDayOfMonth } from "./bdTime";
 import { formatMoney } from "./formatMoney";
 import { toBanglaNumber } from "./toBanglaNumber";
 
@@ -7,10 +8,7 @@ const LINE_FIXED = ["PreviousDue", "Advance"];
 
 export const isFixedLine = ({ kind }) => LINE_FIXED.includes(kind);
 
-export const currentMonth = () => {
-  const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-};
+export const currentMonth = () => bdDateInput().slice(0, 7);
 
 export const monthLabel = (month) => {
   const [year, number] = month.split("-").map(Number);
@@ -19,10 +17,10 @@ export const monthLabel = (month) => {
 
 // আগামী মাস থেকে পেছনের এক বছর
 export const monthOptions = () => {
-  const now = new Date();
+  const [year, month] = currentMonth().split("-").map(Number);
   return Array.from({ length: MONTHS_BACK + 2 }, (_, index) => {
-    const date = new Date(now.getFullYear(), now.getMonth() + 1 - index, 1);
-    const value = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+    const date = new Date(Date.UTC(year, month - index, 1));
+    const value = date.toISOString().slice(0, 7);
     return { value, label: monthLabel(value) };
   });
 };
@@ -60,6 +58,6 @@ export const billReminderLink = (bill) => {
   const lines = bill.lines.map(({ name, amount }) => `${name}: ${formatMoney(amount)}`).join("\n");
   const paid = bill.paid > 0 ? `\nদিয়েছেন: ${formatMoney(bill.paid)}` : "";
   const link = bill.token ? `\nবিল দেখুন: ${billLink(bill.token)}` : "";
-  const message = `${bill.tenantName}, ${bill.propertyName}, ${bill.unitName}-এর ${monthLabel(bill.month)} মাসের বিল:\n${lines}\nমোট: ${formatMoney(bill.total)}${paid}\nবাকি: ${formatMoney(bill.balance)}\n${toBanglaNumber(billLastDay(bill).getDate())} তারিখের মধ্যে দিন। ধন্যবাদ।${link}`;
+  const message = `${bill.tenantName}, ${bill.propertyName}, ${bill.unitName}-এর ${monthLabel(bill.month)} মাসের বিল:\n${lines}\nমোট: ${formatMoney(bill.total)}${paid}\nবাকি: ${formatMoney(bill.balance)}\n${toBanglaNumber(bdDayOfMonth(billLastDay(bill)))} তারিখের মধ্যে দিন। ধন্যবাদ।${link}`;
   return `https://wa.me/88${bill.tenantPhone}?text=${encodeURIComponent(message)}`;
 };

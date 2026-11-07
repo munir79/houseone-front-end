@@ -29,6 +29,11 @@ const ReceiptView = forwardRef(({ payment }, ref) => {
             House<span className="text-primary">One</span>
           </p>
           <h1 className="text-xl font-bold">টাকা প্রাপ্তির রসিদ</h1>
+          {(payment.issuerName || payment.issuerPhone) && (
+            <p data-receipt-issuer className="text-sm wrap-break-word text-muted">
+              বাড়িওয়ালা: <span className="font-semibold text-foreground">{[payment.issuerName, payment.issuerPhone].filter(Boolean).join(", ")}</span>
+            </p>
+          )}
         </div>
         <div className="text-right text-sm">
           <p className="font-bold">{payment.receiptNo}</p>

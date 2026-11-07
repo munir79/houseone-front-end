@@ -22,11 +22,10 @@ import Skeleton from "@/components/ui/Skeleton";
 import StatStrip from "@/components/ui/StatStrip";
 import { formatMoney } from "@/lib/formatMoney";
 import { getErrorMessage } from "@/lib/getErrorMessage";
+import { formatDate } from "@/lib/tenancyOptions";
 import { LIVING_LAYOUT_OPTIONS, floorName } from "@/lib/unitOptions";
 import { useGetUnitTenanciesQuery } from "@/redux/features/tenancy/tenancyApi";
 import { useDeleteUnitMutation, useGetUnitQuery } from "@/redux/features/unit/unitApi";
-
-const formatDate = (date) => new Date(date).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 
 const UnitDetailsPage = () => {
   const { id, unitId } = useParams();

@@ -1,8 +1,9 @@
+import { BD_TIME_ZONE } from "./bdTime";
 import { FORM_STATUS } from "./tenantFormOptions";
 
 const FORM_NEEDS_ACTION = ["Submitted", "SentBack"];
 
-const shortDate = (date) => new Date(date).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+const shortDate = (date) => new Date(date).toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: BD_TIME_ZONE });
 
 // ইউনিটে এখন কী চলছে — Vacant/Occupied এর পাশের দ্বিতীয় Badge
 export const unitActivity = ({ _id, property, openForm, tenancy, openIssues = 0 }) => {
