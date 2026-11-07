@@ -11,7 +11,7 @@ import Modal from "@/components/ui/Modal";
 import Select from "@/components/ui/Select";
 import { getErrorMessage } from "@/lib/getErrorMessage";
 import { toBanglaNumber } from "@/lib/toBanglaNumber";
-import { UNIT_TYPE_OPTIONS, floorName, floorOptions } from "@/lib/unitOptions";
+import { floorName, floorOptions } from "@/lib/unitOptions";
 import { useCreateUnitsInBulkMutation } from "@/redux/features/unit/unitApi";
 
 const MAX_PER_FLOOR = 26;
@@ -21,14 +21,10 @@ const isValidCount = (value, min) => {
   return value !== "" && Number.isInteger(number) && number >= min && number <= MAX_PER_FLOOR;
 };
 
-const QuickAddUnitsModal = ({ propertyId, totalFloors, onClose }) => {
+const QuickAddUnitsModal = ({ propertyId, totalFloors, onCreated, onClose }) => {
   const [unitsPerFloor, setUnitsPerFloor] = useState("2");
   const [includeGround, setIncludeGround] = useState(false);
   const [exceptions, setExceptions] = useState([]); // [{ id, floor, units }]
-  const [type, setType] = useState("Flat");
-  const [rent, setRent] = useState("");
-  const [bedrooms, setBedrooms] = useState("");
-  const [bathrooms, setBathrooms] = useState("");
   const [error, setError] = useState("");
 
   const [createUnits, { isLoading }] = useCreateUnitsInBulkMutation();
@@ -77,10 +73,6 @@ const QuickAddUnitsModal = ({ propertyId, totalFloors, onClose }) => {
         unitsPerFloor: Number(unitsPerFloor),
         includeGround,
         exceptions: exceptions.map(({ floor, units }) => ({ floor: Number(floor), units: Number(units) })),
-        type,
-        rent,
-        bedrooms,
-        bathrooms,
       }).unwrap();
       const { created, skipped } = response.data;
 
@@ -89,7 +81,7 @@ const QuickAddUnitsModal = ({ propertyId, totalFloors, onClose }) => {
           ? `${toBanglaNumber(created)}টি ইউনিট যোগ হয়েছে, ${toBanglaNumber(skipped)}টি আগে থেকেই ছিল`
           : `${toBanglaNumber(created)}টি ইউনিট যোগ হয়েছে`
       );
-      onClose();
+      onCreated(created);
     } catch (err) {
       toast.error(getErrorMessage(err, "ইউনিট যোগ হয়নি। আবার চেষ্টা করুন।"));
     }
@@ -173,42 +165,6 @@ const QuickAddUnitsModal = ({ propertyId, totalFloors, onClose }) => {
           )}
         </FormSection>
 
-        <FormSection title="Same for all units (optional)">
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-            <Select id="bulkType" label="Type" options={UNIT_TYPE_OPTIONS} value={type} onChange={(e) => setType(e.target.value)} />
-            <Input
-              id="bulkRent"
-              type="number"
-              inputMode="numeric"
-              min="0"
-              label="Rent (৳)"
-              placeholder="20000"
-              value={rent}
-              onChange={(e) => setRent(e.target.value)}
-            />
-            <Input
-              id="bulkBedrooms"
-              type="number"
-              inputMode="numeric"
-              min="0"
-              label="Bedrooms"
-              placeholder="3"
-              value={bedrooms}
-              onChange={(e) => setBedrooms(e.target.value)}
-            />
-            <Input
-              id="bulkBathrooms"
-              type="number"
-              inputMode="numeric"
-              min="0"
-              label="Bathrooms"
-              placeholder="2"
-              value={bathrooms}
-              onChange={(e) => setBathrooms(e.target.value)}
-            />
-          </div>
-        </FormSection>
-
         {error && <p className="text-sm text-danger">{error}</p>}
 
         <div className="flex flex-col gap-3 border-t border-border pt-4 sm:flex-row sm:items-center sm:justify-between">
@@ -216,6 +172,7 @@ const QuickAddUnitsModal = ({ propertyId, totalFloors, onClose }) => {
             {isValid && (
               <>
                 <p className="font-semibold">{toBanglaNumber(total)}টি ইউনিট তৈরি হবে</p>
+                <p className="text-xs text-muted">ভাড়া ও রুমের তথ্য পরে একসাথে দেওয়া যাবে।</p>
                 <p className="text-xs text-muted">{floorName(totalFloors)} পর্যন্ত। যে নাম আগে থেকেই আছে সেটা বাদ যাবে।</p>
               </>
             )}

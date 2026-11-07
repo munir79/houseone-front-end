@@ -19,7 +19,7 @@ import Skeleton from "@/components/ui/Skeleton";
 import StatStrip from "@/components/ui/StatStrip";
 import { formatMoney } from "@/lib/formatMoney";
 import { getErrorMessage } from "@/lib/getErrorMessage";
-import { floorName } from "@/lib/unitOptions";
+import { LIVING_LAYOUT_OPTIONS, floorName } from "@/lib/unitOptions";
 import { useDeleteUnitMutation, useGetUnitQuery } from "@/redux/features/unit/unitApi";
 
 const formatDate = (date) => new Date(date).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
@@ -70,6 +70,8 @@ const UnitDetailsPage = () => {
   const details = [
     ["Type", unit.type],
     ["Prefer to rent to", unit.preferredTenant],
+    ["Balconies", unit.balconies ?? "Not set"],
+    ["Drawing & dining", LIVING_LAYOUT_OPTIONS.find(({ value }) => value === unit.livingLayout)?.label ?? "Not set"],
     ["Size", unit.sizeSqft ? `${unit.sizeSqft.toLocaleString("en-IN")} sq ft` : "Not set"],
     ["Available from", unit.availableFrom ? formatDate(unit.availableFrom) : "Not set"],
     ["Electricity meter", unit.electricityMeter || "Not set"],

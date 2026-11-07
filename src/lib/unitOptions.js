@@ -8,6 +8,14 @@ export const UNIT_STATUS_OPTIONS = [
   { value: "Occupied", label: "Occupied" },
 ];
 
+export const LIVING_LAYOUT_OPTIONS = [
+  { value: "", label: "Not set" },
+  { value: "Separate", label: "আলাদা ড্রয়িং ও ডাইনিং" },
+  { value: "Combined", label: "ড্রয়িং-ডাইনিং একসাথে" },
+  { value: "DiningOnly", label: "শুধু ডাইনিং" },
+  { value: "None", label: "নেই" },
+];
+
 export const PREFERRED_TENANT_OPTIONS = ["Any", "Family", "Bachelor", "Office", "Shop"].map((value) => ({ value, label: value }));
 
 export const floorName = (floor) => {

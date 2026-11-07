@@ -31,6 +31,16 @@ export const unitApi = apiSlice.injectEndpoints({
       invalidatesTags: CHANGED_TAGS,
     }),
 
+    //4. BULK SETUP
+    bulkUpdateUnits: builder.mutation({
+      query: ({ propertyId, ...body }) => ({
+        url: PROPERTY_UNITS_BULK(propertyId),
+        method: 'PATCH',
+        body,
+      }),
+      invalidatesTags: CHANGED_TAGS,
+    }),
+
     //4. QUICK ADD
     createUnitsInBulk: builder.mutation({
       query: ({ propertyId, ...body }) => ({
@@ -69,4 +79,5 @@ export const {
   useCreateUnitsInBulkMutation,
   useUpdateUnitMutation,
   useDeleteUnitMutation,
+  useBulkUpdateUnitsMutation,
 } = unitApi;

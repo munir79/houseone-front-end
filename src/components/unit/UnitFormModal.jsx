@@ -9,7 +9,7 @@ import Modal from "@/components/ui/Modal";
 import MultiImageUpload from "@/components/ui/MultiImageUpload";
 import Select from "@/components/ui/Select";
 import { getErrorMessage } from "@/lib/getErrorMessage";
-import { PREFERRED_TENANT_OPTIONS, UNIT_STATUS_OPTIONS, UNIT_TYPE_OPTIONS, floorOptions } from "@/lib/unitOptions";
+import { LIVING_LAYOUT_OPTIONS, PREFERRED_TENANT_OPTIONS, UNIT_STATUS_OPTIONS, UNIT_TYPE_OPTIONS, floorOptions } from "@/lib/unitOptions";
 import { useCreateUnitMutation, useUpdateUnitMutation } from "@/redux/features/unit/unitApi";
 
 const toText = (value) => (value === null || value === undefined ? "" : String(value));
@@ -27,6 +27,8 @@ const UnitFormModal = ({ propertyId, totalFloors, unit, onClose }) => {
     rent: toText(unit?.rent),
     bedrooms: toText(unit?.bedrooms),
     bathrooms: toText(unit?.bathrooms),
+    balconies: toText(unit?.balconies),
+    livingLayout: unit?.livingLayout || "",
     sizeSqft: toText(unit?.sizeSqft),
     maxPeople: toText(unit?.maxPeople),
     availableFrom: unit?.availableFrom?.slice(0, 10) || "",
@@ -137,6 +139,17 @@ const UnitFormModal = ({ propertyId, totalFloors, unit, onClose }) => {
               value={form.bathrooms}
               onChange={handleChange("bathrooms")}
             />
+            <Input
+              id="unitBalconies"
+              type="number"
+              inputMode="numeric"
+              min="0"
+              label="Balconies"
+              placeholder="2"
+              value={form.balconies}
+              onChange={handleChange("balconies")}
+            />
+            <Select id="unitLayout" label="Drawing & dining" options={LIVING_LAYOUT_OPTIONS} value={form.livingLayout} onChange={handleChange("livingLayout")} />
             <Input
               id="unitSize"
               type="number"

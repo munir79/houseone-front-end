@@ -2,7 +2,8 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { ChevronRight, LayoutGrid, Plus, Search, SearchX, Zap } from "lucide-react";
+import { ChevronRight, LayoutGrid, ListChecks, Plus, Search, SearchX, Zap } from "lucide-react";
+import BulkSetupModal from "./BulkSetupModal";
 import QuickAddUnitsModal from "./QuickAddUnitsModal";
 import UnitFormModal from "./UnitFormModal";
 import Badge from "@/components/ui/Badge";
@@ -114,6 +115,8 @@ const UnitRow = ({ propertyId, unit }) => {
 const UnitList = ({ property }) => {
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isQuickOpen, setIsQuickOpen] = useState(false);
+  const [isBulkOpen, setIsBulkOpen] = useState(false);
+  const [justCreated, setJustCreated] = useState(0);
   const [filter, setFilter] = useState("All");
   const [occupantType, setOccupantType] = useState(ALL_TYPES);
   const [sort, setSort] = useState("floor");
@@ -159,6 +162,12 @@ const UnitList = ({ property }) => {
             onChange={(next) => setFilter(next === actionLabel ? NEEDS_ACTION : next)}
           />
           <div className="flex flex-wrap gap-2">
+            {units.length > 0 && (
+              <Button size="sm" onClick={() => setIsBulkOpen(true)}>
+                <ListChecks className="h-4 w-4" aria-hidden="true" />
+                Bulk Setup
+              </Button>
+            )}
             {units.length > 0 && quickAddButton}
             <Button variant="outline" size="sm" onClick={() => setIsAddOpen(true)}>
               <Plus className="h-4 w-4" aria-hidden="true" />
@@ -201,6 +210,17 @@ const UnitList = ({ property }) => {
           />
         </div>
       </div>
+
+      {justCreated > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-primary-soft px-4 py-3">
+          <p data-created-banner className="text-sm font-semibold">
+            {toBanglaNumber(justCreated)}টি ইউনিট তৈরি হয়েছে। এবার ভাড়া ও রুমের তথ্য দিন।
+          </p>
+          <Button size="sm" onClick={() => setIsBulkOpen(true)}>
+            Bulk Setup করুন
+          </Button>
+        </div>
+      )}
 
       {isLoading ? (
         <div className="flex flex-col gap-2 p-4">
@@ -245,7 +265,26 @@ const UnitList = ({ property }) => {
       )}
 
       {isQuickOpen && (
-        <QuickAddUnitsModal propertyId={property._id} totalFloors={property.totalFloors} onClose={() => setIsQuickOpen(false)} />
+        <QuickAddUnitsModal
+          propertyId={property._id}
+          totalFloors={property.totalFloors}
+          onCreated={(created) => {
+            setJustCreated(created);
+            setIsQuickOpen(false);
+          }}
+          onClose={() => setIsQuickOpen(false)}
+        />
+      )}
+
+      {isBulkOpen && (
+        <BulkSetupModal
+          propertyId={property._id}
+          units={units}
+          onClose={() => {
+            setIsBulkOpen(false);
+            setJustCreated(0);
+          }}
+        />
       )}
     </Card>
   );
