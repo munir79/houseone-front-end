@@ -385,7 +385,7 @@ const TenancyDetails = ({ tenancyId, embedded = false, extraTabs = [], leading =
           />
         )}
 
-        {activeTab === "bills" && <TenancyBills tenancyId={tenancyId} canCreate={isActive} />}
+        {activeTab === "bills" && <TenancyBills tenancy={tenancy} canCreate={isActive} />}
         {activeTab === "documents" && <DocumentsPanel tenant={tenant} />}
         {activeTab === "issues" && <IssuePanel tenancyId={tenancyId} canAdd={isActive} />}
         {extraTabs.find(({ value }) => value === activeTab)?.content}

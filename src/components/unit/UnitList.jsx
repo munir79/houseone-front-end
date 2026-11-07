@@ -112,12 +112,13 @@ const UnitRow = ({ propertyId, unit }) => {
   );
 };
 
-const UnitList = ({ property }) => {
+// initialFilter — বাড়ির ⋮ মেনুর Needs Action থেকে এলে
+const UnitList = ({ property, initialFilter = "All" }) => {
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isQuickOpen, setIsQuickOpen] = useState(false);
   const [isBulkOpen, setIsBulkOpen] = useState(false);
   const [justCreated, setJustCreated] = useState(0);
-  const [filter, setFilter] = useState("All");
+  const [filter, setFilter] = useState(initialFilter);
   const [occupantType, setOccupantType] = useState(ALL_TYPES);
   const [sort, setSort] = useState("floor");
   const [search, setSearch] = useState("");

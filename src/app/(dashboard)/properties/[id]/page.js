@@ -3,17 +3,33 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, BellRing, Building2, DoorOpen, Image as ImageIcon, KeyRound, Layers, LayoutGrid, MapPin, Pencil, ReceiptText, SearchX, Trash2 } from "lucide-react";
+import {
+  ArrowLeft,
+  BellRing,
+  Building2,
+  DoorOpen,
+  Image as ImageIcon,
+  KeyRound,
+  Layers,
+  LayoutGrid,
+  MapPin,
+  Pencil,
+  ReceiptText,
+  SearchX,
+  Trash2,
+} from "lucide-react";
 import { toast } from "sonner";
 import ContactList from "@/components/property/ContactList";
 import PropertyFormModal from "@/components/property/PropertyFormModal";
 import BillBoard from "@/components/bill/BillBoard";
+import MonthCollectionCard from "@/components/bill/MonthCollectionCard";
 import ChargesPanel from "@/components/tenantForm/ChargesPanel";
 import FormSettingsPanel from "@/components/tenantForm/FormSettingsPanel";
 import UnitList from "@/components/unit/UnitList";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
+import ActionMenu from "@/components/ui/ActionMenu";
 import DetailHeader from "@/components/ui/DetailHeader";
 import EmptyState from "@/components/ui/EmptyState";
 import LinkButton from "@/components/ui/LinkButton";
@@ -23,7 +39,10 @@ import StatStrip from "@/components/ui/StatStrip";
 import Tabs from "@/components/ui/Tabs";
 import { getErrorMessage } from "@/lib/getErrorMessage";
 import { unitActivity } from "@/lib/unitActivity";
-import { useDeletePropertyMutation, useGetPropertyQuery } from "@/redux/features/property/propertyApi";
+import {
+  useDeletePropertyMutation,
+  useGetPropertyQuery,
+} from "@/redux/features/property/propertyApi";
 import { useGetPropertyUnitsQuery } from "@/redux/features/unit/unitApi";
 
 const DetailRow = ({ icon: Icon, label, value }) => (
@@ -40,13 +59,17 @@ const PropertyDetailsPage = () => {
   const { id } = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "units");
+  const [activeTab, setActiveTab] = useState(
+    searchParams.get("tab") || "units",
+  );
+  const [unitFilter, setUnitFilter] = useState({ value: "All", key: 0 });
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
   const { data, error, isLoading } = useGetPropertyQuery(id);
   const { data: unitsData } = useGetPropertyUnitsQuery(id);
-  const [deleteProperty, { isLoading: isDeleting }] = useDeletePropertyMutation();
+  const [deleteProperty, { isLoading: isDeleting }] =
+    useDeletePropertyMutation();
 
   const property = data?.data;
 
@@ -78,19 +101,58 @@ const PropertyDetailsPage = () => {
           icon={SearchX}
           title="House not found"
           description="এই বাড়িটি পাওয়া যায়নি, হয়তো মুছে ফেলা হয়েছে।"
-          action={<LinkButton href="/properties">Back to Properties</LinkButton>}
+          action={
+            <LinkButton href="/properties">Back to Properties</LinkButton>
+          }
         />
       </Card>
     );
   }
 
   const occupied = property.unitCount - property.vacantCount;
-  const actionCount = (unitsData?.data || []).filter((unit) => unitActivity(unit)?.needsAction).length;
-  const occupancy = property.unitCount ? Math.round((occupied / property.unitCount) * 100) : 0;
+  const actionCount = (unitsData?.data || []).filter(
+    (unit) => unitActivity(unit)?.needsAction,
+  ).length;
+  const occupancy = property.unitCount
+    ? Math.round((occupied / property.unitCount) * 100)
+    : 0;
+
+  const openNeedsAction = () => {
+    setActiveTab("units");
+    setUnitFilter({ value: "Needs Action", key: Date.now() });
+  };
+
+  const actions = [
+    ...(actionCount > 0
+      ? [
+          {
+            key: "action",
+            label: `Needs Action (${actionCount})`,
+            icon: BellRing,
+            onClick: openNeedsAction,
+          },
+        ]
+      : []),
+    {
+      key: "edit",
+      label: "Edit",
+      icon: Pencil,
+      onClick: () => setIsEditing(true),
+    },
+    {
+      key: "delete",
+      label: "Delete House",
+      icon: Trash2,
+      onClick: () => setIsDeleteOpen(true),
+    },
+  ];
 
   return (
     <div className="flex flex-col gap-5">
-      <Link href="/properties" className="-mb-2 inline-flex min-h-9 w-fit items-center gap-1 text-sm text-muted hover:text-foreground md:hidden">
+      <Link
+        href="/properties"
+        className="-mb-2 inline-flex min-h-9 w-fit items-center gap-1 text-sm text-muted hover:text-foreground md:hidden"
+      >
         <ArrowLeft className="h-4 w-4" aria-hidden="true" />
         Properties
       </Link>
@@ -100,25 +162,37 @@ const PropertyDetailsPage = () => {
         subtitle={`${property.area}, ${property.city}`}
         photoUrl={property.photos?.[0]?.url}
         icon={Building2}
-        actions={
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
-              <Pencil className="h-4 w-4" aria-hidden="true" />
-              Edit
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => setIsDeleteOpen(true)} aria-label="Delete house">
-              <Trash2 className="h-4 w-4 text-danger" aria-hidden="true" />
-            </Button>
-          </div>
-        }
+        actions={<ActionMenu items={actions} />}
       />
 
+      <MonthCollectionCard
+        propertyId={id}
+        occupied={occupied}
+        onOpen={() => setActiveTab("rent")}
+      />
       <StatStrip
         items={[
-          { key: "units", label: "Total Units", value: property.unitCount, icon: LayoutGrid },
-          { key: "occupied", label: "Occupied", value: occupied, hint: `${occupancy}%`, icon: KeyRound, tone: "blue" },
-          { key: "vacant", label: "Vacant", value: property.vacantCount, icon: DoorOpen, tone: "amber" },
-          { key: "action", label: "Needs Action", value: actionCount, icon: BellRing, tone: "red" },
+          {
+            key: "units",
+            label: "Total Units",
+            value: property.unitCount,
+            icon: LayoutGrid,
+          },
+          {
+            key: "occupied",
+            label: "Occupied",
+            value: occupied,
+            hint: `${occupancy}%`,
+            icon: KeyRound,
+            tone: "blue",
+          },
+          {
+            key: "vacant",
+            label: "Vacant",
+            value: property.vacantCount,
+            icon: DoorOpen,
+            tone: "amber",
+          },
         ]}
       />
 
@@ -130,7 +204,11 @@ const PropertyDetailsPage = () => {
           tabs={[
             { value: "units", label: "Units", count: property.unitCount },
             { value: "rent", label: "Rent" },
-            { value: "photos", label: "Photos", count: property.photos?.length || 0 },
+            {
+              value: "photos",
+              label: "Photos",
+              count: property.photos?.length || 0,
+            },
             { value: "contacts", label: "Contacts" },
             { value: "charges", label: "Charges" },
             { value: "form", label: "Tenant Form" },
@@ -138,7 +216,13 @@ const PropertyDetailsPage = () => {
           ]}
         />
 
-        {activeTab === "units" && <UnitList property={property} />}
+        {activeTab === "units" && (
+          <UnitList
+            key={unitFilter.key}
+            property={property}
+            initialFilter={unitFilter.value}
+          />
+        )}
         {activeTab === "rent" && <BillBoard propertyId={id} />}
         {activeTab === "photos" && (
           <Card>
@@ -150,7 +234,11 @@ const PropertyDetailsPage = () => {
                 title="No photos yet"
                 description="Edit এ গিয়ে বাড়ির ৫টি পর্যন্ত ছবি যোগ করুন।"
                 action={
-                  <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsEditing(true)}
+                  >
                     Add Photos
                   </Button>
                 }
@@ -164,14 +252,30 @@ const PropertyDetailsPage = () => {
         {activeTab === "details" && (
           <Card>
             <dl className="grid gap-4 sm:grid-cols-2">
-              <DetailRow icon={MapPin} label="Address" value={property.address} />
-              <DetailRow icon={Layers} label="Total floors" value={property.totalFloors} />
-              {property.location && <DetailRow icon={MapPin} label="Map location" value={property.location.label} />}
+              <DetailRow
+                icon={MapPin}
+                label="Address"
+                value={property.address}
+              />
+              <DetailRow
+                icon={Layers}
+                label="Total floors"
+                value={property.totalFloors}
+              />
+              {property.location && (
+                <DetailRow
+                  icon={MapPin}
+                  label="Map location"
+                  value={property.location.label}
+                />
+              )}
               {(property.receiptName || property.receiptPhone) && (
                 <DetailRow
                   icon={ReceiptText}
                   label="On receipts"
-                  value={[property.receiptName, property.receiptPhone].filter(Boolean).join(", ")}
+                  value={[property.receiptName, property.receiptPhone]
+                    .filter(Boolean)
+                    .join(", ")}
                 />
               )}
             </dl>
@@ -179,7 +283,12 @@ const PropertyDetailsPage = () => {
         )}
       </div>
 
-      {isEditing && <PropertyFormModal property={property} onClose={() => setIsEditing(false)} />}
+      {isEditing && (
+        <PropertyFormModal
+          property={property}
+          onClose={() => setIsEditing(false)}
+        />
+      )}
 
       {isDeleteOpen && (
         <ConfirmDialog

@@ -1,7 +1,7 @@
 import Skeleton from "./Skeleton";
 import { cn } from "@/lib/cn";
 
-const COLUMNS = { 4: "xl:grid-cols-4", 6: "lg:grid-cols-3 2xl:grid-cols-6" };
+const COLUMNS = { 3: "grid-cols-3", 4: "xl:grid-cols-4", 6: "lg:grid-cols-3 2xl:grid-cols-6" };
 
 const TONES = {
   green: "bg-primary text-primary-foreground",
@@ -34,7 +34,7 @@ const StatStrip = ({ items, isLoading = false }) => {
             </span>
           )}
           <div className="min-w-0">
-            <p className="text-sm font-semibold wrap-break-word text-foreground">{label}</p>
+            <p className="text-xs font-semibold text-foreground sm:text-sm">{label}</p>
             {isLoading ? (
               <Skeleton className="mt-1 h-7 w-14" />
             ) : (
