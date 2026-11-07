@@ -53,7 +53,7 @@ const PublicFormPage = () => {
   if (form.copy) {
     return (
       <Shell>
-        <FormCopy form={form} justSubmitted={isDone} />
+        <FormCopy token={token} form={form} justSubmitted={isDone} />
       </Shell>
     );
   }

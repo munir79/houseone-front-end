@@ -35,6 +35,21 @@ export const billStatus = (bill) => {
   return bill.isOverdue ? { key: "Overdue", label: "Overdue", variant: "danger" } : { key: "Unpaid", label: "Due", variant: "warning" };
 };
 
+// Monthly rent কার্ডের নিচের লেখা — এই মাসের অবস্থা ও মোট বাকি
+export const rentStatusLine = (bills) => {
+  const month = currentMonth();
+  const monthName = monthLabel(month).split(" ")[0];
+  const open = bills.filter(({ balance }) => balance > 0);
+
+  if (open.length > 0) {
+    const due = open.reduce((sum, { balance }) => sum + balance, 0);
+    const carried = bills.filter(({ status, total, paid }) => status === "Carried" && total > paid).length;
+    return `বাকি ${formatMoney(due)} · ${toBanglaNumber(open.length + carried)} মাসের বিল`;
+  }
+
+  return bills.some((bill) => bill.month === month) ? `${monthName}: Paid` : `${monthName}-এর বিল হয়নি`;
+};
+
 // শেষ সময় ভাড়ার দিনের রাত ১২টা, তাই এক মুহূর্ত আগের তারিখটাই ভাড়ার দিন
 export const billLastDay = (bill) => new Date(new Date(bill.dueDate).getTime() - 1);
 

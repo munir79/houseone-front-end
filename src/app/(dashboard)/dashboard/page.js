@@ -86,6 +86,7 @@ const NeedsActionCard = ({ needsAction }) => {
     { key: "sentBack", label: "Sent back", count: needsAction.sentBack, href: "/tenants" },
     { key: "expired", label: "Link expired", count: needsAction.expired, href: "/tenants" },
     { key: "leaving", label: "Leaving soon", count: needsAction.leaving, href: "/tenants" },
+    { key: "openIssues", label: "Complain & Needs", count: needsAction.openIssues, href: "/issues" },
   ].filter(({ count }) => count > 0);
 
   return (

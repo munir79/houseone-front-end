@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, Banknote, Bath, BedDouble, DoorOpen, Layers, Pencil, SearchX, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import TenancyDetails from "@/components/tenant/TenancyDetails";
@@ -31,6 +31,7 @@ const formatDate = (date) => new Date(date).toLocaleDateString("en-GB", { day: "
 const UnitDetailsPage = () => {
   const { id, unitId } = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [viewedTenancyId, setViewedTenancyId] = useState(null);
@@ -94,6 +95,28 @@ const UnitDetailsPage = () => {
     ["Gas", unit.gasInfo || "Not set"],
   ];
 
+  const unitHeader = (
+    <DetailHeader
+      compact={Boolean(shownTenancyId)}
+      title={unit.name}
+      subtitle={`${unit.property?.name}, ${unit.property?.area}`}
+      photoUrl={unit.photos?.[0]?.url}
+      icon={DoorOpen}
+      badge={<Badge variant={unit.status === "Vacant" ? "warning" : "success"}>{unit.status}</Badge>}
+      actions={
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
+            <Pencil className="h-4 w-4" aria-hidden="true" />
+            Edit Unit
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => setIsDeleteOpen(true)} aria-label="Delete unit">
+            <Trash2 className="h-4 w-4 text-danger" aria-hidden="true" />
+          </Button>
+        </div>
+      }
+    />
+  );
+
   const unitInfo = (
     <div className="flex flex-col gap-4">
       <Card>
@@ -130,24 +153,7 @@ const UnitDetailsPage = () => {
         {unit.property?.name}
       </Link>
 
-      <DetailHeader
-        title={unit.name}
-        subtitle={`${unit.property?.name}, ${unit.property?.area}`}
-        photoUrl={unit.photos?.[0]?.url}
-        icon={DoorOpen}
-        badge={<Badge variant={unit.status === "Vacant" ? "warning" : "success"}>{unit.status}</Badge>}
-        actions={
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
-              <Pencil className="h-4 w-4" aria-hidden="true" />
-              Edit Unit
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => setIsDeleteOpen(true)} aria-label="Delete unit">
-              <Trash2 className="h-4 w-4 text-danger" aria-hidden="true" />
-            </Button>
-          </div>
-        }
-      />
+      {!shownTenancyId && unitHeader}
 
       {shownTenancyId ? (
         <>
@@ -161,6 +167,8 @@ const UnitDetailsPage = () => {
             key={shownTenancyId}
             tenancyId={shownTenancyId}
             embedded
+            leading={unitHeader}
+            initialTab={searchParams.get("tab") || "overview"}
             extraTabs={[
               { value: "previous", label: "Previous Tenants", count: previousTenancies.length, content: <PreviousTenants tenancies={previousTenancies} onOpen={setViewedTenancyId} /> },
               { value: "unit", label: "Unit Details", content: unitInfo },

@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { CheckCircle2, Download } from "lucide-react";
 import { toast } from "sonner";
 import TermsCard from "./TermsCard";
+import TenantIssues from "@/components/issue/TenantIssues";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import { formatDate } from "@/lib/tenancyOptions";
@@ -58,7 +59,7 @@ const downloadPdf = async (node, fileName) => {
 };
 
 // জমা দেওয়ার পরে ভাড়াটিয়ার কপি — NID এর শেষ ৪ সংখ্যা, কোনো ছবি নেই
-const FormCopy = ({ form, justSubmitted }) => {
+const FormCopy = ({ token, form, justSubmitted }) => {
   const { copy, terms } = form;
   const copyRef = useRef(null);
   const [isDownloading, setIsDownloading] = useState(false);
@@ -87,6 +88,8 @@ const FormCopy = ({ form, justSubmitted }) => {
         <Download className="h-4 w-4" aria-hidden="true" />
         Download PDF
       </Button>
+
+      {copy.canReport && <TenantIssues token={token} />}
 
       <div ref={copyRef} data-form-copy className="flex flex-col gap-4 bg-background p-1">
         <div className="text-center">

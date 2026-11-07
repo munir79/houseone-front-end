@@ -6,7 +6,8 @@ import Button from "./Button";
 import { cn } from "@/lib/cn";
 
 // বড় পর্দায় বোতাম, মোবাইলে ⋮ মেনু — একই কাজের তালিকা
-const ActionMenu = ({ items, label = "More actions" }) => {
+// alwaysMenu — জায়গা কম হলে বড় পর্দাতেও ⋮
+const ActionMenu = ({ items, label = "More actions", alwaysMenu = false }) => {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef(null);
 
@@ -30,7 +31,7 @@ const ActionMenu = ({ items, label = "More actions" }) => {
 
   return (
     <>
-      <div className="hidden flex-wrap gap-2 md:flex">
+      <div className={cn("hidden flex-wrap gap-2", alwaysMenu ? "2xl:flex" : "md:flex")}>
         {items.map(({ key, label: itemLabel, icon: Icon, onClick }) => (
           <Button key={key} variant="outline" size="sm" onClick={onClick}>
             {Icon && <Icon className="h-4 w-4" aria-hidden="true" />}
@@ -39,7 +40,7 @@ const ActionMenu = ({ items, label = "More actions" }) => {
         ))}
       </div>
 
-      <div ref={containerRef} className="relative md:hidden">
+      <div ref={containerRef} className={cn("relative", alwaysMenu ? "2xl:hidden" : "md:hidden")}>
         <button
           type="button"
           aria-label={label}
@@ -61,7 +62,7 @@ const ActionMenu = ({ items, label = "More actions" }) => {
                     setIsOpen(false);
                     onClick();
                   }}
-                  className={cn("flex min-h-11 w-full items-center gap-2.5 rounded-xl px-3 text-left text-sm font-semibold hover:bg-primary-soft")}
+                  className="flex min-h-11 w-full items-center gap-2.5 rounded-xl px-3 text-left text-sm font-semibold hover:bg-primary-soft"
                 >
                   {Icon && <Icon className="h-4 w-4 shrink-0 text-muted" aria-hidden="true" />}
                   {itemLabel}

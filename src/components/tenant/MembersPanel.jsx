@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Crown, Eye, LogOut, Pencil, RotateCcw, UserPlus } from "lucide-react";
+import { Crown, Eye, LogOut, MessageCircle, Pencil, Phone, RotateCcw, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import DateActionModal from "./DateActionModal";
 import MemberFormModal from "./MemberFormModal";
@@ -15,21 +15,41 @@ import { formatDate, todayInput } from "@/lib/tenancyOptions";
 import { toBanglaNumber } from "@/lib/toBanglaNumber";
 import { useGetDocumentLinksMutation, useGetMemberDocumentsMutation, useMemberActionMutation, useRevealMemberNidMutation, useRevealNidMutation } from "@/redux/features/tenancy/tenancyApi";
 
-const MemberRow = ({ member, onOpen }) => (
-  <li>
-    <button type="button" onClick={onOpen} className="flex min-h-14 w-full items-center justify-between gap-3 px-4 py-2.5 text-left hover:bg-background">
+const iconLink = "flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-muted hover:bg-primary-soft hover:text-primary";
+
+// সারি থেকেই সরাসরি কল ও WhatsApp
+const ContactLinks = ({ name, phone }) =>
+  phone ? (
+    <>
+      <a href={`tel:${phone}`} aria-label={`Call ${name}`} className={iconLink}>
+        <Phone className="h-4 w-4" aria-hidden="true" />
+      </a>
+      <a href={`https://wa.me/88${phone}`} target="_blank" rel="noreferrer" aria-label={`WhatsApp ${name}`} className={iconLink}>
+        <MessageCircle className="h-4 w-4" aria-hidden="true" />
+      </a>
+    </>
+  ) : null;
+
+const PersonRow = ({ name, phone, isMain, showContacts, onOpen, children }) => (
+  <li className="flex items-center gap-0.5 pr-1 hover:bg-background">
+    <button type="button" onClick={onOpen} className="flex min-h-14 min-w-0 flex-1 items-center justify-between gap-3 py-2.5 pl-4 text-left">
       <span className="min-w-0">
-        <span className="block text-sm font-medium wrap-break-word">{member.name}</span>
-        <span className="block text-xs text-muted">
-          {member.leftAt ? `${formatDate(member.leftAt)} তারিখে চলে গেছেন` : [member.relation, member.occupation, member.phone].filter(Boolean).join(" · ")}
-        </span>
+        <span className="block text-sm font-medium wrap-break-word">{name}</span>
+        <span className="block text-xs text-muted">{children}</span>
       </span>
-      <span className="flex shrink-0 items-center gap-2">
-        {member.isMain && <Badge variant="info">প্রধান</Badge>}
-        <Eye className="h-4 w-4 text-muted" aria-hidden="true" />
-      </span>
+      {isMain && <Badge variant="info">প্রধান</Badge>}
+    </button>
+    {showContacts && <ContactLinks name={name} phone={phone} />}
+    <button type="button" aria-label={`View ${name}`} onClick={onOpen} className={iconLink}>
+      <Eye className="h-4 w-4" aria-hidden="true" />
     </button>
   </li>
+);
+
+const MemberRow = ({ member, onOpen }) => (
+  <PersonRow name={member.name} phone={member.phone} isMain={member.isMain} showContacts={!member.leftAt} onOpen={onOpen}>
+    {member.leftAt ? `${formatDate(member.leftAt)} তারিখে চলে গেছেন` : [member.relation, member.occupation, member.phone].filter(Boolean).join(" · ")}
+  </PersonRow>
 );
 
 // ফ্ল্যাটের সবাই — প্রধান ওপরে, যাঁরা চলে গেছেন নিচে আলাদা
@@ -77,18 +97,9 @@ const MembersPanel = ({ tenancy }) => {
       </div>
 
       <ul className="divide-y divide-border">
-        <li>
-          <button type="button" aria-label={`View ${tenancy.tenantName}`} onClick={() => setIsTenantOpen(true)} className="flex min-h-14 w-full items-center justify-between gap-3 px-4 py-2.5 text-left hover:bg-background">
-            <span className="min-w-0">
-              <span className="block text-sm font-medium wrap-break-word">{tenancy.tenantName}</span>
-              <span className="block text-xs text-muted">মূল ভাড়াটিয়া · {tenancy.tenantPhone}</span>
-            </span>
-            <span className="flex shrink-0 items-center gap-2">
-              <Badge variant="info">প্রধান</Badge>
-              <Eye className="h-4 w-4 text-muted" aria-hidden="true" />
-            </span>
-          </button>
-        </li>
+        <PersonRow name={tenancy.tenantName} phone={tenancy.tenantPhone} isMain showContacts onOpen={() => setIsTenantOpen(true)}>
+          মূল ভাড়াটিয়া · {tenancy.tenantPhone}
+        </PersonRow>
         {current.map((member) => (
           <MemberRow key={member._id} member={member} onOpen={() => setOpenId(member._id)} />
         ))}

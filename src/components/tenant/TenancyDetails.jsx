@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowLeft, Banknote, CalendarClock, CalendarDays, Clock, KeyRound, Link2, LogOut, MessageCircle, Pencil, Phone, SearchX, User, Users } from "lucide-react";
 import { toast } from "sonner";
 import TenancyBills from "@/components/bill/TenancyBills";
+import IssuePanel from "@/components/issue/IssuePanel";
 import DateActionModal from "@/components/tenant/DateActionModal";
 import DocumentsPanel from "@/components/tenant/DocumentsPanel";
 import EditSectionModal from "@/components/tenant/EditSectionModal";
@@ -27,6 +28,7 @@ import StatStrip from "@/components/ui/StatStrip";
 import Tabs from "@/components/ui/Tabs";
 import { formatMoney } from "@/lib/formatMoney";
 import { getErrorMessage } from "@/lib/getErrorMessage";
+import { rentStatusLine } from "@/lib/billOptions";
 import { formatDate, formatSince, formatStay, toDateInput, todayInput } from "@/lib/tenancyOptions";
 import { GENDERS } from "@/lib/tenantFormOptions";
 import { toBanglaNumber } from "@/lib/toBanglaNumber";
@@ -37,6 +39,8 @@ import {
   useGiveNoticeMutation,
   useRevealNidMutation,
 } from "@/redux/features/tenancy/tenancyApi";
+import { useGetTenancyBillsQuery } from "@/redux/features/bill/billApi";
+import { useGetIssuesQuery } from "@/redux/features/issue/issueApi";
 
 const ITEM_FIELDS = [
   { key: "name", label: "Item", placeholder: "বিদ্যুৎ কার্ড, গ্যাস কার্ড, চাবি", required: true, requiredMessage: "জিনিসের নাম লিখুন" },
@@ -102,8 +106,9 @@ const InfoRow = ({ label, children }) => (
 
 // ভাড়াটিয়ার পুরো হিসাব — Tenants পেজ ও ইউনিটের পেজ দুটোতেই এটাই
 // embedded — ইউনিটের পেজের ভেতরে, extraTabs — সেই পেজের নিজের tab
-const TenancyDetails = ({ tenancyId, embedded = false, extraTabs = [] }) => {
-  const [activeTab, setActiveTab] = useState("overview");
+// leading — ইউনিটের শিরোনাম, ভাড়াটিয়ার পাশেই বসে
+const TenancyDetails = ({ tenancyId, embedded = false, extraTabs = [], leading = null, initialTab = "overview" }) => {
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [isEditing, setIsEditing] = useState(false);
   const [isNoticeOpen, setIsNoticeOpen] = useState(false);
   const [isMoveOutOpen, setIsMoveOutOpen] = useState(false);
@@ -111,6 +116,8 @@ const TenancyDetails = ({ tenancyId, embedded = false, extraTabs = [] }) => {
   const [isLinkOpen, setIsLinkOpen] = useState(false);
 
   const { data, error, isLoading } = useGetTenancyQuery(tenancyId);
+  const { data: billsData } = useGetTenancyBillsQuery(tenancyId);
+  const { data: issuesData } = useGetIssuesQuery({ tenancyId });
   const [giveNotice, { isLoading: isSavingNotice }] = useGiveNoticeMutation();
   const [cancelNotice, { isLoading: isCancelling }] = useCancelNoticeMutation();
   const [endTenancy, { isLoading: isEnding }] = useEndTenancyMutation();
@@ -174,13 +181,25 @@ const TenancyDetails = ({ tenancyId, embedded = false, extraTabs = [] }) => {
   const isActive = tenancy.status === "Active";
   const whatsappNumber = `88${tenant.phone}`;
 
-  const daysLeft = tenancy.notice ? daysBetween(new Date(), tenancy.notice.leavingDate) : 0;
-
   const actions = [
     ...(tenancy.copyToken ? [{ key: "link", label: "Form Link", icon: Link2, onClick: () => setIsLinkOpen(true) }] : []),
     { key: "edit", label: embedded ? "Edit Tenant" : "Edit", icon: Pencil, onClick: () => setIsEditing(true) },
     ...(isActive ? [{ key: "moveOut", label: "Move Out", icon: LogOut, onClick: () => setIsMoveOutOpen(true) }] : []),
   ];
+
+  const tenantHeader = (
+    <DetailHeader
+      compact={embedded}
+      title={tenancy.tenantName}
+      subtitle={embedded ? `মূল ভাড়াটিয়া · ${tenancy.tenantPhone}` : `${tenancy.unitName}, ${tenancy.propertyName}`}
+      icon={User}
+      badge={isActive ? <Badge variant="success">{tenancy.occupantType}</Badge> : <Badge>Former</Badge>}
+      actions={<ActionMenu items={actions} alwaysMenu={embedded} />}
+    />
+  );
+
+  const daysLeft = tenancy.notice ? daysBetween(new Date(), tenancy.notice.leavingDate) : 0;
+
 
   return (
     <div className="flex flex-col gap-5">
@@ -191,13 +210,14 @@ const TenancyDetails = ({ tenancyId, embedded = false, extraTabs = [] }) => {
         </Link>
       )}
 
-      <DetailHeader
-        title={tenancy.tenantName}
-        subtitle={embedded ? `মূল ভাড়াটিয়া · ${tenancy.tenantPhone}` : `${tenancy.unitName}, ${tenancy.propertyName}`}
-        icon={User}
-        badge={isActive ? <Badge variant="success">{tenancy.occupantType}</Badge> : <Badge>Former</Badge>}
-        actions={<ActionMenu items={actions} />}
-      />
+      {leading ? (
+        <div data-unit-header className="flex flex-col gap-4 border-b border-border pb-4 xl:flex-row xl:items-center xl:gap-6">
+          <div className="min-w-0 xl:flex-1">{leading}</div>
+          <div className="min-w-0 xl:flex-1 xl:border-l xl:border-border xl:pl-6">{tenantHeader}</div>
+        </div>
+      ) : (
+        tenantHeader
+      )}
 
       {isActive &&
         (tenancy.notice ? (
@@ -238,7 +258,7 @@ const TenancyDetails = ({ tenancyId, embedded = false, extraTabs = [] }) => {
 
       <StatStrip
         items={[
-          { key: "rent", label: "Monthly rent", value: formatMoney(tenancy.rent), icon: Banknote },
+          { key: "rent", label: "Monthly rent", value: formatMoney(tenancy.rent), hint: isActive ? rentStatusLine(billsData?.data || []) : undefined, icon: Banknote, onClick: () => setActiveTab("bills") },
           { key: "dueDay", label: "Rent day", value: `Day ${tenancy.dueDay}`, icon: CalendarDays, tone: "blue" },
           { key: "stay", label: "Staying for", value: formatStay(tenancy.startDate, tenancy.endDate), hint: formatSince(tenancy.startDate), icon: Clock, tone: "amber" },
           { key: "people", label: "People", value: tenancy.peopleCount, icon: Users, tone: "violet" },
@@ -252,10 +272,11 @@ const TenancyDetails = ({ tenancyId, embedded = false, extraTabs = [] }) => {
           onChange={setActiveTab}
           tabs={[
             { value: "overview", label: "Overview" },
-            { value: "members", label: "Members", count: tenancy.members.filter(({ leftAt }) => !leftAt).length },
+            { value: "members", label: "Members", count: tenancy.members.filter(({ leftAt }) => !leftAt).length + 1 },
             { value: "items", label: "Items given", count: tenancy.handoverItems.length },
             { value: "bills", label: "Bills" },
             { value: "documents", label: "Documents", count: tenant.documents?.length || 0 },
+            { value: "issues", label: "Complain & Needs", count: (issuesData?.data || []).filter(({ status }) => status !== "Done").length },
             ...extraTabs.map(({ value, label, count }) => ({ value, label, count })),
           ]}
         />
@@ -366,6 +387,7 @@ const TenancyDetails = ({ tenancyId, embedded = false, extraTabs = [] }) => {
 
         {activeTab === "bills" && <TenancyBills tenancyId={tenancyId} canCreate={isActive} />}
         {activeTab === "documents" && <DocumentsPanel tenant={tenant} />}
+        {activeTab === "issues" && <IssuePanel tenancyId={tenancyId} canAdd={isActive} />}
         {extraTabs.find(({ value }) => value === activeTab)?.content}
       </div>
 

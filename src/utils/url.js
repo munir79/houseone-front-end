@@ -61,6 +61,12 @@ export const BILL_BY_ID = (id) => API_BASE_URL + `bill/${id}`;
 export const BILL_ADJUST = (id) => API_BASE_URL + `bill/${id}/adjust`;
 export const TENANCY_BILLS = (id) => API_BASE_URL + `bill/tenancy/${id}`;
 
+// Complain & Needs
+export const ISSUES = API_BASE_URL + 'issue';
+export const ISSUE_BY_ID = (id) => API_BASE_URL + `issue/${id}`;
+export const ISSUE_PHOTOS = (id) => API_BASE_URL + `issue/${id}/photos`;
+export const PUBLIC_ISSUES = (token) => API_BASE_URL + `public/tenant-form/${token}/issues`;
+
 // Tenant Form
 export const TENANT_FORMS = API_BASE_URL + 'tenant-form';
 export const TENANT_FORM_BY_ID = (id) => API_BASE_URL + `tenant-form/${id}`;

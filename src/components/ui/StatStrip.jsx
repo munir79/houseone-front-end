@@ -15,11 +15,18 @@ const TONES = {
 const StatStrip = ({ items, isLoading = false }) => {
   return (
     <div className={cn("grid grid-cols-2 gap-3 sm:gap-4", COLUMNS[items.length])}>
-      {items.map(({ key, label, value, hint, icon: Icon, tone = "green" }) => (
-        <div
+      {items.map(({ key, label, value, hint, icon: Icon, tone = "green", onClick }) => {
+        const Box = onClick ? "button" : "div";
+        return (
+        <Box
           key={key}
+          type={onClick ? "button" : undefined}
           data-stat={key}
-          className="flex min-w-0 flex-col gap-2 rounded-2xl border border-border bg-surface p-3.5 shadow-card sm:flex-row sm:items-center sm:gap-3 sm:p-4"
+          onClick={onClick}
+          className={cn(
+            "flex min-w-0 flex-col gap-2 rounded-2xl border border-border bg-surface p-3.5 text-left shadow-card sm:flex-row sm:items-center sm:gap-3 sm:p-4",
+            onClick && "transition-colors hover:border-primary"
+          )}
         >
           {Icon && (
             <span className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-full sm:h-11 sm:w-11", TONES[tone])}>
@@ -39,8 +46,9 @@ const StatStrip = ({ items, isLoading = false }) => {
               </div>
             )}
           </div>
-        </div>
-      ))}
+        </Box>
+        );
+      })}
     </div>
   );
 };
