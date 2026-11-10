@@ -25,10 +25,11 @@ export const monthOptions = () => {
   });
 };
 
-// Partial কখনো Overdue হয় না — কিছু টাকা দিয়েছেন
+// শেষ তারিখ পার হলে কিছু টাকা দিলেও (Partial) Overdue, পাশে বাকি টাকা
 export const billStatus = (bill) => {
   if (bill.status === "Carried") return { key: "Carried", label: "Moved to next bill", variant: "primary" };
   if (bill.status === "Paid") return { key: "Paid", label: "Paid", variant: "success" };
+  if (bill.status === "Partial" && bill.isOverdue) return { key: "Overdue", label: `Overdue, ${formatMoney(bill.balance)} due`, variant: "danger" };
   if (bill.status === "Partial") return { key: "Partial", label: `Partial, ${formatMoney(bill.balance)} due`, variant: "info" };
   return bill.isOverdue ? { key: "Overdue", label: "Overdue", variant: "danger" } : { key: "Unpaid", label: "Due", variant: "warning" };
 };

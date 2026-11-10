@@ -76,7 +76,7 @@ const HouseStats = ({ property, onOpenRent, onOpenPending }) => {
   const estimate = data?.data?.notBilledEstimate || 0;
   // মাসের মাঝে কেউ চলে গেলেও তাঁর বিল গোনা হয়, তাই ফ্ল্যাট গোনা বিল থেকে
   const total = (summary?.bills || 0) + notBilled;
-  const isComplete = total > 0 && notBilled === 0 && summary?.due === 0;
+  const isComplete = total > 0 && summary?.paid === total;
   const showCollection = isLoading || occupied > 0 || total > 0;
   const step = isLoading ? null : nextStep({ notBilled, unsent: summary?.unsent || 0, overdue: summary?.overdue || 0, monthName });
 

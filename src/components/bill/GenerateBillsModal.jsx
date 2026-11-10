@@ -109,7 +109,7 @@ const GenerateBillsModal = ({ month, propertyId, tenancyId, onClose }) => {
                           type="number"
                           inputMode="numeric"
                           min="0"
-                          label={`Advance থেকে কাটুন (আছে ${formatMoney(row.advanceLeft)})`}
+                          label={`Advance থেকে কাটুন (হাতে আছে ${formatMoney(row.advanceLeft)})`}
                           value={input.advance}
                           onChange={(e) => change(row, { advance: e.target.value })}
                         />
