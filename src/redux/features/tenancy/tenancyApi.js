@@ -72,9 +72,16 @@ export const tenancyApi = apiSlice.injectEndpoints({
     }),
 
     //9. MOVE OUT
+    // হিসাবসহ বাসা ছাড়া — শেষ মাসের বিল, Advance ফেরত, জিনিস ফেরত
     endTenancy: builder.mutation({
-      query: ({ id, endDate }) => ({ url: TENANCY_END(id), method: 'POST', body: { endDate } }),
+      query: ({ id, ...body }) => ({ url: TENANCY_END(id), method: 'POST', body }),
       invalidatesTags: CHANGED_TAGS,
+    }),
+
+    // বাসা ছাড়ার আগে হিসাব দেখা
+    getMoveOutPreview: builder.query({
+      query: ({ id, endDate }) => ({ url: `${TENANCY_BY_ID(id)}/move-out`, params: { endDate } }),
+      providesTags: ["Tenancy", "Bill", "Payment"],
     }),
 
     //10. MEMBERS
@@ -136,6 +143,7 @@ export const {
   useGiveNoticeMutation,
   useCancelNoticeMutation,
   useEndTenancyMutation,
+  useGetMoveOutPreviewQuery,
   useAddMemberMutation,
   useUpdateMemberMutation,
   useMemberActionMutation,

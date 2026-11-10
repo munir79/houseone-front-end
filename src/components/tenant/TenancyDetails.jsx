@@ -7,6 +7,8 @@ import { toast } from "sonner";
 import TenancyBills from "@/components/bill/TenancyBills";
 import IssuePanel from "@/components/issue/IssuePanel";
 import DateActionModal from "@/components/tenant/DateActionModal";
+import MoveOutModal from "@/components/tenant/MoveOutModal";
+import SettlementModal from "@/components/tenant/SettlementModal";
 import DocumentsPanel from "@/components/tenant/DocumentsPanel";
 import EditSectionModal from "@/components/tenant/EditSectionModal";
 import EditTenancyModal from "@/components/tenant/EditTenancyModal";
@@ -29,12 +31,11 @@ import Tabs from "@/components/ui/Tabs";
 import { formatMoney } from "@/lib/formatMoney";
 import { getErrorMessage } from "@/lib/getErrorMessage";
 import { rentStatusLine } from "@/lib/billOptions";
-import { formatDate, formatSince, formatStay, toDateInput, todayInput } from "@/lib/tenancyOptions";
+import { formatDate, formatSince, formatStay, toDateInput } from "@/lib/tenancyOptions";
 import { GENDERS } from "@/lib/tenantFormOptions";
 import { toBanglaNumber } from "@/lib/toBanglaNumber";
 import {
   useCancelNoticeMutation,
-  useEndTenancyMutation,
   useGetTenancyQuery,
   useGiveNoticeMutation,
   useRevealNidMutation,
@@ -108,11 +109,12 @@ const InfoRow = ({ label, children }) => (
 // embedded — ইউনিটের পেজের ভেতরে, extraTabs — সেই পেজের নিজের tab
 // leading — ইউনিটের শিরোনাম, ভাড়াটিয়ার পাশেই বসে
 // afterNotice — বাসা ছাড়ার নোটিশের নিচে বাড়তি অংশ (ইউনিটের পেজে পরের ভাড়াটিয়ার ফর্ম)
-const TenancyDetails = ({ tenancyId, embedded = false, extraTabs = [], leading = null, initialTab = "overview", afterNotice = null }) => {
+const TenancyDetails = ({ tenancyId, embedded = false, extraTabs = [], leading = null, initialTab = "overview", afterNotice = null, onMovedOut }) => {
   const [activeTab, setActiveTab] = useState(initialTab);
   const [isEditing, setIsEditing] = useState(false);
   const [isNoticeOpen, setIsNoticeOpen] = useState(false);
   const [isMoveOutOpen, setIsMoveOutOpen] = useState(false);
+  const [isSettlementOpen, setIsSettlementOpen] = useState(false);
   const [editingSection, setEditingSection] = useState(null);
   const [isLinkOpen, setIsLinkOpen] = useState(false);
 
@@ -121,7 +123,6 @@ const TenancyDetails = ({ tenancyId, embedded = false, extraTabs = [], leading =
   const { data: issuesData } = useGetIssuesQuery({ tenancyId });
   const [giveNotice, { isLoading: isSavingNotice }] = useGiveNoticeMutation();
   const [cancelNotice, { isLoading: isCancelling }] = useCancelNoticeMutation();
-  const [endTenancy, { isLoading: isEnding }] = useEndTenancyMutation();
   const [revealNid, { isLoading: isRevealing }] = useRevealNidMutation();
 
   const tenancy = data?.data;
@@ -133,16 +134,6 @@ const TenancyDetails = ({ tenancyId, embedded = false, extraTabs = [], leading =
       setIsNoticeOpen(false);
     } catch (err) {
       toast.error(getErrorMessage(err, "নোটিশ সেভ হয়নি।"));
-    }
-  };
-
-  const handleMoveOut = async (endDate) => {
-    try {
-      await endTenancy({ id: tenancyId, endDate }).unwrap();
-      toast.success("ভাড়াটিয়া বাসা ছেড়েছেন, ইউনিট এখন Vacant");
-      setIsMoveOutOpen(false);
-    } catch (err) {
-      toast.error(getErrorMessage(err, "সেভ হয়নি। আবার চেষ্টা করুন।"));
     }
   };
 
@@ -258,6 +249,26 @@ const TenancyDetails = ({ tenancyId, embedded = false, extraTabs = [], leading =
         ))}
 
       {isActive && tenancy.notice && afterNotice}
+
+      {!isActive && tenancy.settlement && (
+        <div data-settlement-card className="flex flex-col gap-3 rounded-xl border border-border bg-surface px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm">
+            <span className="block font-semibold">{formatDate(tenancy.endDate)} তারিখে বাসা ছেড়েছেন</span>
+            <span className="text-muted">
+              {[
+                tenancy.settlement.refund > 0 && `Advance ফেরত ${formatMoney(tenancy.settlement.refund)}`,
+                tenancy.settlement.unpaid > 0 && `আদায় হয়নি ${formatMoney(tenancy.settlement.unpaid)}`,
+                tenancy.settlement.itemsNotReturned.length > 0 && `ফেরত দেননি: ${tenancy.settlement.itemsNotReturned.join(", ")}`,
+              ]
+                .filter(Boolean)
+                .join(" · ") || "সব হিসাব মিটে গেছে"}
+            </span>
+          </p>
+          <Button variant="outline" size="sm" onClick={() => setIsSettlementOpen(true)} className="shrink-0">
+            বিদায়ী হিসাব
+          </Button>
+        </div>
+      )}
 
       <StatStrip
         items={[
@@ -425,18 +436,8 @@ const TenancyDetails = ({ tenancyId, embedded = false, extraTabs = [], leading =
         />
       )}
 
-      {isMoveOutOpen && (
-        <DateActionModal
-          title="Move Out"
-          description="ভাড়াটিয়া বাসা ছাড়লে ইউনিট নিজে থেকেই Vacant হবে। তাঁর সব তথ্য ইতিহাসে থেকে যাবে।"
-          label="Move-out date"
-          initialDate={todayInput()}
-          confirmLabel="Confirm Move Out"
-          isLoading={isEnding}
-          onConfirm={handleMoveOut}
-          onClose={() => setIsMoveOutOpen(false)}
-        />
-      )}
+      {isMoveOutOpen && <MoveOutModal tenancy={tenancy} onMovedOut={onMovedOut} onClose={() => setIsMoveOutOpen(false)} />}
+      {isSettlementOpen && <SettlementModal tenancy={tenancy} onClose={() => setIsSettlementOpen(false)} />}
     </div>
   );
 };

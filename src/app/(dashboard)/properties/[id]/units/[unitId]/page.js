@@ -170,6 +170,7 @@ const UnitDetailsPage = () => {
             leading={unitHeader}
             initialTab={searchParams.get("tab") || "overview"}
             afterNotice={activeTenancy && shownTenancyId === activeTenancy._id ? <NextTenantForm unit={unit} /> : null}
+            onMovedOut={setViewedTenancyId}
             extraTabs={[
               { value: "previous", label: "Previous Tenants", count: previousTenancies.length, content: <PreviousTenants tenancies={previousTenancies} onOpen={setViewedTenancyId} /> },
               { value: "unit", label: "Unit Details", content: unitInfo },

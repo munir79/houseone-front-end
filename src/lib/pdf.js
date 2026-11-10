@@ -48,3 +48,27 @@ const buildPdf = async (node) => {
 export const downloadPdf = async (node, fileName) => (await buildPdf(node)).save(fileName);
 
 export const makePdfFile = async (node, fileName) => new File([(await buildPdf(node)).output("blob")], fileName, { type: "application/pdf" });
+
+// মোবাইলে PDF সহ শেয়ার, কম্পিউটারে বা শেয়ার না চললে PDF নামিয়ে WhatsApp এ বার্তা
+export const sendPdfOnWhatsApp = async ({ node, fileName, text, phone }) => {
+  const file = await makePdfFile(node, fileName);
+
+  // ফোনে Share মেনু দিয়ে PDF সহ WhatsApp এ — কম্পিউটারের Share মেনুতে WhatsApp থাকে না
+  const isPhone = window.matchMedia("(pointer: coarse)").matches;
+  if (isPhone && navigator.canShare?.({ files: [file] })) {
+    try {
+      await navigator.share({ files: [file], text });
+      return;
+    } catch (err) {
+      if (err?.name === "AbortError") throw err;
+    }
+  }
+
+  const url = URL.createObjectURL(file);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = file.name;
+  link.click();
+  URL.revokeObjectURL(url);
+  window.open(`https://wa.me/88${phone}?text=${encodeURIComponent(text)}`, "_blank", "noopener");
+};

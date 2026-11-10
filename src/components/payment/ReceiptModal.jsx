@@ -9,34 +9,12 @@ import Input from "@/components/ui/Input";
 import Modal from "@/components/ui/Modal";
 import { getErrorMessage } from "@/lib/getErrorMessage";
 import { receiptFileName, receiptLink, receiptMessage } from "@/lib/paymentOptions";
-import { downloadPdf, makePdfFile } from "@/lib/pdf";
+import { downloadPdf, sendPdfOnWhatsApp } from "@/lib/pdf";
 import { formatDate } from "@/lib/tenancyOptions";
 import { useMarkSlipSentMutation, useVoidPaymentMutation } from "@/redux/features/payment/paymentApi";
 
-// মোবাইলে PDF সহ শেয়ার, কম্পিউটারে বা শেয়ার না চললে PDF নামিয়ে WhatsApp এ বার্তা ও লিংক
-const sendSlip = async (payment, node) => {
-  const file = await makePdfFile(node, receiptFileName(payment));
-  const text = receiptMessage(payment);
-
-  // ফোনে Share মেনু দিয়ে PDF সহ WhatsApp এ — কম্পিউটারের Share মেনুতে WhatsApp থাকে না
-  const isPhone = window.matchMedia("(pointer: coarse)").matches;
-  if (isPhone && navigator.canShare?.({ files: [file] })) {
-    try {
-      await navigator.share({ files: [file], text });
-      return;
-    } catch (err) {
-      if (err?.name === "AbortError") throw err;
-    }
-  }
-
-  const url = URL.createObjectURL(file);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = file.name;
-  link.click();
-  URL.revokeObjectURL(url);
-  window.open(`https://wa.me/88${payment.tenantPhone}?text=${encodeURIComponent(text)}`, "_blank", "noopener");
-};
+// রসিদ PDF সহ WhatsApp এ
+const sendSlip = (payment, node) => sendPdfOnWhatsApp({ node, fileName: receiptFileName(payment), text: receiptMessage(payment), phone: payment.tenantPhone });
 
 const ReceiptModal = ({ payment, title = "Receipt", onClose }) => {
   const receiptRef = useRef(null);
