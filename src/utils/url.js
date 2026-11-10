@@ -51,6 +51,8 @@ export const TENANCY_NOTICE = (id) => API_BASE_URL + `tenancy/${id}/notice`;
 export const TENANCY_END = (id) => API_BASE_URL + `tenancy/${id}/end`;
 export const TENANCY_MEMBERS = (id) => API_BASE_URL + `tenancy/${id}/members`;
 export const TENANCY_MEMBER = (id, memberId) => API_BASE_URL + `tenancy/${id}/members/${memberId}`;
+export const MEMBER_REQUESTS = (id) => API_BASE_URL + `tenancy/${id}/member-requests`;
+export const MEMBER_REQUEST_ACTION = (id, requestId, action) => API_BASE_URL + `tenancy/${id}/member-requests/${requestId}/${action}`;
 export const UNIT_TENANCIES = (id) => API_BASE_URL + `unit/${id}/tenancies`;
 
 // Bill
@@ -85,6 +87,7 @@ export const FORM_SETTINGS = (propertyId) => API_BASE_URL + `property/${property
 export const PUBLIC_FORM = (token) => API_BASE_URL + `public/tenant-form/${token}`;
 export const PUBLIC_FORM_SIGNATURE = (token) => API_BASE_URL + `public/tenant-form/${token}/signature`;
 export const PUBLIC_FORM_SUBMIT = (token) => API_BASE_URL + `public/tenant-form/${token}/submit`;
+export const PUBLIC_MEMBER = (token) => API_BASE_URL + `public/member/${token}`;
 
 // Socket
 export const socketUri = baseUriBackend;

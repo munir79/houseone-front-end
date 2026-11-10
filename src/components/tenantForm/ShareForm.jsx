@@ -11,10 +11,11 @@ import { formLink } from "@/lib/tenantFormOptions";
 
 // লিংক, WhatsApp বা QR — ভাড়াটিয়া সামনে থাকলে QR সবচেয়ে সহজ
 // message, note — আগে জমা দেওয়া ফর্মের কপি পাঠানোর সময় আলাদা লেখা
-const ShareForm = ({ form, message: customMessage, note }) => {
+// link — ফর্ম ছাড়া অন্য লিংক (যেমন সদস্য যোগের লিংক)
+const ShareForm = ({ form, link: customLink, message: customMessage, note }) => {
   const [copied, setCopied] = useState(false);
 
-  const link = formLink(form.token);
+  const link = customLink ?? formLink(form.token);
   const message = `${customMessage ?? `${form.propertyName}, ${form.unitName} এর ভাড়াটিয়া ফর্ম। এই লিংকে গিয়ে পূরণ করুন:`} ${link}`;
 
   const handleCopy = async () => {

@@ -9,6 +9,7 @@ import TenancyDetails from "@/components/tenant/TenancyDetails";
 import UnitTenantPanel, { PreviousTenants } from "@/components/tenant/UnitTenantPanel";
 import UnitFormModal from "@/components/unit/UnitFormModal";
 import UnitPhotosPanel from "@/components/unit/UnitPhotosPanel";
+import NextTenantForm from "@/components/tenantForm/NextTenantForm";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
@@ -168,6 +169,7 @@ const UnitDetailsPage = () => {
             embedded
             leading={unitHeader}
             initialTab={searchParams.get("tab") || "overview"}
+            afterNotice={activeTenancy && shownTenancyId === activeTenancy._id ? <NextTenantForm unit={unit} /> : null}
             extraTabs={[
               { value: "previous", label: "Previous Tenants", count: previousTenancies.length, content: <PreviousTenants tenancies={previousTenancies} onOpen={setViewedTenancyId} /> },
               { value: "unit", label: "Unit Details", content: unitInfo },

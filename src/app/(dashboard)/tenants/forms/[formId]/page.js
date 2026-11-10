@@ -206,7 +206,7 @@ const TenantFormPage = () => {
             <div className="flex flex-wrap gap-2">
               {isSubmitted && (
                 <>
-                  <Button size="sm" onClick={() => setDialog("approve")}>
+                  <Button size="sm" disabled={Boolean(form.currentTenant)} onClick={() => setDialog("approve")}>
                     Approve
                   </Button>
                   <Button variant="outline" size="sm" onClick={() => setDialog("back")}>
@@ -231,6 +231,18 @@ const TenantFormPage = () => {
           )
         }
       />
+
+      {form.isOpen && form.currentTenant && (
+        <div data-current-tenant className="flex flex-col gap-3 rounded-xl border border-warning/40 bg-warning-soft px-4 py-3 text-warning-foreground sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm font-semibold">
+            এই ফ্ল্যাটে এখনো {form.currentTenant.tenantName} আছেন
+            {form.currentTenant.leavingDate ? `, ${formatDate(form.currentTenant.leavingDate)} তারিখে ছাড়বেন` : ""}। তিনি বাসা ছাড়লে আগে Move Out করুন, তারপর Approve করা যাবে।
+          </p>
+          <LinkButton href={`/properties/${form.property}/units/${form.unit}`} variant="outline" size="sm" className="shrink-0">
+            ফ্ল্যাটে যান
+          </LinkButton>
+        </div>
+      )}
 
       {isWaiting && !isExpired && (
         <Card>

@@ -9,10 +9,12 @@ const shortDate = (date) => new Date(date).toLocaleDateString("en-GB", { day: "n
 export const unitActivity = ({ _id, property, openForm, tenancy, openIssues = 0 }) => {
   if (openForm) {
     const href = `/tenants/forms/${openForm._id}`;
-    if (openForm.isExpired) return { label: "Link expired", variant: "danger", href, needsAction: true };
+    // এখনকার ভাড়াটিয়া থাকতেই পরের জনের ফর্ম — বাসা ছাড়ার কাজটাই আগে
+    const prefix = tenancy ? "Next tenant: " : "";
+    if (openForm.isExpired) return { label: `${prefix}Link expired`, variant: "danger", href, needsAction: true };
 
     const { label, variant } = FORM_STATUS[openForm.status];
-    return { label, variant, href, needsAction: FORM_NEEDS_ACTION.includes(openForm.status) };
+    return { label: `${prefix}${label}`, variant, href, needsAction: Boolean(tenancy) || FORM_NEEDS_ACTION.includes(openForm.status) };
   }
 
   if (tenancy?.notice) {

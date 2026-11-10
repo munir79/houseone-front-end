@@ -107,7 +107,8 @@ const InfoRow = ({ label, children }) => (
 // ভাড়াটিয়ার পুরো হিসাব — Tenants পেজ ও ইউনিটের পেজ দুটোতেই এটাই
 // embedded — ইউনিটের পেজের ভেতরে, extraTabs — সেই পেজের নিজের tab
 // leading — ইউনিটের শিরোনাম, ভাড়াটিয়ার পাশেই বসে
-const TenancyDetails = ({ tenancyId, embedded = false, extraTabs = [], leading = null, initialTab = "overview" }) => {
+// afterNotice — বাসা ছাড়ার নোটিশের নিচে বাড়তি অংশ (ইউনিটের পেজে পরের ভাড়াটিয়ার ফর্ম)
+const TenancyDetails = ({ tenancyId, embedded = false, extraTabs = [], leading = null, initialTab = "overview", afterNotice = null }) => {
   const [activeTab, setActiveTab] = useState(initialTab);
   const [isEditing, setIsEditing] = useState(false);
   const [isNoticeOpen, setIsNoticeOpen] = useState(false);
@@ -255,6 +256,8 @@ const TenancyDetails = ({ tenancyId, embedded = false, extraTabs = [], leading =
             ভাড়াটিয়া বাসা ছাড়ার কথা জানিয়েছেন?
           </button>
         ))}
+
+      {isActive && tenancy.notice && afterNotice}
 
       <StatStrip
         items={[

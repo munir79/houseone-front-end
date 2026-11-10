@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Crown, Eye, LogOut, MessageCircle, Pencil, Phone, RotateCcw, UserPlus } from "lucide-react";
+import { Crown, Eye, Link2, LogOut, MessageCircle, Pencil, Phone, RotateCcw, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import DateActionModal from "./DateActionModal";
 import MemberFormModal from "./MemberFormModal";
+import MemberLinkModal from "./MemberLinkModal";
+import MemberRequests from "./MemberRequests";
 import PersonDetailsModal from "@/components/tenantForm/PersonDetailsModal";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
@@ -64,6 +66,7 @@ const MembersPanel = ({ tenancy }) => {
   const [revealTenantNid, { isLoading: isRevealingTenant }] = useRevealNidMutation();
   const [getTenantDocuments] = useGetDocumentLinksMutation();
   const [isTenantOpen, setIsTenantOpen] = useState(false);
+  const [isLinkOpen, setIsLinkOpen] = useState(false);
 
   const { tenant } = tenancy;
 
@@ -89,12 +92,20 @@ const MembersPanel = ({ tenancy }) => {
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border p-3 sm:p-4">
         <h2 className="text-sm font-semibold">এই ফ্ল্যাটে যাঁরা আছেন</h2>
         {isActive && (
-          <Button size="sm" onClick={() => setFormMember(null)}>
-            <UserPlus className="h-4 w-4" aria-hidden="true" />
-            Add Member
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" size="sm" onClick={() => setIsLinkOpen(true)}>
+              <Link2 className="h-4 w-4" aria-hidden="true" />
+              Member Link
+            </Button>
+            <Button size="sm" onClick={() => setFormMember(null)}>
+              <UserPlus className="h-4 w-4" aria-hidden="true" />
+              Add Member
+            </Button>
+          </div>
         )}
       </div>
+
+      {isActive && <MemberRequests tenancy={tenancy} />}
 
       <ul className="divide-y divide-border">
         <PersonRow name={tenancy.tenantName} phone={tenancy.tenantPhone} isMain showContacts onOpen={() => setIsTenantOpen(true)}>
@@ -117,6 +128,8 @@ const MembersPanel = ({ tenancy }) => {
           </ul>
         </>
       )}
+
+      {isLinkOpen && <MemberLinkModal tenancy={tenancy} onClose={() => setIsLinkOpen(false)} />}
 
       {isTenantOpen && (
         <PersonDetailsModal
