@@ -19,7 +19,7 @@ export const mainNav = [
   { label: "Properties", href: "/properties", icon: Home },
   { label: "Tenants", href: "/tenants", icon: Users },
   { label: "Billing", href: "/billing", icon: ClipboardList },
-  { label: "Receipts", icon: FileText, soon: true },
+  { label: "Receipts", href: "/receipts", icon: FileText },
   { label: "Shared Access", icon: Handshake, soon: true },
   { label: "To-Let Marketplace", icon: Megaphone, soon: true },
 ];

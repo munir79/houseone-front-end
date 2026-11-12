@@ -1,7 +1,7 @@
 'use client';
 
 import { apiSlice } from "@/redux/api/apiSlice";
-import { PAYMENTS, PAYMENT_ACTION, PAYMENT_ADVANCE, PAYMENT_ADVANCE_SUMMARY, PUBLIC_RECEIPT } from "@/utils/url";
+import { PAYMENTS, PAYMENT_ACTION, PAYMENT_ADVANCE, PAYMENT_ADVANCE_SUMMARY, PAYMENT_RECEIPTS, PUBLIC_RECEIPT } from "@/utils/url";
 
 // টাকা নিলে বিল, বাড়ির টেবিল ও ড্যাশবোর্ড সব বদলায়
 const CHANGED_TAGS = ["Payment", "Bill", "Unit", "Tenancy", "Property"];
@@ -13,6 +13,12 @@ export const paymentApi = apiSlice.injectEndpoints({
     getPayments: builder.query({
       query: (params) => ({ url: PAYMENTS, params }),
       providesTags: ["Payment"],
+    }),
+
+    //1b. RECEIPTS PAGE — মাসের সব রসিদ ও Advance ফেরত
+    getReceipts: builder.query({
+      query: (params) => ({ url: PAYMENT_RECEIPTS, params }),
+      providesTags: ["Payment", "Tenancy"],
     }),
 
     //2. ADVANCE — চুক্তি, পাওয়া, বাকি
@@ -54,6 +60,8 @@ export const paymentApi = apiSlice.injectEndpoints({
 
 export const {
   useGetPaymentsQuery,
+  useGetReceiptsQuery,
+  useLazyGetReceiptsQuery,
   useGetAdvanceSummaryQuery,
   usePayBillMutation,
   usePayAdvanceMutation,

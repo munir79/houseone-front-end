@@ -67,6 +67,7 @@ export const PUBLIC_BILL = (token) => API_BASE_URL + `public/bill/${token}`;
 
 // Payment
 export const PAYMENTS = API_BASE_URL + 'payment';
+export const PAYMENT_RECEIPTS = API_BASE_URL + 'payment/receipts';
 export const PAYMENT_ADVANCE = API_BASE_URL + 'payment/advance';
 export const PAYMENT_ADVANCE_SUMMARY = (tenancyId) => API_BASE_URL + `payment/advance/${tenancyId}`;
 export const PAYMENT_ACTION = (id, action) => API_BASE_URL + `payment/${id}/${action}`;
