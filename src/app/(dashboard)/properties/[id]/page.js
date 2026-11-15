@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowLeft,
+  BarChart3,
   BellRing,
   Building2,
   Image as ImageIcon,
@@ -126,6 +127,12 @@ const PropertyDetailsPage = () => {
           },
         ]
       : []),
+    {
+      key: "report",
+      label: "Report",
+      icon: BarChart3,
+      onClick: () => router.push(`/reports?house=${id}`),
+    },
     {
       key: "edit",
       label: "Edit",

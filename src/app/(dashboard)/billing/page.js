@@ -10,7 +10,7 @@ import { useGetPropertiesQuery } from "@/redux/features/property/propertyApi";
 const BillingContent = () => {
   const searchParams = useSearchParams();
   const [propertyId, setPropertyId] = useState("");
-  const { data } = useGetPropertiesQuery({ page: 1, search: "" });
+  const { data } = useGetPropertiesQuery({ page: 1, search: "", limit: 100 });
 
   const options = [{ value: "", label: "All houses" }, ...(data?.data?.data || []).map(({ _id, name }) => ({ value: _id, label: name }))];
 

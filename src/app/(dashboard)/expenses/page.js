@@ -5,7 +5,7 @@ import PageHeader from "@/components/ui/PageHeader";
 import { useGetPropertiesQuery } from "@/redux/features/property/propertyApi";
 
 const ExpensesPage = () => {
-  const { data } = useGetPropertiesQuery({ page: 1, search: "" });
+  const { data } = useGetPropertiesQuery({ page: 1, search: "", limit: 100 });
 
   return (
     <div className="flex flex-col gap-5">
