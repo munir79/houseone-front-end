@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, BellRing, Building2, CalendarClock, CircleAlert, Home, PiggyBank, UserPlus, UserX, Users, Wallet } from "lucide-react";
+import { ArrowRight, BellRing, Building2, CalendarClock, CircleAlert, Home, PiggyBank, TrendingUp, UserPlus, UserX, Users, Wallet } from "lucide-react";
 import CollectionChart from "@/components/dashboard/CollectionChart";
 import HouseCollection from "@/components/dashboard/HouseCollection";
 import RecentReceipts from "@/components/dashboard/RecentReceipts";
@@ -207,12 +207,13 @@ const DashboardPage = () => {
           { key: "due", label: `${monthName} বাকি`, value: formatMoney(money?.thisMonth.due || 0), hint: money?.thisMonth.dueFlats ? `${money.thisMonth.dueFlats} flats` : undefined, icon: CircleAlert, tone: "amber", onClick: () => router.push("/billing") },
           { key: "advance", label: "Advance জমা", value: formatMoney(money?.advanceHeld || 0), hint: "হাতে আছে", icon: PiggyBank, tone: "blue" },
           {
-            key: "notCollected",
-            label: "আদায় হয়নি",
-            value: formatMoney(money?.notCollected.amount || 0),
-            hint: money?.notCollected.tenants ? `${money.notCollected.tenants} former` : undefined,
-            icon: UserX,
-            tone: "red",
+            key: "profit",
+            label: `${monthName} লাভ`,
+            value: formatMoney(money?.thisMonth.profit || 0),
+            hint: money ? `খরচ ${formatMoney(money.thisMonth.expenses)}` : undefined,
+            icon: TrendingUp,
+            tone: (money?.thisMonth.profit || 0) < 0 ? "red" : "green",
+            onClick: () => router.push("/expenses"),
           },
         ]}
       />
@@ -262,6 +263,18 @@ const DashboardPage = () => {
         </div>
 
         <div className="flex min-w-0 flex-col gap-4">
+          {money?.notCollected.amount > 0 && (
+            <Card data-not-collected className="flex items-center gap-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-danger text-primary-foreground">
+                <UserX className="h-5 w-5" aria-hidden="true" />
+              </span>
+              <span className="min-w-0">
+                <span className="block text-sm font-semibold">আদায় হয়নি</span>
+                <span className="block text-xl font-bold tabular-nums">{formatMoney(money.notCollected.amount)}</span>
+                <span className="block text-xs text-muted">{toBanglaNumber(money.notCollected.tenants)} জন সাবেক ভাড়াটিয়ার বকেয়া</span>
+              </span>
+            </Card>
+          )}
           {propertySummary && <NeedsActionCard needsAction={propertySummary.needsAction} />}
           {money && <RecentReceipts payments={money.recent} />}
           {propertySummary ? <OccupancyCard summary={propertySummary} /> : <Skeleton className="h-44 w-full rounded-2xl" />}

@@ -25,7 +25,7 @@ export const mainNav = [
 ];
 
 export const secondaryNav = [
-  { label: "Expenses", icon: Receipt, soon: true },
+  { label: "Expenses", href: "/expenses", icon: Receipt },
   { label: "Reports", icon: BarChart3, soon: true },
   { label: "Notifications", icon: Bell, soon: true },
   { label: "Settings", icon: Settings, soon: true },

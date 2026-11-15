@@ -1,36 +1,75 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Ellipsis } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { isNavActive, navItems } from "@/lib/navigation";
 
+// নিচের Bar এ ৪টি প্রধান + More — বেশি হলে নাম জড়িয়ে যায়
+const MAIN_COUNT = 4;
+
+const itemClasses = (isActive) => cn("flex min-h-16 flex-1 flex-col items-center justify-center gap-0.5 text-xs font-semibold", isActive ? "text-primary" : "text-muted");
+
+const ItemIcon = ({ icon: Icon, isActive }) => (
+  <span className={cn("flex h-7 w-12 items-center justify-center rounded-full", isActive && "bg-primary-soft")}>
+    <Icon className="h-5 w-5" aria-hidden="true" />
+  </span>
+);
+
 const BottomNav = () => {
   const pathname = usePathname();
+  const [openedAt, setOpenedAt] = useState(null);
+
+  const hasMore = navItems.length > MAIN_COUNT + 1;
+  const mainItems = hasMore ? navItems.slice(0, MAIN_COUNT) : navItems;
+  const moreItems = hasMore ? navItems.slice(MAIN_COUNT) : [];
+  const isMoreActive = moreItems.some(({ href }) => isNavActive(pathname, href));
+  // পেজ বদলালে নিজে থেকেই বন্ধ — যে পেজে খোলা হয়েছিল শুধু সেখানেই খোলা থাকে
+  const isMoreOpen = openedAt === pathname;
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-30 flex border-t border-border bg-surface pb-[env(safe-area-inset-bottom)] md:hidden">
-      {navItems.map(({ label, href, icon: Icon }) => {
-        const isActive = isNavActive(pathname, href);
+    <>
+      {isMoreOpen && <button type="button" aria-label="Close menu" onClick={() => setOpenedAt(null)} className="fixed inset-0 z-30 bg-foreground/20 md:hidden" />}
+      {isMoreOpen && (
+        <div id="more-menu" data-more-menu className="fixed inset-x-3 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-40 grid grid-cols-3 gap-2 rounded-2xl border border-border bg-surface p-3 shadow-card md:hidden">
+          {moreItems.map(({ label, href, icon }) => {
+            const isActive = isNavActive(pathname, href);
+            return (
+              <Link key={href} href={href} aria-current={isActive ? "page" : undefined} onClick={() => setOpenedAt(null)} className={cn(itemClasses(isActive), "rounded-xl hover:bg-background")}>
+                <ItemIcon icon={icon} isActive={isActive} />
+                {label}
+              </Link>
+            );
+          })}
+        </div>
+      )}
 
-        return (
-          <Link
-            key={href}
-            href={href}
-            aria-current={isActive ? "page" : undefined}
-            className={cn(
-              "flex min-h-16 flex-1 flex-col items-center justify-center gap-0.5 text-xs font-semibold",
-              isActive ? "text-primary" : "text-muted"
-            )}
+      <nav className="fixed inset-x-0 bottom-0 z-40 flex border-t border-border bg-surface pb-[env(safe-area-inset-bottom)] md:hidden">
+        {mainItems.map(({ label, href, icon }) => {
+          const isActive = isNavActive(pathname, href);
+          return (
+            <Link key={href} href={href} aria-current={isActive ? "page" : undefined} className={itemClasses(isActive)}>
+              <ItemIcon icon={icon} isActive={isActive} />
+              {label}
+            </Link>
+          );
+        })}
+        {hasMore && (
+          <button
+            type="button"
+            aria-expanded={isMoreOpen}
+            aria-controls="more-menu"
+            onClick={() => setOpenedAt(isMoreOpen ? null : pathname)}
+            className={itemClasses(isMoreActive || isMoreOpen)}
           >
-            <span className={cn("flex h-7 w-12 items-center justify-center rounded-full", isActive && "bg-primary-soft")}>
-              <Icon className="h-5 w-5" aria-hidden="true" />
-            </span>
-            {label}
-          </Link>
-        );
-      })}
-    </nav>
+            <ItemIcon icon={Ellipsis} isActive={isMoreActive || isMoreOpen} />
+            More
+          </button>
+        )}
+      </nav>
+    </>
   );
 };
 

@@ -20,6 +20,7 @@ import ContactList from "@/components/property/ContactList";
 import HouseStats from "@/components/property/HouseStats";
 import PropertyFormModal from "@/components/property/PropertyFormModal";
 import BillBoard from "@/components/bill/BillBoard";
+import ExpenseBoard from "@/components/expense/ExpenseBoard";
 import ChargesPanel from "@/components/tenantForm/ChargesPanel";
 import FormSettingsPanel from "@/components/tenantForm/FormSettingsPanel";
 import UnitList, { NEEDS_ACTION, RENT_PENDING } from "@/components/unit/UnitList";
@@ -171,6 +172,7 @@ const PropertyDetailsPage = () => {
           tabs={[
             { value: "units", label: "Units", count: property.unitCount },
             { value: "rent", label: "Rent" },
+            { value: "expenses", label: "Expenses" },
             {
               value: "photos",
               label: "Photos",
@@ -191,6 +193,7 @@ const PropertyDetailsPage = () => {
           />
         )}
         {activeTab === "rent" && <BillBoard propertyId={id} />}
+        {activeTab === "expenses" && <ExpenseBoard properties={[property]} propertyId={id} />}
         {activeTab === "photos" && (
           <Card>
             {property.photos?.length > 0 ? (

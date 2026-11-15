@@ -10,7 +10,7 @@ export const dashboardApi = apiSlice.injectEndpoints({
     //1. MONEY — এই মাস, Advance, আদায় হয়নি, chart, বাড়ি, সাম্প্রতিক রসিদ
     getDashboardMoney: builder.query({
       query: () => DASHBOARD_MONEY,
-      providesTags: ["Bill", "Payment", "Tenancy", "Property"],
+      providesTags: ["Bill", "Payment", "Tenancy", "Property", "Expense"],
     }),
   }),
 });

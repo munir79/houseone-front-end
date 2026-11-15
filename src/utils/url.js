@@ -71,6 +71,12 @@ export const PAYMENT_RECEIPTS = API_BASE_URL + 'payment/receipts';
 
 // Dashboard
 export const DASHBOARD_MONEY = API_BASE_URL + 'dashboard/money';
+
+// Expense
+export const EXPENSES = API_BASE_URL + 'expense';
+export const EXPENSE_BY_ID = (id) => API_BASE_URL + `expense/${id}`;
+export const EXPENSE_RECURRING = API_BASE_URL + 'expense/recurring';
+export const EXPENSE_RECURRING_BY_ID = (id) => API_BASE_URL + `expense/recurring/${id}`;
 export const PAYMENT_ADVANCE = API_BASE_URL + 'payment/advance';
 export const PAYMENT_ADVANCE_SUMMARY = (tenancyId) => API_BASE_URL + `payment/advance/${tenancyId}`;
 export const PAYMENT_ACTION = (id, action) => API_BASE_URL + `payment/${id}/${action}`;
