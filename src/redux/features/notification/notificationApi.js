@@ -7,8 +7,9 @@ export const notificationApi = apiSlice.injectEndpoints({
   overrideExisting: true,
   endpoints: (builder) => ({
     //1. MY NOTIFICATIONS
+    // params — Notifications পাতার পাতা, সংখ্যা ও "না পড়া" ফিল্টার; Bell এ কিছু লাগে না
     getMyNotifications: builder.query({
-      query: () => MY_NOTIFICATIONS,
+      query: (params) => ({ url: MY_NOTIFICATIONS, params }),
       providesTags: ["Notification"],
     }),
 

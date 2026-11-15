@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown, LogOut } from "lucide-react";
+import Link from "next/link";
+import { ChevronDown, LogOut, Settings } from "lucide-react";
 import { cn } from "@/lib/cn";
 
 const ProfileMenu = ({ user, onLogout }) => {
@@ -35,8 +36,13 @@ const ProfileMenu = ({ user, onLogout }) => {
         onClick={() => setIsOpen((prev) => !prev)}
         className="flex min-h-11 items-center gap-2 rounded-xl p-1 text-left transition-colors hover:bg-primary-soft md:pr-2"
       >
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
-          {user?.name?.charAt(0).toUpperCase()}
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary text-sm font-semibold text-primary-foreground">
+          {user?.photo ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={user.photo} alt="" className="h-full w-full object-cover" />
+          ) : (
+            user?.name?.charAt(0).toUpperCase()
+          )}
         </span>
         <span className="hidden max-w-40 min-w-0 md:block">
           <span className="block truncate text-sm font-semibold">{user?.name}</span>
@@ -54,6 +60,14 @@ const ProfileMenu = ({ user, onLogout }) => {
             <p className="text-sm font-semibold wrap-break-word">{user?.name}</p>
             <p className="text-xs wrap-break-word text-muted">{user?.email}</p>
           </div>
+          <Link
+            href="/settings"
+            onClick={() => setIsOpen(false)}
+            className="mt-1 flex min-h-11 w-full items-center gap-2 rounded-xl px-3 text-sm font-medium text-foreground hover:bg-primary-soft"
+          >
+            <Settings className="h-4 w-4" aria-hidden="true" />
+            Settings
+          </Link>
           <button
             type="button"
             onClick={onLogout}

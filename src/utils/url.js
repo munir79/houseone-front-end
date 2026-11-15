@@ -80,6 +80,9 @@ export const EXPENSE_RECURRING_BY_ID = (id) => API_BASE_URL + `expense/recurring
 
 // Report
 export const REPORT = API_BASE_URL + 'report';
+
+// Account (Settings)
+export const ACCOUNT = API_BASE_URL + 'account';
 export const PAYMENT_ADVANCE = API_BASE_URL + 'payment/advance';
 export const PAYMENT_ADVANCE_SUMMARY = (tenancyId) => API_BASE_URL + `payment/advance/${tenancyId}`;
 export const PAYMENT_ACTION = (id, action) => API_BASE_URL + `payment/${id}/${action}`;

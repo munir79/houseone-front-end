@@ -27,8 +27,8 @@ export const mainNav = [
 export const secondaryNav = [
   { label: "Expenses", href: "/expenses", icon: Receipt },
   { label: "Reports", href: "/reports", icon: BarChart3 },
-  { label: "Notifications", icon: Bell, soon: true },
-  { label: "Settings", icon: Settings, soon: true },
+  { label: "Notifications", href: "/notifications", icon: Bell },
+  { label: "Settings", href: "/settings", icon: Settings },
 ];
 
 // মোবাইলে শুধু তৈরি হওয়া Menu দেখায়
