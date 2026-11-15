@@ -29,7 +29,8 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${jakarta.variable} ${bangla.variable}`}>
-      <body className="antialiased">
+      {/* Browser Extension (যেমন ColorZilla) body তে নিজের Attribute বসায় — শুধু body র Attribute এর অমিল উপেক্ষা, ভেতরের কিছু নয় */}
+      <body className="antialiased" suppressHydrationWarning>
         {/* নিচে, যাতে Notification ঘণ্টা ঢেকে না যায় — মোবাইলে BottomNav এর উপরে */}
         <Toaster richColors position="bottom-right" closeButton mobileOffset={{ bottom: "72px" }} />
 

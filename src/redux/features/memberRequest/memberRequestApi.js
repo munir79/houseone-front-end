@@ -21,7 +21,7 @@ export const memberRequestApi = apiSlice.injectEndpoints({
     //3. APPROVE OR REJECT
     decideMemberRequest: builder.mutation({
       query: ({ tenancyId, requestId, action }) => ({ url: MEMBER_REQUEST_ACTION(tenancyId, requestId, action), method: 'POST' }),
-      invalidatesTags: ["Tenancy", "Unit"],
+      invalidatesTags: ["Tenancy", "Unit", "Property"],
     }),
 
     //4. MEMBER SIDE — FLAT INFO

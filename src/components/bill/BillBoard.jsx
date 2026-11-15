@@ -98,8 +98,9 @@ const BillRow = ({ bill, onOpen, onPay }) => {
 };
 
 // মাসের বিল, কে দিল কে দিল না — Billing পেজ ও বাড়ির Rent tab এ একই
-const BillBoard = ({ propertyId }) => {
-  const [month, setMonth] = useState(currentMonth);
+// initialMonth — Dashboard এর chart থেকে কোনো মাসে চাপলে
+const BillBoard = ({ propertyId, initialMonth }) => {
+  const [month, setMonth] = useState(initialMonth || currentMonth);
   const [filter, setFilter] = useState(ALL);
   const [isGenerating, setIsGenerating] = useState(false);
   const [openId, setOpenId] = useState(null);

@@ -2,16 +2,23 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, BellRing, Building2, CalendarClock, DoorOpen, Home, UserPlus, Users, Wallet } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ArrowRight, BellRing, Building2, CalendarClock, CircleAlert, Home, PiggyBank, UserPlus, UserX, Users, Wallet } from "lucide-react";
+import CollectionChart from "@/components/dashboard/CollectionChart";
+import HouseCollection from "@/components/dashboard/HouseCollection";
+import RecentReceipts from "@/components/dashboard/RecentReceipts";
 import PropertyCard from "@/components/property/PropertyCard";
 import Card from "@/components/ui/Card";
 import EmptyState from "@/components/ui/EmptyState";
 import LinkButton from "@/components/ui/LinkButton";
 import Skeleton from "@/components/ui/Skeleton";
 import StatStrip from "@/components/ui/StatStrip";
+import { monthLabel } from "@/lib/billOptions";
 import { formatMoney } from "@/lib/formatMoney";
 import { formatDate } from "@/lib/tenancyOptions";
+import { toBanglaNumber } from "@/lib/toBanglaNumber";
 import { useGetMyProfileQuery } from "@/redux/features/auth/authApi";
+import { useGetDashboardMoneyQuery } from "@/redux/features/dashboard/dashboardApi";
 import { useGetPropertiesQuery, useGetPropertySummaryQuery } from "@/redux/features/property/propertyApi";
 import { useGetTenancySummaryQuery } from "@/redux/features/tenancy/tenancyApi";
 
@@ -69,8 +76,12 @@ const OccupancyCard = ({ summary }) => {
             <dd className="font-bold tabular-nums">{summary.vacant}</dd>
           </div>
           <div className="flex justify-between gap-2">
-            <dt className="text-muted">Total</dt>
+            <dt className="text-muted">Total units</dt>
             <dd className="font-bold tabular-nums">{summary.units}</dd>
+          </div>
+          <div className="flex justify-between gap-2">
+            <dt className="text-muted">Properties</dt>
+            <dd data-houses className="font-bold tabular-nums">{summary.houses}</dd>
           </div>
         </dl>
       </div>
@@ -81,7 +92,10 @@ const OccupancyCard = ({ summary }) => {
 // সব বাড়ি মিলিয়ে যা করতে হবে — শূন্য হলে বাড়তি জায়গা নেয় না
 const NeedsActionCard = ({ needsAction }) => {
   const rows = [
+    { key: "overdue", label: "Rent overdue", count: needsAction.overdue, href: "/billing" },
     { key: "notBilled", label: "Bills to create", count: needsAction.notBilled, href: "/billing" },
+    { key: "unsentBills", label: "Bills not sent", count: needsAction.unsentBills, href: "/billing" },
+    { key: "memberRequests", label: "Member approvals", count: needsAction.memberRequests, href: "/tenants" },
     { key: "approvals", label: "Needs approval", count: needsAction.approvals, href: "/tenants" },
     { key: "sentBack", label: "Sent back", count: needsAction.sentBack, href: "/tenants" },
     { key: "expired", label: "Link expired", count: needsAction.expired, href: "/tenants" },
@@ -102,7 +116,7 @@ const NeedsActionCard = ({ needsAction }) => {
         <ul className="divide-y divide-border">
           {rows.map(({ key, label, count, href }) => (
             <li key={key}>
-              <Link href={href} className="flex min-h-11 items-center justify-between gap-3 px-4 py-2 text-sm font-medium hover:bg-background">
+              <Link href={href} data-action-row={key} className="flex min-h-11 items-center justify-between gap-3 px-4 py-2 text-sm font-medium hover:bg-background">
                 {label}
                 <span className="font-bold tabular-nums">{count}</span>
               </Link>
@@ -114,17 +128,37 @@ const NeedsActionCard = ({ needsAction }) => {
   );
 };
 
+// এই মাসের আদায়ের কার্ডে লক্ষ্য ও ফ্ল্যাটের Progress
+const CollectedExtra = ({ thisMonth }) => {
+  const percent = thisMonth.flats ? Math.round((thisMonth.paidFlats / thisMonth.flats) * 100) : 0;
+  return (
+    <div className="flex flex-col gap-1.5">
+      <div role="progressbar" aria-label="Flats paid this month" aria-valuemin={0} aria-valuemax={100} aria-valuenow={percent} className="h-2 overflow-hidden rounded-full bg-border/70">
+        <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${percent}%` }} />
+      </div>
+      <p className="text-xs text-muted sm:text-sm">
+        <span className="whitespace-nowrap">লক্ষ্য {formatMoney(thisMonth.target)}</span>
+        {thisMonth.isEstimate && " (আনুমানিক)"} · <span className="whitespace-nowrap">{toBanglaNumber(thisMonth.paidFlats)}/{toBanglaNumber(thisMonth.flats)} ফ্ল্যাট</span>
+      </p>
+    </div>
+  );
+};
+
 const DashboardPage = () => {
+  const router = useRouter();
   const { data: profile } = useGetMyProfileQuery();
-  const { data: propertySummaryData, isLoading: isPropertyLoading } = useGetPropertySummaryQuery();
-  const { data: tenancySummaryData, isLoading: isTenancyLoading } = useGetTenancySummaryQuery();
+  const { data: propertySummaryData } = useGetPropertySummaryQuery();
+  const { data: tenancySummaryData } = useGetTenancySummaryQuery();
   const { data: propertiesData, isLoading: isListLoading } = useGetPropertiesQuery({ page: 1, search: "" });
+  const { data: moneyData, isLoading: isMoneyLoading } = useGetDashboardMoneyQuery();
 
   const firstName = profile?.data?.name?.split(" ")[0];
   const propertySummary = propertySummaryData?.data;
   const tenancySummary = tenancySummaryData?.data;
   const houses = (propertiesData?.data?.data || []).slice(0, MAX_HOUSES);
   const leavingSoon = tenancySummary?.leavingSoon || [];
+  const money = moneyData?.data;
+  const monthName = money ? monthLabel(money.month).split(" ")[0] : "";
 
   return (
     <div className="flex flex-col gap-5">
@@ -159,17 +193,35 @@ const DashboardPage = () => {
       </section>
 
       <StatStrip
-        isLoading={isPropertyLoading || isTenancyLoading}
+        isLoading={isMoneyLoading}
         items={[
-          { key: "houses", label: "Total Properties", value: propertySummary?.houses, icon: Building2 },
-          { key: "tenants", label: "Total Tenants", value: tenancySummary?.active, icon: Users, tone: "violet" },
-          { key: "monthlyRent", label: "Monthly Rent", value: formatMoney(tenancySummary?.monthlyRent || 0), icon: Wallet, tone: "blue" },
-          { key: "vacant", label: "Vacant Units", value: propertySummary?.vacant, icon: DoorOpen, tone: "amber" },
+          {
+            key: "collected",
+            label: `${monthName} আদায়`,
+            value: formatMoney(money?.thisMonth.collected || 0),
+            icon: Wallet,
+            onClick: () => router.push("/billing"),
+            extra: money && money.thisMonth.flats > 0 ? <CollectedExtra thisMonth={money.thisMonth} /> : null,
+            highlight: money && money.thisMonth.flats > 0 && money.thisMonth.paidFlats === money.thisMonth.flats,
+          },
+          { key: "due", label: `${monthName} বাকি`, value: formatMoney(money?.thisMonth.due || 0), hint: money?.thisMonth.dueFlats ? `${money.thisMonth.dueFlats} flats` : undefined, icon: CircleAlert, tone: "amber", onClick: () => router.push("/billing") },
+          { key: "advance", label: "Advance জমা", value: formatMoney(money?.advanceHeld || 0), hint: "হাতে আছে", icon: PiggyBank, tone: "blue" },
+          {
+            key: "notCollected",
+            label: "আদায় হয়নি",
+            value: formatMoney(money?.notCollected.amount || 0),
+            hint: money?.notCollected.tenants ? `${money.notCollected.tenants} former` : undefined,
+            icon: UserX,
+            tone: "red",
+          },
         ]}
       />
 
       <div className="grid gap-5 lg:grid-cols-3">
-        <div className="flex min-w-0 flex-col gap-3 lg:col-span-2">
+        <div className="flex min-w-0 flex-col gap-5 lg:col-span-2">
+          {money ? <CollectionChart chart={money.chart} /> : <Skeleton className="h-72 w-full rounded-2xl" />}
+          {money && <HouseCollection houses={money.houses} monthName={monthName} />}
+          <div className="flex min-w-0 flex-col gap-3">
           <div className="flex items-center justify-between gap-2">
             <h2 className="text-lg font-bold">My Properties</h2>
             <Link href="/properties" className="inline-flex min-h-11 items-center gap-1 text-sm font-semibold text-primary md:min-h-0">
@@ -206,10 +258,12 @@ const DashboardPage = () => {
               </Card>
             </div>
           )}
+          </div>
         </div>
 
         <div className="flex min-w-0 flex-col gap-4">
           {propertySummary && <NeedsActionCard needsAction={propertySummary.needsAction} />}
+          {money && <RecentReceipts payments={money.recent} />}
           {propertySummary ? <OccupancyCard summary={propertySummary} /> : <Skeleton className="h-44 w-full rounded-2xl" />}
 
           <Card>

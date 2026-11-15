@@ -8,6 +8,8 @@
   --color-primary-hover: #094a37;
   --color-primary-foreground: #ffffff;
   --color-primary-soft: #e2f4ec;
+  /* Chart এ লক্ষ্যের হালকা ট্র্যাক — আদায় একই সবুজের গাঢ় অংশ */
+  --color-chart-track: #bfe0d0;
 
   /* উজ্জ্বল সবুজ — গাঢ় পটভূমির বড় Button */
   --color-accent: #6ee7a8;
