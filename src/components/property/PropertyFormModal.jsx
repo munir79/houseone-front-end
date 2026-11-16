@@ -30,6 +30,7 @@ const PropertyFormModal = ({ property, onClose, onSaved }) => {
     totalFloors: property?.totalFloors?.toString() || "",
     receiptName: property?.receiptName || "",
     receiptPhone: property?.receiptPhone || "",
+    kind: property?.kind || "whole",
   });
   const [errors, setErrors] = useState({});
   const [location, setLocation] = useState(toLocationValue(property?.location));
@@ -95,6 +96,7 @@ const PropertyFormModal = ({ property, onClose, onSaved }) => {
       totalFloors: Number(form.totalFloors),
       receiptName: form.receiptName,
       receiptPhone: form.receiptPhone,
+      kind: form.kind,
       location: { lat: location.lat, lng: location.lng, label: location.label, locality: location.locality },
       photos: photos.map(({ publicId, version, signature }) => ({ publicId, version, signature })),
     };
@@ -116,6 +118,18 @@ const PropertyFormModal = ({ property, onClose, onSaved }) => {
     <Modal title={isEdit ? "Edit House" : "Add House"} onClose={onClose} size="lg">
       <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
         <FormSection title="Basic information">
+          {isEdit && (
+            <Select
+              id="propertyKind"
+              label="কী আছে"
+              options={[
+                { value: "whole", label: "পুরো বাড়ি" },
+                { value: "flats", label: "অন্যের বিল্ডিংয়ে আমার ফ্ল্যাট বা দোকান" },
+              ]}
+              value={form.kind}
+              onChange={handleChange("kind")}
+            />
+          )}
           <div className="grid gap-4 sm:grid-cols-[1fr_140px]">
             <Input
               id="name"

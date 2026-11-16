@@ -1,7 +1,7 @@
 'use client';
 
 import { apiSlice } from "@/redux/api/apiSlice";
-import { PROPERTY_UNITS, PROPERTY_UNITS_BULK, UNIT_BY_ID } from "@/utils/url";
+import { PROPERTY_UNITS, PROPERTY_UNITS_BULK, UNIT_BY_ID, UNIT_WITH_BUILDING } from "@/utils/url";
 
 // ইউনিট বদলালে বাড়ির Card এর সংখ্যাও বদলায়, তাই Property ও
 const CHANGED_TAGS = ["Unit", "Property"];
@@ -22,6 +22,12 @@ export const unitApi = apiSlice.injectEndpoints({
     }),
 
     //3. ADD UNIT
+    // অন্যের বিল্ডিংয়ে আমার ফ্ল্যাট — বিল্ডিংসহ একবারে
+    createFlatWithBuilding: builder.mutation({
+      query: (body) => ({ url: UNIT_WITH_BUILDING, method: 'POST', body }),
+      invalidatesTags: ["Property", "Unit"],
+    }),
+
     createUnit: builder.mutation({
       query: ({ propertyId, ...body }) => ({
         url: PROPERTY_UNITS(propertyId),
@@ -76,6 +82,7 @@ export const {
   useGetPropertyUnitsQuery,
   useGetUnitQuery,
   useCreateUnitMutation,
+  useCreateFlatWithBuildingMutation,
   useCreateUnitsInBulkMutation,
   useUpdateUnitMutation,
   useDeleteUnitMutation,

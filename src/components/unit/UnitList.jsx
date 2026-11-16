@@ -183,7 +183,14 @@ const UnitList = ({ property, initialFilter = "All" }) => {
       .sort(SORTERS[sort]);
   }, [units, activeType, filter, search, sort]);
 
-  const quickAddButton = (
+  // অন্যের বিল্ডিংয়ে আমার কয়েকটা ফ্ল্যাট — একসাথে অনেক বানানোর দরকার নেই
+  const isFlats = property.kind === "flats";
+  const quickAddButton = isFlats ? (
+    <Button size="sm" onClick={() => setIsAddOpen(true)}>
+      <Plus className="h-4 w-4" aria-hidden="true" />
+      আরেকটা ফ্ল্যাট যোগ করুন
+    </Button>
+  ) : (
     <Button size="sm" onClick={() => setIsQuickOpen(true)}>
       <Zap className="h-4 w-4" aria-hidden="true" />
       Quick Add
@@ -201,16 +208,16 @@ const UnitList = ({ property, initialFilter = "All" }) => {
             onChange={(next) => setFilter(Object.keys(FILTER_LABELS).find((key) => FILTER_LABELS[key] === next) ?? next)}
           />
           <div className="flex flex-wrap gap-2">
-            {units.length > 0 && (
+            {units.length > 0 && !isFlats && (
               <Button size="sm" onClick={() => setIsBulkOpen(true)}>
                 <ListChecks className="h-4 w-4" aria-hidden="true" />
                 Bulk Setup
               </Button>
             )}
-            {units.length > 0 && quickAddButton}
+            {units.length > 0 && !isFlats && quickAddButton}
             <Button variant="outline" size="sm" onClick={() => setIsAddOpen(true)}>
               <Plus className="h-4 w-4" aria-hidden="true" />
-              Add Unit
+              {isFlats ? "আরেকটা ফ্ল্যাট যোগ করুন" : "Add Unit"}
             </Button>
           </div>
         </div>
@@ -271,7 +278,7 @@ const UnitList = ({ property, initialFilter = "All" }) => {
         <EmptyState
           icon={LayoutGrid}
           title="No units yet"
-          description="Quick Add দিয়ে একবারে সব ফ্ল্যাট তৈরি করুন, পরে যেকোনোটি বদলাতে পারবেন।"
+          description={isFlats ? "এই বিল্ডিংয়ে আপনার ফ্ল্যাট বা দোকান যোগ করুন।" : "Quick Add দিয়ে একবারে সব ফ্ল্যাট তৈরি করুন, পরে যেকোনোটি বদলাতে পারবেন।"}
           action={quickAddButton}
         />
       ) : shownUnits.length === 0 ? (

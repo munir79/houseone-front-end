@@ -172,7 +172,7 @@ const PropertyDetailsPage = () => {
       <DetailHeader
         badge={isShared ? <Badge variant="info">{isMainOwner ? "অংশীদারি" : "অংশীদার হিসেবে"}</Badge> : undefined}
         title={property.name}
-        subtitle={`${property.area}, ${property.city}`}
+        subtitle={`${property.kind === "flats" ? "অন্যের বিল্ডিংয়ে আমার ফ্ল্যাট" : "পুরো বাড়ি"} · ${property.area}, ${property.city}`}
         photoUrl={property.photos?.[0]?.url}
         icon={Building2}
         actions={<ActionMenu items={actions} />}

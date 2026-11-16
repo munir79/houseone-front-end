@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Building2, DoorOpen, KeyRound, LayoutGrid, Plus, Search, SearchX, WifiOff } from "lucide-react";
 import PropertyCard from "@/components/property/PropertyCard";
-import PropertyFormModal from "@/components/property/PropertyFormModal";
+import AddAssetModal from "@/components/property/AddAssetModal";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import EmptyState from "@/components/ui/EmptyState";
@@ -42,7 +42,7 @@ const PropertiesPage = () => {
   const addButton = (
     <Button onClick={() => setIsFormOpen(true)}>
       <Plus className="h-4 w-4" aria-hidden="true" />
-      Add House
+      যোগ করুন
     </Button>
   );
 
@@ -129,7 +129,7 @@ const PropertiesPage = () => {
         {content}
       </div>
 
-      {isFormOpen && <PropertyFormModal onClose={() => setIsFormOpen(false)} />}
+      {isFormOpen && <AddAssetModal onClose={() => setIsFormOpen(false)} />}
     </div>
   );
 };

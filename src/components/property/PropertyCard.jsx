@@ -4,6 +4,7 @@ import { Building2, MapPin } from "lucide-react";
 import Badge from "@/components/ui/Badge";
 import Card from "@/components/ui/Card";
 import { cloudinaryLoader } from "@/lib/cloudinaryLoader";
+import { toBanglaNumber } from "@/lib/toBanglaNumber";
 
 const Metric = ({ value, label }) => (
   <div className="px-3 py-2.5 text-center">
@@ -11,6 +12,9 @@ const Metric = ({ value, label }) => (
     <p className="text-xs text-muted">{label}</p>
   </div>
 );
+
+// "পুরো বাড়ি · ২০টি ইউনিট" বা "এই বিল্ডিংয়ে আমার ১টি"
+const kindText = ({ kind, unitCount }) => (kind === "flats" ? `এই বিল্ডিংয়ে আমার ${toBanglaNumber(unitCount)}টি` : "পুরো বাড়ি");
 
 const PropertyCard = ({ property }) => {
   const { unitCount, vacantCount } = property;
@@ -45,6 +49,9 @@ const PropertyCard = ({ property }) => {
 
         <div className="min-w-0 flex-1 px-4 py-3">
           <h2 className="truncate text-base font-bold">{property.name}</h2>
+          <p data-property-kind className="text-xs font-semibold text-primary">
+            {kindText(property)}
+          </p>
           <p className="mt-0.5 flex items-center gap-1 text-sm text-muted">
             <MapPin className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
             <span className="truncate">

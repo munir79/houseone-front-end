@@ -37,6 +37,7 @@ export const PROPERTY_CONTACT_BY_ID = (id, contactId) => API_BASE_URL + `propert
 export const PROPERTY_UNITS = (id) => API_BASE_URL + `property/${id}/units`;
 export const PROPERTY_UNITS_BULK = (id) => API_BASE_URL + `property/${id}/units/bulk`;
 export const UNIT_BY_ID = (id) => API_BASE_URL + `unit/${id}`;
+export const UNIT_WITH_BUILDING = API_BASE_URL + 'unit/with-building';
 
 // Tenant
 export const TENANTS = API_BASE_URL + 'tenant';
