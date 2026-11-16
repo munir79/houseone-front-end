@@ -37,7 +37,7 @@ const UnitListingCard = ({ unit }) => {
         ) : (
           <p className="text-sm">
             <span className="block font-semibold">To-Let দিন, বিনামূল্যে</span>
-            <span className="text-muted">{unit.rent > 0 ? "ভাড়াটিয়া খুঁজে সরাসরি কল বা WhatsApp করবেন। ভাড়া হলে বিজ্ঞাপন নিজে বন্ধ হয়।" : "আগে Edit Unit থেকে এই ফ্ল্যাটের ভাড়া দিন।"}</span>
+            <span className="text-muted">ভাড়াটিয়া খুঁজে সরাসরি কল বা WhatsApp করবেন। ভাড়া হলে বিজ্ঞাপন নিজে বন্ধ হয়।</span>
           </p>
         )}
       </div>
@@ -47,7 +47,7 @@ const UnitListingCard = ({ unit }) => {
           <ListingActions listing={listing} unitId={unit._id} alwaysMenu />
         </div>
       ) : (
-        <Button size="sm" onClick={() => setIsPosting(true)} disabled={!(unit.rent > 0)} className="shrink-0">
+        <Button size="sm" onClick={() => setIsPosting(true)} className="shrink-0">
           <Megaphone className="h-4 w-4" aria-hidden="true" />
           To-Let দিন
         </Button>

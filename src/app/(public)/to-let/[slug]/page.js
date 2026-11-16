@@ -1,12 +1,12 @@
 import { cache } from "react";
 import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
-import { ArrowLeft, Bath, BedDouble, CalendarDays, Layers, MapPin, Ruler, Sofa, Users, Wind } from "lucide-react";
+import { ArrowLeft, Bath, BedDouble, CalendarDays, Eye, Layers, MapPin, PhoneCall, Ruler, Sofa, Users, Wind } from "lucide-react";
 import { ContactPanel, ListingGallery, ReportButton, ShareButton, ViewTracker } from "@/components/toLet/ListingDetailParts";
 import ListingCard from "@/components/toLet/ListingCard";
 import LinkButton from "@/components/ui/LinkButton";
 import { formatMoney } from "@/lib/formatMoney";
-import { availableText, croppedPhoto, floorText, forWhom, listingShareText, listingTitle } from "@/lib/listingOptions";
+import { availableText, croppedPhoto, floorText, forWhom, listingShareText, listingTitle, placeText } from "@/lib/listingOptions";
 import { fetchListing, fetchListings } from "@/lib/publicListing";
 import { toBanglaNumber } from "@/lib/toBanglaNumber";
 import { LIVING_LAYOUT_OPTIONS } from "@/lib/unitOptions";
@@ -116,15 +116,32 @@ export default async function ListingPage({ params }) {
             <h1 className="text-2xl font-bold tracking-tight wrap-break-word sm:text-3xl">{title} ভাড়া</h1>
             <p className="flex items-center gap-1.5 text-muted">
               <MapPin className="h-4 w-4 shrink-0" aria-hidden="true" />
-              {listing.area}, {listing.city}
+              {placeText(listing)}
             </p>
             <p className="text-3xl font-bold text-primary">
               {formatMoney(listing.rent)}
               <span className="text-base font-normal text-muted">/মাস</span>
             </p>
             <p className="text-sm text-muted">
-              {[listing.serviceCharge ? `সার্ভিস চার্জ ${formatMoney(listing.serviceCharge)}/মাস` : null, listing.advanceMonths ? `অগ্রিম ${toBanglaNumber(listing.advanceMonths)} মাসের` : null].filter(Boolean).join(" · ")}
+              {[listing.serviceCharge ? `মাসিক চার্জ ${formatMoney(listing.serviceCharge)}` : null, listing.advanceMonths ? `অগ্রিম ${toBanglaNumber(listing.advanceMonths)} মাসের` : null].filter(Boolean).join(" · ")}
             </p>
+            {/* আগ্রহ — বড় হলে গোল করে; কম হলে Server পাঠায় না */}
+            {(listing.seenBy || listing.contactedBy) && (
+              <p data-interest className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-medium text-success-foreground">
+                {listing.seenBy && (
+                  <span className="inline-flex items-center gap-1">
+                    <Eye className="h-4 w-4" aria-hidden="true" />
+                    {toBanglaNumber(listing.seenBy)}+ জন দেখেছেন
+                  </span>
+                )}
+                {listing.contactedBy && (
+                  <span className="inline-flex items-center gap-1">
+                    <PhoneCall className="h-4 w-4" aria-hidden="true" />
+                    {toBanglaNumber(listing.contactedBy)}+ জন যোগাযোগ করেছেন
+                  </span>
+                )}
+              </p>
+            )}
           </div>
 
           <dl className="grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -160,7 +177,7 @@ export default async function ListingPage({ params }) {
           <h2 className="text-lg font-bold">{listing.area}-এ আরও</h2>
           <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {similar.map((item) => (
-              <li key={item.code} className="flex [&>a]:flex-1">
+              <li key={item.code} className="flex min-w-0 [&>a]:min-w-0 [&>a]:flex-1">
                 <ListingCard listing={item} />
               </li>
             ))}

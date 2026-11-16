@@ -27,6 +27,7 @@ const ToLetBrowser = ({ meta, children }) => {
   const near = params.get("near");
   const km = params.get("km");
   const place = params.get("place");
+  const box = params.get("box");
 
   return (
     <div id="results" className="flex scroll-mt-20 flex-col gap-4">
@@ -42,7 +43,7 @@ const ToLetBrowser = ({ meta, children }) => {
             <span className="inline-flex min-w-0 items-center gap-1">
               <MapPin className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
               <span className="truncate">
-                {place || "লোকেশন"} {km ? `থেকে ${toBanglaNumber(km)} কিমির মধ্যে` : "থেকে কাছেরটা আগে"}
+                {place || "লোকেশন"} {km ? `থেকে ${toBanglaNumber(km)} কিমির মধ্যে` : box ? "এলাকার ভেতরে, কাছেরটা আগে" : "থেকে কাছেরটা আগে, সব জায়গা"}
               </span>
             </span>
           )}

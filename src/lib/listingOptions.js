@@ -1,4 +1,5 @@
 import { BD_TIME_ZONE, bdDateInput } from "./bdTime";
+import { districtLabel } from "./districts";
 import { formatMoney } from "./formatMoney";
 import { toBanglaNumber } from "./toBanglaNumber";
 
@@ -26,6 +27,7 @@ export const SORT_OPTIONS = [
   { value: "new", label: "নতুন আগে" },
   { value: "rentLow", label: "কম ভাড়া আগে" },
   { value: "rentHigh", label: "বেশি ভাড়া আগে" },
+  { value: "popular", label: "জনপ্রিয় আগে" },
 ];
 
 export const CONTACT_MODE_OPTIONS = [
@@ -116,6 +118,9 @@ export const distanceText = (meters) => (meters < 1000 ? `${toBanglaNumber(Math.
 export const croppedPhoto = (url, width, height) => url?.replace("/upload/", `/upload/c_fill,g_auto,w_${width},h_${height},f_jpg,q_auto/`);
 
 export const listingPath = ({ slug }) => `/to-let/${slug}`;
+
+// "শেওড়াপাড়া, Mirpur, Dhaka · ঢাকা" — পাড়া, এলাকা, জেলা
+export const placeText = ({ locality, area, city }) => [locality, area, districtLabel(city)].filter(Boolean).join(", ");
 
 export const formatPhone = (phone) => `${phone.slice(0, 5)}-${phone.slice(5)}`;
 

@@ -80,8 +80,11 @@ export const ListingGallery = ({ photos, title }) => {
 
 // নম্বর চাপলে তবেই আসে — মোবাইলে সাথে সাথে কল বা WhatsApp খোলে, Desktop এ নম্বর দেখায়
 const useContact = (listing) => {
-  const [phone, setPhone] = useState(null);
+  const [revealed, setRevealed] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  // কোন বোতাম আগে জানানো হয়েছে — কল ও WhatsApp আলাদা গোনা হয়
+  const sentVia = useRef(new Set());
+  const phone = revealed?.phone ?? null;
 
   const open = async (via) => {
     // WhatsApp এর জন্য আগেই নতুন tab — অপেক্ষার পরে খুললে Browser আটকায়
@@ -91,8 +94,14 @@ const useContact = (listing) => {
       let number = phone;
       if (!number) {
         setIsLoading(true);
-        number = (await revealContact(listing.code)).phone;
-        setPhone(number);
+        const contact = await revealContact(listing.code, via);
+        sentVia.current.add(via);
+        number = contact.phone;
+        setRevealed(contact);
+      } else if (!sentVia.current.has(via)) {
+        // নম্বর আগেই খোলা — অন্য বোতামটাও গোনার জন্য শুধু জানানো
+        sentVia.current.add(via);
+        revealContact(listing.code, via).catch(() => null);
       }
       const url = via === "call" ? `tel:${number}` : whatsappLink(number, contactMessage(listing, pageUrl()));
       if (tab) {
@@ -109,7 +118,7 @@ const useContact = (listing) => {
     }
   };
 
-  return { phone, isLoading, open };
+  return { phone, altPhone: revealed?.altPhone ?? null, isLoading, open };
 };
 
 const ContactButtons = ({ listing, contact, compact = false }) => {
@@ -153,6 +162,19 @@ export const ContactPanel = ({ listing }) => {
             )}
           </p>
           {hours && <p className="text-xs text-muted">{hours}</p>}
+          {/* আরেকটি নম্বর — যেমন দারোয়ান; মূল নম্বর খুললে এটাও */}
+          {listing.hasAltPhone && (
+            <p data-alt-phone className="mt-2 border-t border-border pt-2 text-sm">
+              <span className="text-muted">{listing.altName || "আরেকটি নম্বর"}: </span>
+              {contact.altPhone ? (
+                <a href={`tel:${contact.altPhone}`} className="font-semibold tabular-nums hover:underline">
+                  {formatPhone(contact.altPhone)}
+                </a>
+              ) : (
+                <span className="font-semibold tabular-nums">01XXX-XXXXXX</span>
+              )}
+            </p>
+          )}
         </div>
         <ContactButtons listing={listing} contact={contact} />
         <p className="text-xs text-muted">বাসা দেখে, কথা পাকা হলে অগ্রিম দিন। আগে টাকা চাইলে রিপোর্ট করুন।</p>
@@ -268,7 +290,7 @@ export const ReportButton = ({ code }) => {
             <fieldset className="flex flex-col gap-2">
               <legend className="mb-1 text-sm font-medium">কী সমস্যা?</legend>
               {REPORT_REASONS.map(({ value, label }) => (
-                <label key={value} className="flex min-h-11 cursor-pointer items-center gap-3 rounded-xl border border-border px-3 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary-soft">
+                <label key={value} className="flex min-h-11 cursor-pointer items-center gap-3 rounded-xl border border-border px-3 text-sm has-checked:border-primary has-checked:bg-primary-soft">
                   <input type="radio" name="reason" value={value} checked={reason === value} onChange={() => setReason(value)} className="h-4 w-4 accent-primary" />
                   {label}
                 </label>

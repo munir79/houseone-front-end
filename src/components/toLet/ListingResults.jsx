@@ -75,14 +75,23 @@ const ListingResults = ({ data, meta, query }) => {
   };
 
   if (list.items.length === 0) {
+    // জায়গার ভেতরে নেই — সীমা ছাড়া কাছেরগুলো দেখার পথ, দূরত্ব লেখা থাকে
+    const params = new URLSearchParams(query);
+    const place = params.get("place");
+    const isBounded = params.get("near") && (params.get("box") || params.get("km"));
+    ["box", "km", "after"].forEach((key) => params.delete(key));
     return (
       <div className="rounded-2xl border border-border bg-surface">
         <EmptyState
           icon={SearchX}
-          title="কিছু পাওয়া যায়নি"
-          description="ফিল্টার একটু কমিয়ে দেখুন, বা অন্য জায়গায় খুঁজুন। নতুন বিজ্ঞাপন প্রতিদিন আসে।"
+          title={isBounded && place ? `${place}-এ এখনো বিজ্ঞাপন নেই` : "কিছু পাওয়া যায়নি"}
+          description={isBounded ? "আশেপাশের এলাকার বিজ্ঞাপন দেখতে পারেন, প্রতিটায় দূরত্ব লেখা থাকবে।" : "ফিল্টার একটু কমিয়ে দেখুন, বা অন্য জায়গায় খুঁজুন। নতুন বিজ্ঞাপন প্রতিদিন আসে।"}
           action={
-            query ? (
+            isBounded ? (
+              <LinkButton href={`/to-let?${params.toString()}#results`} data-nearby>
+                আশেপাশের বিজ্ঞাপন দেখুন
+              </LinkButton>
+            ) : query ? (
               <LinkButton href="/to-let" variant="outline">
                 সব বিজ্ঞাপন দেখুন
               </LinkButton>
@@ -97,7 +106,7 @@ const ListingResults = ({ data, meta, query }) => {
     <div className="flex flex-col gap-6">
       <ul data-listing-results className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {list.items.map((listing, index) => (
-          <li key={listing.code} className="flex [&>a]:flex-1">
+          <li key={listing.code} className="flex min-w-0 [&>a]:min-w-0 [&>a]:flex-1">
             <ListingCard listing={listing} priority={index < 3} />
           </li>
         ))}

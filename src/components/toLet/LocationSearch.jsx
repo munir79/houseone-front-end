@@ -9,6 +9,18 @@ import { API_BASE_URL } from "@/utils/url";
 const MIN_LENGTH = 3;
 const DEBOUNCE_MS = 400;
 export const MY_LOCATION = "আমার লোকেশন";
+const MY_BOX_KM = 2;
+const KM_PER_DEGREE = 111;
+
+// নিজের জায়গার চারপাশ — দূরত্ব না বাছলে এর ভেতরের বিজ্ঞাপন
+export const myPlace = ({ latitude, longitude }) => {
+  const lat = Number(latitude.toFixed(4));
+  const lng = Number(longitude.toFixed(4));
+  const dLat = MY_BOX_KM / KM_PER_DEGREE;
+  const dLng = MY_BOX_KM / (KM_PER_DEGREE * Math.cos((lat * Math.PI) / 180));
+  const box = [lng - dLng, lat - dLat, lng + dLng, lat + dLat].map((value) => Number(value.toFixed(4)));
+  return { label: MY_LOCATION, lat, lng, box };
+};
 
 // বাংলাদেশের যেকোনো জায়গা — লিখলে Photon থেকে, বাছলে lat/lng; GPS বোতামে নিজের জায়গা
 const LocationSearch = ({ value, onChange }) => {
@@ -59,7 +71,7 @@ const LocationSearch = ({ value, onChange }) => {
   }, [isOpen]);
 
   const pick = (place) => {
-    onChange({ label: place.label, lat: place.lat, lng: place.lng });
+    onChange({ label: place.label, lat: place.lat, lng: place.lng, box: place.box });
     setIsOpen(false);
   };
 
@@ -69,7 +81,7 @@ const LocationSearch = ({ value, onChange }) => {
     navigator.geolocation.getCurrentPosition(
       ({ coords }) => {
         setIsLocating(false);
-        onChange({ label: MY_LOCATION, lat: Number(coords.latitude.toFixed(4)), lng: Number(coords.longitude.toFixed(4)) });
+        onChange(myPlace(coords));
       },
       () => {
         setIsLocating(false);

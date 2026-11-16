@@ -41,7 +41,8 @@ export const propertyApi = apiSlice.injectEndpoints({
         method: 'PATCH',
         body,
       }),
-      invalidatesTags: ["Property"],
+      // ফ্ল্যাটের পাতা ও To-Let বিজ্ঞাপনেও বাড়ির এলাকা ও লোকেশন দেখায়
+      invalidatesTags: ["Property", "Unit", "Listing"],
     }),
 
     //5. DELETE HOUSE

@@ -10,14 +10,13 @@ import Modal from "@/components/ui/Modal";
 import MultiImageUpload from "@/components/ui/MultiImageUpload";
 import Select from "@/components/ui/Select";
 import Textarea from "@/components/ui/Textarea";
+import { DISTRICT_OPTIONS } from "@/lib/districts";
 import { getErrorMessage } from "@/lib/getErrorMessage";
 import { useGetLocationsQuery } from "@/redux/features/location/locationApi";
 import { useCreatePropertyMutation, useUpdatePropertyMutation } from "@/redux/features/property/propertyApi";
 
-const OTHER_AREA = "__other";
-
 const toLocationValue = (location) =>
-  location ? { lat: location.coordinates[1], lng: location.coordinates[0], label: location.label } : null;
+  location ? { lat: location.coordinates[1], lng: location.coordinates[0], label: location.label, locality: location.locality } : null;
 
 // property না দিলে নতুন বাড়ি, দিলে Edit
 const PropertyFormModal = ({ property, onClose, onSaved }) => {
@@ -27,7 +26,6 @@ const PropertyFormModal = ({ property, onClose, onSaved }) => {
     name: property?.name || "",
     city: property?.city || "",
     area: property?.area || "",
-    customArea: "",
     address: property?.address || "",
     totalFloors: property?.totalFloors?.toString() || "",
     receiptName: property?.receiptName || "",
@@ -42,15 +40,8 @@ const PropertyFormModal = ({ property, onClose, onSaved }) => {
   const [createProperty, { isLoading: isCreating }] = useCreatePropertyMutation();
   const [updateProperty, { isLoading: isUpdating }] = useUpdatePropertyMutation();
 
-  const locations = locationsData?.data || [];
-  const cityOptions = locations.map(({ city }) => ({ value: city, label: city }));
-  const cityAreas = locations.find(({ city }) => city === form.city)?.areas || [];
-  const areaOptions = [...cityAreas.map((area) => ({ value: area, label: area })), { value: OTHER_AREA, label: "Other area" }];
-
-  // তালিকায় নেই এমন এলাকা Edit করলে Other এ দেখায়
-  const isCustomSavedArea = Boolean(form.city && form.area && form.area !== OTHER_AREA && locations.length && !cityAreas.includes(form.area));
-  const selectedArea = isCustomSavedArea ? OTHER_AREA : form.area;
-  const customAreaValue = isCustomSavedArea ? form.area : form.customArea;
+  // বড় শহরের চেনা এলাকা — লেখার সময় পরামর্শ, যাতে নাম এক রকম থাকে
+  const areaSuggestions = (locationsData?.data || []).find(({ city }) => city === form.city)?.areas || [];
 
   // লেখা শুরু করলেই সেই ঘরের Error চলে যায়
   const clearError = (...fields) => {
@@ -66,26 +57,25 @@ const PropertyFormModal = ({ property, onClose, onSaved }) => {
     clearError(field);
   };
 
-  const handleCityChange = (e) => {
-    setForm((prev) => ({ ...prev, city: e.target.value, area: "", customArea: "" }));
-    clearError("city", "area");
+  // ম্যাপে জায়গা বাছলে জেলা ও এলাকা নিজে থেকে — পরে বদলানো যায়
+  const handleLocation = (place) => {
+    // পাড়া — Photon এর এলাকা; To-Let এ এলাকার সাথে দেখায়
+    setLocation(place && { ...place, locality: place.area });
+    if (!place) return;
+    setForm((prev) => ({ ...prev, city: place.district || prev.city, area: place.area || prev.area }));
+    clearError("location", "city", "area");
   };
 
-  const handleCustomArea = (e) => {
-    const { value } = e.target;
-    setForm((prev) => (isCustomSavedArea ? { ...prev, area: value } : { ...prev, customArea: value }));
-    clearError("area");
-  };
-
-  const finalArea = selectedArea === OTHER_AREA ? customAreaValue.trim() : selectedArea;
+  const finalArea = form.area.trim();
 
   const validate = () => {
     const newErrors = {};
     const floors = Number(form.totalFloors);
 
     if (!form.name.trim()) newErrors.name = "বাড়ির নাম লিখুন";
-    if (!form.city) newErrors.city = "শহর বেছে নিন";
-    if (!finalArea) newErrors.area = "এলাকা বেছে নিন বা লিখুন";
+    if (!location) newErrors.location = "ম্যাপে বাড়ির লোকেশন দিন — নাম লিখে খুঁজুন বা পাশের বোতামে নিজের লোকেশন";
+    if (!form.city) newErrors.city = "জেলা বেছে নিন";
+    if (!finalArea) newErrors.area = "এলাকার নাম লিখুন";
     if (!form.address.trim()) newErrors.address = "ঠিকানা লিখুন";
     if (!Number.isInteger(floors) || floors < 1 || floors > 200) newErrors.totalFloors = "১ থেকে ২০০ এর মধ্যে তলার সংখ্যা লিখুন";
 
@@ -105,11 +95,9 @@ const PropertyFormModal = ({ property, onClose, onSaved }) => {
       totalFloors: Number(form.totalFloors),
       receiptName: form.receiptName,
       receiptPhone: form.receiptPhone,
-      location: location ? { lat: location.lat, lng: location.lng, label: location.label } : null,
+      location: { lat: location.lat, lng: location.lng, label: location.label, locality: location.locality },
       photos: photos.map(({ publicId, version, signature }) => ({ publicId, version, signature })),
     };
-
-    if (!isEdit && !body.location) delete body.location;
 
     try {
       const response = isEdit
@@ -153,38 +141,17 @@ const PropertyFormModal = ({ property, onClose, onSaved }) => {
         </FormSection>
 
         <FormSection title="Location">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Select
-              id="city"
-              label="City"
-              placeholder="শহর বেছে নিন"
-              options={cityOptions}
-              value={form.city}
-              onChange={handleCityChange}
-              error={errors.city}
-            />
-            <Select
-              id="area"
-              label="Area"
-              placeholder={form.city ? "এলাকা বেছে নিন" : "আগে শহর বেছে নিন"}
-              options={form.city ? areaOptions : []}
-              disabled={!form.city}
-              value={selectedArea}
-              onChange={handleChange("area")}
-              error={selectedArea === OTHER_AREA ? undefined : errors.area}
-            />
-          </div>
+          <LocationSearch value={location} onChange={handleLocation} error={errors.location} />
 
-          {selectedArea === OTHER_AREA && (
-            <Input
-              id="customArea"
-              label="Area name"
-              placeholder="আপনার এলাকার নাম লিখুন"
-              value={customAreaValue}
-              onChange={handleCustomArea}
-              error={errors.area}
-            />
-          )}
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Select id="city" label="District" placeholder="জেলা বেছে নিন" options={DISTRICT_OPTIONS} value={form.city} onChange={handleChange("city")} error={errors.city} />
+            <Input id="area" label="Area" placeholder="যেমন: Shewrapara" list="areaSuggestions" autoComplete="off" value={form.area} onChange={handleChange("area")} error={errors.area} />
+            <datalist id="areaSuggestions">
+              {areaSuggestions.map((area) => (
+                <option key={area} value={area} />
+              ))}
+            </datalist>
+          </div>
 
           <Textarea
             id="address"
@@ -194,8 +161,6 @@ const PropertyFormModal = ({ property, onClose, onSaved }) => {
             onChange={handleChange("address")}
             error={errors.address}
           />
-
-          <LocationSearch value={location} onChange={setLocation} />
         </FormSection>
 
         <FormSection title="Photos">

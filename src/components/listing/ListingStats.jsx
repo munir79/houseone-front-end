@@ -2,23 +2,35 @@ import { Eye, PhoneCall, Share2 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { toBanglaNumber } from "@/lib/toBanglaNumber";
 
-// প্রতি জন একবার — দেখেছেন, শেয়ার, যোগাযোগ
-export const ListingCounts = ({ counts, className }) => (
-  <p data-listing-counts className={cn("flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted", className)}>
-    <span className="inline-flex items-center gap-1">
-      <Eye className="h-3.5 w-3.5" aria-hidden="true" />
-      <span data-count="views">{toBanglaNumber(counts?.views ?? 0)}</span> জন দেখেছেন
-    </span>
-    <span className="inline-flex items-center gap-1">
-      <Share2 className="h-3.5 w-3.5" aria-hidden="true" />
-      <span data-count="shares">{toBanglaNumber(counts?.shares ?? 0)}</span> শেয়ার
-    </span>
-    <span className="inline-flex items-center gap-1">
-      <PhoneCall className="h-3.5 w-3.5" aria-hidden="true" />
-      <span data-count="contacts">{toBanglaNumber(counts?.contacts ?? 0)}</span> যোগাযোগ
-    </span>
-  </p>
-);
+// জন — আলাদা মানুষ, প্রতি জন একবার; বার — মোট কতবার দেখা হয়েছে
+// যোগাযোগ মানে বোতাম চাপা — কল সত্যিই হয়েছে কি না জানা যায় না
+export const ListingCounts = ({ counts, className }) => {
+  const calls = counts?.calls ?? 0;
+  const whatsapps = counts?.whatsapps ?? 0;
+  const total = counts?.totalViews ?? 0;
+  return (
+    <p data-listing-counts className={cn("flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted", className)}>
+      <span className="inline-flex items-center gap-1">
+        <Eye className="h-3.5 w-3.5" aria-hidden="true" />
+        <span data-count="views">{toBanglaNumber(counts?.views ?? 0)}</span> জন দেখেছেন
+        {total > 0 && <span data-count="totalViews">({toBanglaNumber(total)} বার)</span>}
+      </span>
+      <span className="inline-flex items-center gap-1">
+        <Share2 className="h-3.5 w-3.5" aria-hidden="true" />
+        <span data-count="shares">{toBanglaNumber(counts?.shares ?? 0)}</span> শেয়ার
+      </span>
+      <span className="inline-flex items-center gap-1" title="কল বা WhatsApp বোতাম চেপেছেন">
+        <PhoneCall className="h-3.5 w-3.5" aria-hidden="true" />
+        <span data-count="contacts">{toBanglaNumber(counts?.contacts ?? 0)}</span> জন যোগাযোগ বোতাম চেপেছেন
+        {calls + whatsapps > 0 && (
+          <span data-count="channels">
+            (কল {toBanglaNumber(calls)} · WhatsApp {toBanglaNumber(whatsapps)})
+          </span>
+        )}
+      </span>
+    </p>
+  );
+};
 
 const DAY_NAMES = ["রবি", "সোম", "মঙ্গল", "বুধ", "বৃহঃ", "শুক্র", "শনি"];
 

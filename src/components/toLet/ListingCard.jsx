@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Bath, BedDouble, Camera, Home, MapPin, Ruler } from "lucide-react";
 import { cloudinaryLoader } from "@/lib/cloudinaryLoader";
 import { formatMoney } from "@/lib/formatMoney";
-import { availableText, distanceText, floorText, forWhom, listingPath, listingTitle } from "@/lib/listingOptions";
+import { availableText, distanceText, floorText, forWhom, listingPath, listingTitle, placeText } from "@/lib/listingOptions";
 import { toBanglaNumber } from "@/lib/toBanglaNumber";
 
 // তালিকার একটি বিজ্ঞাপন — ছোট ছবি, ভাড়া, এলাকা, রুম
@@ -54,8 +54,8 @@ const ListingCard = ({ listing, priority = false }) => {
         <h3 className="text-sm font-semibold wrap-break-word">{listingTitle(listing)}</h3>
         <p className="flex items-center gap-1 text-sm text-muted">
           <MapPin className="h-4 w-4 shrink-0" aria-hidden="true" />
-          <span className="truncate">
-            {listing.area}, {listing.city}
+          <span className="min-w-0 truncate">
+            {placeText(listing)}
           </span>
         </p>
         {facts.length > 0 && (

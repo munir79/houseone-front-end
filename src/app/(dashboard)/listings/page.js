@@ -16,7 +16,6 @@ import Modal from "@/components/ui/Modal";
 import PageHeader from "@/components/ui/PageHeader";
 import Select from "@/components/ui/Select";
 import Skeleton from "@/components/ui/Skeleton";
-import StatStrip from "@/components/ui/StatStrip";
 import { cloudinaryLoader } from "@/lib/cloudinaryLoader";
 import { formatMoney } from "@/lib/formatMoney";
 import { CLOSED_REASONS, LISTING_STATUS, availableText, banglaDate, daysLeft, listingTitle } from "@/lib/listingOptions";
@@ -79,11 +78,12 @@ const ListingRow = ({ listing }) => {
   const propertyId = listing.property?._id;
   const left = daysLeft(listing.expiresAt);
   const cover = listing.photos?.[0]?.url;
+  const weekViews = listing.daily.reduce((sum, { view }) => sum + view, 0);
 
   return (
-    <li data-my-listing={listing.unit?.name} className="flex flex-col gap-3 p-4 xl:flex-row xl:items-center">
-      <div className="flex min-w-0 flex-1 gap-3">
-        <Link href={`/properties/${propertyId}/units/${unitId}`} className="relative h-16 w-20 shrink-0 overflow-hidden rounded-lg bg-primary-soft sm:h-20 sm:w-28">
+    <li data-my-listing={listing.unit?.name} className="flex flex-col gap-3 p-4">
+      <div className="flex min-w-0 gap-3">
+        <Link href={`/properties/${propertyId}/units/${unitId}`} className="relative h-14 w-16 shrink-0 overflow-hidden rounded-lg bg-primary-soft sm:h-20 sm:w-28">
           {cover ? (
             <Image loader={cloudinaryLoader} src={cover} alt="" fill sizes="112px" className="object-cover" />
           ) : (
@@ -91,34 +91,42 @@ const ListingRow = ({ listing }) => {
           )}
         </Link>
         <div className="flex min-w-0 flex-1 flex-col gap-1">
-          <p className="flex flex-wrap items-center gap-2 text-sm font-semibold">
+          <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-semibold">
             <span className="wrap-break-word">{listingTitle(listing)}</span>
             <Badge variant={LISTING_STATUS[listing.status].variant}>{LISTING_STATUS[listing.status].label}</Badge>
             {listing.hasForm && <Badge variant="info">কথা চলছে</Badge>}
           </p>
+          <p className="text-xs wrap-break-word text-muted">
+            {listing.unit?.name}, {listing.property?.name}
+          </p>
           <p className="text-xs text-muted">
-            {listing.unit?.name}, {listing.property?.name} · {formatMoney(listing.rent)} · {availableText(listing.availableFrom)}
+            <span className="font-semibold text-foreground">{formatMoney(listing.rent)}</span> · {availableText(listing.availableFrom)}
           </p>
           <p className={listing.status === "Expired" || left <= 3 ? "text-xs font-semibold text-danger" : "text-xs text-muted"}>
             {listing.status === "Expired" ? "মেয়াদ শেষ, আবার চালু করুন" : `আর ${toBanglaNumber(left)} দিন · ${banglaDate(listing.expiresAt)} পর্যন্ত`}
           </p>
-          <ListingCounts counts={listing.counts} />
         </div>
       </div>
 
-      <div className="flex flex-wrap items-end justify-between gap-3 xl:flex-nowrap xl:justify-end">
-        <WeekBars daily={listing.daily} />
-        <div className="flex items-center gap-2">
+      <div className="flex flex-col gap-3 border-t border-border pt-3 lg:flex-row lg:items-center">
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
+          <ListingCounts counts={listing.counts} />
+          <p className="text-xs text-muted lg:hidden">গত ৭ দিনে {toBanglaNumber(weekViews)} জন দেখেছেন</p>
+        </div>
+        <div className="hidden shrink-0 lg:block">
+          <WeekBars daily={listing.daily} />
+        </div>
+        <div className="flex gap-2 sm:justify-end lg:shrink-0">
           {listing.hasForm ? (
-            <LinkButton href={`/properties/${propertyId}/units/${unitId}`} variant="outline" size="sm">
+            <LinkButton href={`/properties/${propertyId}/units/${unitId}`} variant="outline" size="sm" className="flex-1 sm:flex-none">
               <FileText className="h-4 w-4" aria-hidden="true" />
               ফর্ম দেখুন
             </LinkButton>
           ) : (
-            <LinkButton href={`/properties/${propertyId}/units/${unitId}?sendForm=1`} variant="outline" size="sm" aria-label={`Tenant found, send form for ${listing.unit?.name}`}>
+            <LinkButton href={`/properties/${propertyId}/units/${unitId}?sendForm=1`} variant="outline" size="sm" className="flex-1 sm:flex-none" aria-label={`Tenant found, send form for ${listing.unit?.name}`}>
               <Send className="h-4 w-4" aria-hidden="true" />
-              <span className="sm:hidden">ফর্ম পাঠান</span>
-              <span className="hidden sm:inline">ভাড়াটিয়া পেয়েছি, ফর্ম পাঠান</span>
+              <span className="lg:hidden">ফর্ম পাঠান</span>
+              <span className="hidden lg:inline">ভাড়াটিয়া পেয়েছি, ফর্ম পাঠান</span>
             </LinkButton>
           )}
           <ListingActions listing={listing} unitId={unitId} alwaysMenu />
@@ -128,14 +136,39 @@ const ListingRow = ({ listing }) => {
   );
 };
 
+// সব বিজ্ঞাপনের যোগফল — ছোট এক সারি, মোবাইলেও জায়গা কম নেয়
+const Summary = ({ items, isLoading }) => (
+  <Card flush className="grid grid-cols-4 divide-x divide-border">
+    {items.map(({ key, label, value, icon: Icon }) => (
+      <div key={key} data-summary={key} className="flex min-w-0 flex-col items-center gap-1 px-1 py-3 text-center lg:flex-row lg:justify-center lg:gap-3 lg:px-3">
+        <Icon className="h-4 w-4 shrink-0 text-primary lg:h-5 lg:w-5" aria-hidden="true" />
+        <div className="min-w-0">
+          {isLoading ? <Skeleton className="mx-auto h-6 w-8" /> : <p className="text-lg leading-tight font-bold sm:text-xl">{value}</p>}
+          <p className="truncate text-[11px] text-muted sm:text-xs">{label}</p>
+        </div>
+      </div>
+    ))}
+  </Card>
+);
+
+// মালিকের নিজের বিজ্ঞাপন সাজানো — কোনটা চলছে, কোনটা নয়; সংখ্যা কম, তাই এখানেই
+const OWNER_SORTS = {
+  new: { label: "নতুন আগে", by: (a, b) => new Date(b.listedAt) - new Date(a.listedAt) },
+  viewsHigh: { label: "বেশি দেখা আগে", by: (a, b) => (b.counts?.views ?? 0) - (a.counts?.views ?? 0) },
+  viewsLow: { label: "কম দেখা আগে", by: (a, b) => (a.counts?.views ?? 0) - (b.counts?.views ?? 0) },
+  contactsHigh: { label: "বেশি যোগাযোগ আগে", by: (a, b) => (b.counts?.contacts ?? 0) - (a.counts?.contacts ?? 0) },
+  expiring: { label: "মেয়াদ শেষ হচ্ছে আগে", by: (a, b) => new Date(a.expiresAt) - new Date(b.expiresAt) },
+};
+
 // বাড়িওয়ালার To-Let — নিজের বিজ্ঞাপন, কতজন দেখেছেন, আর ভাড়াটিয়া পেলে ফর্ম
 const ListingsPage = () => {
   const [isPicking, setIsPicking] = useState(false);
   const [postingUnit, setPostingUnit] = useState(null);
+  const [sortBy, setSortBy] = useState("new");
   const { data, isLoading } = useGetMyListingsQuery();
 
   const listings = data?.data || [];
-  const open = listings.filter(({ isOpen }) => isOpen);
+  const open = listings.filter(({ isOpen }) => isOpen).sort(OWNER_SORTS[sortBy].by);
   const closed = listings.filter(({ isOpen }) => !isOpen);
   const sum = (field) => open.reduce((total, listing) => total + (listing.counts?.[field] ?? 0), 0);
 
@@ -158,18 +191,29 @@ const ListingsPage = () => {
         }
       />
 
-      <StatStrip
+      <Summary
         isLoading={isLoading}
         items={[
-          { key: "open", label: "চালু বিজ্ঞাপন", value: toBanglaNumber(open.filter(({ status }) => status === "Active").length), icon: Megaphone },
-          { key: "views", label: "দেখেছেন", value: toBanglaNumber(sum("views")), icon: Eye, tone: "blue" },
-          { key: "shares", label: "শেয়ার", value: toBanglaNumber(sum("shares")), icon: Share2, tone: "violet" },
-          { key: "contacts", label: "যোগাযোগ", value: toBanglaNumber(sum("contacts")), icon: PhoneCall, tone: "amber" },
+          { key: "open", label: "চালু", value: toBanglaNumber(open.filter(({ status }) => status === "Active").length), icon: Megaphone },
+          { key: "views", label: "দেখেছেন", value: toBanglaNumber(sum("views")), icon: Eye },
+          { key: "shares", label: "শেয়ার", value: toBanglaNumber(sum("shares")), icon: Share2 },
+          { key: "contacts", label: "যোগাযোগ", value: toBanglaNumber(sum("contacts")), icon: PhoneCall },
         ]}
       />
 
       <Card flush className="overflow-hidden">
-        <h2 className="border-b border-border px-4 py-3 text-base font-bold">আমার বিজ্ঞাপন</h2>
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-3">
+          <h2 className="text-base font-bold">আমার বিজ্ঞাপন</h2>
+          {open.length > 1 && (
+            <select data-owner-sort aria-label="সাজানো" value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="min-h-10 rounded-xl border border-border bg-surface px-2 text-sm font-medium md:min-h-9">
+              {Object.entries(OWNER_SORTS).map(([value, { label }]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
         {isLoading ? (
           <div className="p-4">
             <Skeleton className="h-20 w-full" />

@@ -4,19 +4,32 @@ import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Search } from "lucide-react";
 import { toast } from "sonner";
-import LocationSearch, { MY_LOCATION } from "./LocationSearch";
+import LocationSearch, { myPlace } from "./LocationSearch";
 import RentRange, { RENT_MAX, RENT_MIN } from "./RentRange";
 import Button from "@/components/ui/Button";
 import Select from "@/components/ui/Select";
 import { LISTING_CATEGORIES, moveMonthOptions } from "@/lib/listingOptions";
 import { toBanglaNumber } from "@/lib/toBanglaNumber";
+import { API_BASE_URL } from "@/utils/url";
 
 const RANGE_OPTIONS = [{ value: "", label: "যেকোনো দূরত্ব" }, ...[1, 2, 3, 5, 10, 15].map((km) => ({ value: String(km), label: `${toBanglaNumber(km)} কিমির মধ্যে` }))];
 
 const placeFrom = (params) => {
   const [lat, lng] = (params.get("near") ?? "").split(",").map(Number);
-  if (Number.isFinite(lat) && Number.isFinite(lng) && params.get("near")) return { label: params.get("place") || "নির্বাচিত লোকেশন", lat, lng };
-  return { label: params.get("area") ?? "", lat: null, lng: null };
+  const box = (params.get("box") ?? "").split(",").map(Number);
+  if (Number.isFinite(lat) && Number.isFinite(lng) && params.get("near")) {
+    return { label: params.get("place") || "নির্বাচিত লোকেশন", lat, lng, box: box.length === 4 && box.every(Number.isFinite) ? box : null };
+  }
+  // "এলাকায় আরও" link — এলাকার নাম দিয়েই খোঁজা, না বদলালে
+  return { label: params.get("area") ?? "", lat: null, lng: null, box: null, isArea: Boolean(params.get("area")) };
+};
+
+// তালিকা থেকে না বেছে শুধু লিখে "খুঁজুন" — Photon এর প্রথম মিলটা
+const firstPlace = async (text) => {
+  const response = await fetch(`${API_BASE_URL}location/public-search?q=${encodeURIComponent(text)}`);
+  const body = await response.json().catch(() => null);
+  const [place] = body?.data?.results ?? [];
+  return place ? { label: place.label, lat: place.lat, lng: place.lng, box: place.box } : null;
 };
 
 const rentFrom = (params) => ({
@@ -28,7 +41,7 @@ const currentPosition = () =>
   new Promise((resolve, reject) => {
     if (!navigator.geolocation) return reject(new Error("no geolocation"));
     navigator.geolocation.getCurrentPosition(
-      ({ coords }) => resolve({ label: MY_LOCATION, lat: Number(coords.latitude.toFixed(4)), lng: Number(coords.longitude.toFixed(4)) }),
+      ({ coords }) => resolve(myPlace(coords)),
       reject,
       { enableHighAccuracy: false, timeout: 10000, maximumAge: 5 * 60 * 1000 }
     );
@@ -47,14 +60,19 @@ const ToLetSearch = () => {
   const handleSubmit = async (event) => {
     event.preventDefault();
     let point = place;
-    // দূরত্ব বাছা কিন্তু লোকেশন নেই — নিজের জায়গা থেকে
-    if (values.km && !point.lat) {
+    const typed = point.label.trim();
+    if (!point.lat && !point.isArea && (typed || values.km)) {
       setIsLocating(true);
       try {
-        point = await currentPosition();
+        // লেখা আছে কিন্তু বাছা হয়নি — প্রথম মিল; কিছু লেখা নেই অথচ দূরত্ব বাছা — নিজের জায়গা
+        point = typed ? await firstPlace(typed) : await currentPosition();
+        if (!point) {
+          toast.error(`"${typed}" পাওয়া যায়নি। অন্য নাম লিখে দেখুন।`);
+          return;
+        }
         setPlace(point);
       } catch {
-        toast.error("দূরত্ব দিয়ে খুঁজতে লোকেশন লিখুন, বা Browser-এ Location চালু করুন");
+        toast.error(typed ? "লোকেশন খোঁজা যায়নি। একটু পরে চেষ্টা করুন।" : "দূরত্ব দিয়ে খুঁজতে লোকেশন লিখুন, বা Browser-এ Location চালু করুন");
         return;
       } finally {
         setIsLocating(false);
@@ -70,10 +88,11 @@ const ToLetSearch = () => {
     if (point.lat) {
       next.set("near", `${point.lat},${point.lng}`);
       next.set("place", point.label);
+      // দূরত্ব বাছা না থাকলে জায়গার নিজের সীমানা
+      if (!values.km && point.box) next.set("box", point.box.join(","));
       next.delete("sort");
-    } else if (point.label.trim()) {
-      // তালিকা থেকে বাছা হয়নি — এলাকার নাম দিয়ে খোঁজা
-      next.set("area", point.label.trim());
+    } else if (point.isArea && typed) {
+      next.set("area", typed);
     }
     const query = next.toString();
     router.push(query ? `/to-let?${query}#results` : "/to-let#results");

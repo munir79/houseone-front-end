@@ -21,6 +21,7 @@ export const NOTIFICATION_BY_ID = (id) => API_BASE_URL + `notification/${id}`;
 // Location
 export const LOCATION_AREAS = API_BASE_URL + 'location/areas';
 export const LOCATION_SEARCH = API_BASE_URL + 'location/search';
+export const LOCATION_REVERSE = API_BASE_URL + 'location/reverse';
 
 // Upload
 export const UPLOAD_SIGNATURE = API_BASE_URL + 'upload/signature';
