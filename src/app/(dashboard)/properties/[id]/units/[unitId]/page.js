@@ -7,6 +7,7 @@ import { ArrowLeft, Banknote, Bath, BedDouble, DoorOpen, Layers, Pencil, SearchX
 import { toast } from "sonner";
 import TenancyDetails from "@/components/tenant/TenancyDetails";
 import UnitTenantPanel, { PreviousTenants } from "@/components/tenant/UnitTenantPanel";
+import UnitListingCard from "@/components/listing/UnitListingCard";
 import UnitFormModal from "@/components/unit/UnitFormModal";
 import UnitPhotosPanel from "@/components/unit/UnitPhotosPanel";
 import NextTenantForm from "@/components/tenantForm/NextTenantForm";
@@ -36,6 +37,8 @@ const UnitDetailsPage = () => {
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [viewedTenancyId, setViewedTenancyId] = useState(null);
   const [vacantTab, setVacantTab] = useState("tenant");
+  // To-Let Marketplace এর "ফর্ম পাঠান" থেকে এলে
+  const autoSend = searchParams.get("sendForm") === "1";
 
   const { data, error, isLoading } = useGetUnitQuery(unitId);
   const { data: tenanciesData } = useGetUnitTenanciesQuery(unitId);
@@ -169,7 +172,14 @@ const UnitDetailsPage = () => {
             embedded
             leading={unitHeader}
             initialTab={searchParams.get("tab") || "overview"}
-            afterNotice={activeTenancy && shownTenancyId === activeTenancy._id ? <NextTenantForm unit={unit} /> : null}
+            afterNotice={
+              activeTenancy && shownTenancyId === activeTenancy._id ? (
+                <div className="flex flex-col gap-3">
+                  <NextTenantForm unit={unit} autoSend={autoSend} />
+                  <UnitListingCard unit={unit} />
+                </div>
+              ) : null
+            }
             onMovedOut={setViewedTenancyId}
             extraTabs={[
               { value: "previous", label: "Previous Tenants", count: previousTenancies.length, content: <PreviousTenants tenancies={previousTenancies} onOpen={setViewedTenancyId} /> },
@@ -197,7 +207,12 @@ const UnitDetailsPage = () => {
                 { value: "unit", label: "Unit Details" },
               ]}
             />
-            {vacantTab === "tenant" && <UnitTenantPanel unit={unit} onOpen={setViewedTenancyId} />}
+            {vacantTab === "tenant" && (
+              <>
+                <UnitListingCard unit={unit} />
+                <UnitTenantPanel unit={unit} onOpen={setViewedTenancyId} autoSend={autoSend} />
+              </>
+            )}
             {vacantTab === "unit" && unitInfo}
           </div>
         </>

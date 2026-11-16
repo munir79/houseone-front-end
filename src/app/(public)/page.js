@@ -1,19 +1,19 @@
 import Image from "next/image";
-import { ArrowRight, BellRing, Building2, CalendarClock, ReceiptText, Users, Wallet } from "lucide-react";
+import { ArrowRight, BellRing, Megaphone, ReceiptText, Search, Store, Users, Wallet } from "lucide-react";
 import Badge from "@/components/ui/Badge";
 import Card from "@/components/ui/Card";
 import LinkButton from "@/components/ui/LinkButton";
 
 const features = [
   {
-    icon: Building2,
-    title: "Houses and flats",
-    text: "Keep every house and flat in one place, each with its own rent, even in different locations.",
+    icon: Store,
+    title: "Houses, markets and shops",
+    text: "Flats, shops and offices in one place — a house, a market or a shopping complex, each unit with its own rent.",
   },
   {
     icon: Users,
     title: "Tenants and members",
-    text: "Family, bachelor, sublet or office. See who lives where, since when, and everything you handed over.",
+    text: "Family, bachelor, sublet, office or shop. See who is in which unit, since when, and everything you handed over.",
   },
   {
     icon: Wallet,
@@ -23,17 +23,17 @@ const features = [
   {
     icon: ReceiptText,
     title: "Monthly receipts",
-    text: "Use one template for similar flats, then send receipts on WhatsApp or email instead of writing on paper.",
+    text: "Create every bill with one click, then send receipts on WhatsApp instead of writing on paper.",
   },
   {
     icon: BellRing,
     title: "Shared ownership",
-    text: "Own a flat with family? Every owner sees the same live status on their own dashboard.",
+    text: "Own a house or market with family? Every owner sees the same live status and their own share.",
   },
   {
-    icon: CalendarClock,
-    title: "Upcoming vacancies",
-    text: "Know which flats will be free next month, so you can find a new tenant before the old one leaves.",
+    icon: Megaphone,
+    title: "Free To-Let listings",
+    text: "Post a vacant flat or shop in one tap. Tenants call or WhatsApp you directly, and it closes itself once rented.",
   },
 ];
 
@@ -53,13 +53,12 @@ export default function HomePage() {
 
         <div className="mx-auto max-w-6xl px-4 py-14 md:px-6 md:py-24">
           <div className="max-w-xl">
-            <Badge className="bg-sidebar-foreground/15 text-sidebar-foreground">Made for landlords in Bangladesh</Badge>
+            <Badge className="bg-sidebar-foreground/15 text-sidebar-foreground">For house and market owners in Bangladesh</Badge>
             <h1 className="mt-4 text-4xl leading-tight font-bold tracking-tight text-sidebar-foreground sm:text-5xl">
-              Your flats, tenants and rent in <span className="text-sidebar-accent">one dashboard</span>
+              Your flats, shops and rent in <span className="text-sidebar-accent">one dashboard</span>
             </h1>
             <p className="mt-4 text-base text-sidebar-foreground/90 sm:text-lg">
-              Stop keeping rent in notebooks. Track every flat, see who has not paid, and send monthly receipts from
-              your phone.
+              Stop keeping rent in notebooks. Track every flat and shop, see who has not paid, send receipts from your phone, and post vacant units on To-Let for free.
             </p>
 
             <div className="mt-6 flex flex-col gap-3 sm:flex-row">
@@ -67,8 +66,9 @@ export default function HomePage() {
                 Start Free for 1 Month
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </LinkButton>
-              <LinkButton href="/#features" size="lg" variant="outline">
-                See Features
+              <LinkButton href="/to-let" size="lg" variant="outline">
+                <Search className="h-4 w-4" aria-hidden="true" />
+                Find To-Let
               </LinkButton>
             </div>
             <p className="mt-3 text-sm text-sidebar-foreground/85">All features are free for your first month.</p>
@@ -80,7 +80,7 @@ export default function HomePage() {
       <section id="features" className="scroll-mt-20 py-14 md:py-20">
         <div className="mx-auto max-w-6xl px-4 md:px-6">
           <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-3xl font-bold tracking-tight">Everything a landlord needs to remember</h2>
+            <h2 className="text-3xl font-bold tracking-tight">Everything a house or market owner needs to remember</h2>
             <p className="mt-3 text-muted">The work you do in a notebook today, done for you every month.</p>
           </div>
 

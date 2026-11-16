@@ -109,5 +109,12 @@ export const PUBLIC_FORM_SIGNATURE = (token) => API_BASE_URL + `public/tenant-fo
 export const PUBLIC_FORM_SUBMIT = (token) => API_BASE_URL + `public/tenant-form/${token}/submit`;
 export const PUBLIC_MEMBER = (token) => API_BASE_URL + `public/member/${token}`;
 
+// To-Let
+export const LISTINGS = API_BASE_URL + 'listing';
+export const LISTING_BY_ID = (id) => API_BASE_URL + `listing/${id}`;
+export const LISTING_BY_UNIT = (unitId) => API_BASE_URL + `listing/unit/${unitId}`;
+export const PUBLIC_LISTINGS = API_BASE_URL + 'public/to-let';
+export const PUBLIC_LISTING = (code) => API_BASE_URL + `public/to-let/${code}`;
+
 // Socket
 export const socketUri = baseUriBackend;

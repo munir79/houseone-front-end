@@ -9,6 +9,7 @@ import Logo from "@/components/ui/Logo";
 import { useAuthToken } from "@/hooks/useAuthToken";
 
 const links = [
+  { label: "To-Let", href: "/to-let" },
   { label: "Features", href: "/#features" },
   { label: "How it works", href: "/#how-it-works" },
 ];

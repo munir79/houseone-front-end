@@ -22,6 +22,8 @@ const bangla = localFont({
 });
 
 export const metadata = {
+  // শেয়ার করা link এর ছবি ও ঠিকানা পুরো URL এ — Live এ NEXT_PUBLIC_SITE_URL দিন
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
   title: { default: APP_NAME, template: `%s · ${APP_NAME}` },
   description: APP_TAGLINE,
 };

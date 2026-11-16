@@ -32,6 +32,7 @@ const TYPE_LABELS = {
   LeavingSoon: { label: "শিগগির বাসা ছাড়ছেন", description: "ছাড়ার ৭ দিন আগে" },
   FormExpiring: { label: "ফর্মের লিংক বন্ধ হচ্ছে", description: "মেয়াদ শেষের আগের দিন" },
   ExpenseDue: { label: "খরচ দেওয়ার দিন", description: "প্রতি মাসের খরচের দিন এলে" },
+  ListingExpiring: { label: "বিজ্ঞাপনের মেয়াদ শেষ হচ্ছে", description: "To-Let বিজ্ঞাপন বন্ধ হওয়ার ৩ দিন আগে" },
   TenantFormSubmitted: { label: "ফর্ম জমা হয়েছে", description: "ভাড়াটিয়া ফর্ম জমা দিলে" },
   IssueReported: { label: "অভিযোগ বা প্রয়োজন", description: "ভাড়াটিয়া জানালে" },
   MemberRequest: { label: "নতুন সদস্য অপেক্ষায়", description: "সদস্য নিজে তথ্য দিলে" },

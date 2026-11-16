@@ -66,3 +66,10 @@ body {
   font-family: var(--font-sans);
   font-weight: 450;
 }
+
+/* To-Let বিজ্ঞাপনের পাতায় মোবাইলে নিচে আটকানো কল বোতাম — Footer তার নিচে চাপা পড়ে না */
+@media (width < 64rem) {
+  body:has([data-sticky-contact]) {
+    padding-bottom: 5rem;
+  }
+}

@@ -50,9 +50,10 @@ export const PreviousTenants = ({ tenancies, onOpen }) =>
     </Card>
   );
 
-const UnitTenantPanel = ({ unit, onOpen }) => {
+// autoSend — To-Let থেকে "ফর্ম পাঠান" চাপলে নিজেই খোলে
+const UnitTenantPanel = ({ unit, onOpen, autoSend = false }) => {
   const [isAddOpen, setIsAddOpen] = useState(false);
-  const [isSendOpen, setIsSendOpen] = useState(false);
+  const [isSendOpen, setIsSendOpen] = useState(autoSend);
   const { data, isLoading } = useGetUnitTenanciesQuery(unit._id);
   const { data: formData } = useGetUnitFormQuery(unit._id);
 
@@ -110,7 +111,7 @@ const UnitTenantPanel = ({ unit, onOpen }) => {
       )}
 
       {isAddOpen && <AddTenantModal unit={unit} onClose={() => setIsAddOpen(false)} />}
-      {isSendOpen && <SendFormModal unit={unit} onClose={() => setIsSendOpen(false)} />}
+      {isSendOpen && !openForm && <SendFormModal unit={unit} onClose={() => setIsSendOpen(false)} />}
     </Card>
   );
 };

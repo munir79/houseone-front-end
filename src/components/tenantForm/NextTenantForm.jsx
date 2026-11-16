@@ -10,8 +10,9 @@ import { FORM_STATUS } from "@/lib/tenantFormOptions";
 import { useGetUnitFormQuery } from "@/redux/features/tenantForm/tenantFormApi";
 
 // ভাড়াটিয়া বাসা ছাড়ার নোটিশ দিলে — পরের ভাড়াটিয়া আগেই ফর্ম পূরণ করে রাখেন, Approve হয় Move Out এর পরে
-const NextTenantForm = ({ unit }) => {
-  const [isSendOpen, setIsSendOpen] = useState(false);
+// autoSend — To-Let থেকে "ফর্ম পাঠান" চাপলে নিজেই খোলে
+const NextTenantForm = ({ unit, autoSend = false }) => {
+  const [isSendOpen, setIsSendOpen] = useState(autoSend);
   const { data, isLoading } = useGetUnitFormQuery(unit._id);
   const form = data?.data;
 
@@ -46,7 +47,7 @@ const NextTenantForm = ({ unit }) => {
         </>
       )}
 
-      {isSendOpen && <SendFormModal unit={unit} onClose={() => setIsSendOpen(false)} />}
+      {isSendOpen && !form && <SendFormModal unit={unit} onClose={() => setIsSendOpen(false)} />}
     </div>
   );
 };

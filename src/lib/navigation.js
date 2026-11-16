@@ -21,7 +21,7 @@ export const mainNav = [
   { label: "Billing", href: "/billing", icon: ClipboardList },
   { label: "Receipts", href: "/receipts", icon: FileText },
   { label: "Shared Access", href: "/invites", icon: Handshake },
-  { label: "To-Let Marketplace", icon: Megaphone, soon: true },
+  { label: "To-Let Marketplace", href: "/listings", icon: Megaphone },
 ];
 
 export const secondaryNav = [
