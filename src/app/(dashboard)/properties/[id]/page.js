@@ -18,6 +18,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import ContactList from "@/components/property/ContactList";
+import SharingPanel from "@/components/share/SharingPanel";
+import Badge from "@/components/ui/Badge";
 import HouseStats from "@/components/property/HouseStats";
 import PropertyFormModal from "@/components/property/PropertyFormModal";
 import BillBoard from "@/components/bill/BillBoard";
@@ -42,6 +44,7 @@ import {
   useGetPropertyQuery,
 } from "@/redux/features/property/propertyApi";
 import { useGetPropertyUnitsQuery } from "@/redux/features/unit/unitApi";
+import { useGetMyProfileQuery } from "@/redux/features/auth/authApi";
 
 const DetailRow = ({ icon: Icon, label, value }) => (
   <div className="flex gap-3">
@@ -65,6 +68,7 @@ const PropertyDetailsPage = () => {
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
   const { data, error, isLoading } = useGetPropertyQuery(id);
+  const { data: profile } = useGetMyProfileQuery();
   const { data: unitsData } = useGetPropertyUnitsQuery(id);
   const [deleteProperty, { isLoading: isDeleting }] =
     useDeletePropertyMutation();
@@ -116,6 +120,9 @@ const PropertyDetailsPage = () => {
     setUnitFilter({ value, key: Date.now() });
   };
 
+  const isMainOwner = property.owner === profile?.data?._id;
+  const isShared = (property.owners?.length ?? 1) > 1;
+
   const actions = [
     ...(actionCount > 0
       ? [
@@ -139,12 +146,17 @@ const PropertyDetailsPage = () => {
       icon: Pencil,
       onClick: () => setIsEditing(true),
     },
-    {
-      key: "delete",
-      label: "Delete House",
-      icon: Trash2,
-      onClick: () => setIsDeleteOpen(true),
-    },
+    // বাড়ি মোছা শুধু মূল মালিকের
+    ...(isMainOwner
+      ? [
+          {
+            key: "delete",
+            label: "Delete House",
+            icon: Trash2,
+            onClick: () => setIsDeleteOpen(true),
+          },
+        ]
+      : []),
   ];
 
   return (
@@ -158,6 +170,7 @@ const PropertyDetailsPage = () => {
       </Link>
 
       <DetailHeader
+        badge={isShared ? <Badge variant="info">{isMainOwner ? "অংশীদারি" : "অংশীদার হিসেবে"}</Badge> : undefined}
         title={property.name}
         subtitle={`${property.area}, ${property.city}`}
         photoUrl={property.photos?.[0]?.url}
@@ -186,6 +199,7 @@ const PropertyDetailsPage = () => {
               count: property.photos?.length || 0,
             },
             { value: "contacts", label: "Contacts" },
+            { value: "sharing", label: "Sharing", count: property.owners?.length > 1 ? property.owners.length : undefined },
             { value: "charges", label: "Charges" },
             { value: "form", label: "Tenant Form" },
             { value: "details", label: "Details" },
@@ -224,6 +238,7 @@ const PropertyDetailsPage = () => {
           </Card>
         )}
         {activeTab === "contacts" && <ContactList propertyId={id} />}
+        {activeTab === "sharing" && <SharingPanel propertyId={id} />}
         {activeTab === "charges" && <ChargesPanel propertyId={id} />}
         {activeTab === "form" && <FormSettingsPanel propertyId={id} />}
         {activeTab === "details" && (

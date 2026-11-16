@@ -44,6 +44,57 @@ const Cell = ({ children, isNumber, strong, tone }) => <td className={cn("border
 
 const signed = (amount) => (amount < 0 ? "text-danger" : "");
 
+// অংশীদারদের ভাগ — পাওনা, হাতে আছে, ফারাক; শেষে কে কাকে দেবেন
+const ShareSection = ({ shares }) => {
+  const nameOf = (id) => shares.rows.find(({ _id }) => _id === id)?.name || "—";
+  return (
+    <Section
+      title="অংশীদারদের ভাগ"
+      note={shares.mode === "flat" ? "যার ফ্ল্যাট তার আয়; পুরো বাড়ির খরচ ফ্ল্যাটের সংখ্যা হারে" : "লাভ ভাগের শতাংশ হারে"}
+      data-report-shares
+    >
+      {shares.unsetMonths > 0 && <p className="text-sm text-warning-foreground">{toBanglaNumber(shares.unsetMonths)} মাসে ভাগ ঠিক করা ছিল না — সেই লাভ মূল মালিকের ঘরে।</p>}
+      <Table
+        head={[{ label: "নাম" }, { label: "ভাগ" }, { label: "পাওনা লাভ", isNumber: true }, { label: "তুলেছেন", isNumber: true }, { label: "খরচ দিয়েছেন", isNumber: true }, { label: "মেটানো", isNumber: true }, { label: "হাতে আছে", isNumber: true }, { label: "ফারাক", isNumber: true }]}
+        data-share-rows
+      >
+        {shares.rows.map((row) => (
+          <tr key={row._id} data-share-row={row.name}>
+            <Cell strong>
+              {row.name}
+              {row.isMain && <span className="ml-1 text-xs font-normal text-muted">(মূল)</span>}
+              {!row.isOwner && <span className="ml-1 text-xs font-normal text-muted">(সাবেক)</span>}
+            </Cell>
+            <Cell>{row.share || "—"}</Cell>
+            <Cell isNumber>{formatMoney(row.entitled)}</Cell>
+            <Cell isNumber>{formatMoney(row.collected)}</Cell>
+            <Cell isNumber>{formatMoney(row.spent)}</Cell>
+            <Cell isNumber>{formatMoney(row.settled)}</Cell>
+            <Cell isNumber>{formatMoney(row.held)}</Cell>
+            <Cell isNumber strong tone={row.difference > 0 ? "text-danger" : row.difference < 0 ? "text-success-foreground" : ""}>
+              {row.difference > 0 ? `+${formatMoney(row.difference)}` : formatMoney(row.difference)}
+            </Cell>
+          </tr>
+        ))}
+      </Table>
+      {shares.transfers.length === 0 ? (
+        <p data-share-settled className="rounded-xl bg-primary-soft px-3 py-2.5 text-sm font-semibold text-primary">
+          সবার হিসাব মিলে গেছে, কারো কাছে কারো পাওনা নেই।
+        </p>
+      ) : (
+        <ul data-share-transfers className="flex flex-col gap-1.5">
+          {shares.transfers.map((transfer, index) => (
+            <li key={index} className="rounded-xl bg-warning-soft px-3 py-2.5 text-sm font-semibold text-warning-foreground">
+              {nameOf(transfer.from)} → {nameOf(transfer.to)}-কে দেবেন {formatMoney(transfer.amount)}
+            </li>
+          ))}
+        </ul>
+      )}
+      <p className="text-xs text-muted">ফারাক + মানে ভাগের চেয়ে বেশি টাকা হাতে আছে (অন্যকে দেবেন), − মানে কম আছে (পাবেন)। Advance এর টাকা এই হিসাবে নেই।</p>
+    </Section>
+  );
+};
+
 // রিপোর্ট — পর্দায় ও PDF এ একই; বাড়ির নাম ও সময়কাল উপরে, যাকে দেবেন তিনি যেন বোঝেন
 const ReportView = forwardRef(({ report }, ref) => {
   const { summary, range } = report;
@@ -170,6 +221,8 @@ const ReportView = forwardRef(({ report }, ref) => {
           </Table>
         )}
       </Section>
+
+      {report.shares && <ShareSection shares={report.shares} />}
 
       <Section title="কে কত নিয়েছেন ও খরচ করেছেন">
         <Table head={[{ label: "নাম" }, { label: "ভাড়া নিয়েছেন", isNumber: true }, { label: "খরচ করেছেন", isNumber: true }]} data-report-people>

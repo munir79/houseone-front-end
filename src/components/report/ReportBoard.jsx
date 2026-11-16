@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { BarChart3, Building2, Check, ChevronDown, Download, FileSpreadsheet } from "lucide-react";
 import { toast } from "sonner";
 import ReportView from "./ReportView";
+import SettlePanel from "@/components/share/SettlePanel";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import EmptyState from "@/components/ui/EmptyState";
@@ -146,6 +147,14 @@ const ReportBoard = ({ properties, initialHouse }) => {
       blank,
       ["Person", "Rent collected", "Expenses paid"],
       ...report.collectedBy.map((person) => [person.name, person.collected, person.spent]),
+      ...(report.shares
+        ? [
+            blank,
+            ["Owner", "Share", "Profit share", "Collected", "Spent", "Settled", "Holding", "Difference"],
+            ...report.shares.rows.map((row) => [row.name, row.share, row.entitled, row.collected, row.spent, row.settled, row.held, row.difference]),
+            ...report.shares.transfers.map(({ from, to, amount }) => ["Pay", report.shares.rows.find(({ _id }) => _id === from)?.name, "to", report.shares.rows.find(({ _id }) => _id === to)?.name, amount]),
+          ]
+        : []),
     ]);
   };
 
@@ -182,8 +191,9 @@ const ReportBoard = ({ properties, initialHouse }) => {
       ) : !report ? (
         <Skeleton className="h-96 w-full rounded-2xl" />
       ) : (
-        <div className={cn("transition-opacity", isFetching && "opacity-60")}>
+        <div className={cn("flex flex-col gap-4 transition-opacity", isFetching && "opacity-60")}>
           <ReportView ref={viewRef} report={report} />
+          {report.shares && report.shares.rows.filter(({ isOwner }) => isOwner).length > 1 && <SettlePanel propertyId={report.houses[0]._id} shares={report.shares} />}
         </div>
       )}
     </div>

@@ -36,6 +36,11 @@ const PropertyCard = ({ property }) => {
               {vacantCount > 0 ? `${vacantCount} Vacant` : "Fully Rented"}
             </Badge>
           )}
+          {property.owners?.length > 1 && (
+            <Badge variant="info" className="absolute top-2.5 right-2.5 shadow-card">
+              অংশীদারি
+            </Badge>
+          )}
         </div>
 
         <div className="min-w-0 flex-1 px-4 py-3">

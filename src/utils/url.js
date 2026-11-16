@@ -83,6 +83,10 @@ export const REPORT = API_BASE_URL + 'report';
 
 // Account (Settings)
 export const ACCOUNT = API_BASE_URL + 'account';
+
+// Shared Access
+export const PROPERTY_SHARING = (id) => API_BASE_URL + `property/${id}/sharing`;
+export const INVITES = API_BASE_URL + 'invites';
 export const PAYMENT_ADVANCE = API_BASE_URL + 'payment/advance';
 export const PAYMENT_ADVANCE_SUMMARY = (tenancyId) => API_BASE_URL + `payment/advance/${tenancyId}`;
 export const PAYMENT_ACTION = (id, action) => API_BASE_URL + `payment/${id}/${action}`;

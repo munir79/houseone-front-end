@@ -20,7 +20,7 @@ export const mainNav = [
   { label: "Tenants", href: "/tenants", icon: Users },
   { label: "Billing", href: "/billing", icon: ClipboardList },
   { label: "Receipts", href: "/receipts", icon: FileText },
-  { label: "Shared Access", icon: Handshake, soon: true },
+  { label: "Shared Access", href: "/invites", icon: Handshake },
   { label: "To-Let Marketplace", icon: Megaphone, soon: true },
 ];
 

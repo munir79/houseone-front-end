@@ -10,7 +10,7 @@ export const reportApi = apiSlice.injectEndpoints({
     //1. REPORT — সময় ও বাড়ি ধরে আয়, খরচ, লাভ
     getReport: builder.query({
       query: (params) => ({ url: REPORT, params }),
-      providesTags: ["Payment", "Expense", "Bill", "Tenancy", "Property"],
+      providesTags: ["Payment", "Expense", "Bill", "Tenancy", "Property", "Sharing"],
     }),
   }),
 });

@@ -8,6 +8,7 @@ import CollectionChart from "@/components/dashboard/CollectionChart";
 import HouseCollection from "@/components/dashboard/HouseCollection";
 import RecentReceipts from "@/components/dashboard/RecentReceipts";
 import PropertyCard from "@/components/property/PropertyCard";
+import InviteList from "@/components/share/InviteList";
 import Card from "@/components/ui/Card";
 import EmptyState from "@/components/ui/EmptyState";
 import LinkButton from "@/components/ui/LinkButton";
@@ -191,6 +192,8 @@ const DashboardPage = () => {
           </div>
         </div>
       </section>
+
+      <InviteList />
 
       <StatStrip
         isLoading={isMoneyLoading}
