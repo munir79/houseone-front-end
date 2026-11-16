@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import Image from "next/image";
-import { Banknote, ImagePlus, Layers, Loader2, MapPin, Megaphone, Pencil, Star } from "lucide-react";
+import { Banknote, ImagePlus, Layers, Loader2, MapPin, Megaphone, Pencil, Star, Users } from "lucide-react";
 import { toast } from "sonner";
 import LocationSearch from "@/components/property/LocationSearch";
 import Button from "@/components/ui/Button";
@@ -16,7 +16,7 @@ import { cn } from "@/lib/cn";
 import { DISTRICT_OPTIONS, districtLabel } from "@/lib/districts";
 import { formatMoney } from "@/lib/formatMoney";
 import { getErrorMessage } from "@/lib/getErrorMessage";
-import { CONTACT_MODE_OPTIONS, availableText, floorText, listingTitle, unitCategories } from "@/lib/listingOptions";
+import { BACHELOR_GENDER_OPTIONS, CONTACT_MODE_OPTIONS, audienceOptions, availableText, floorText, listingTitle, unitCategories } from "@/lib/listingOptions";
 import { ELECTRICITY_OPTIONS, GAS_OPTIONS } from "@/lib/formTerms";
 import { toBanglaNumber, toEnglishNumber } from "@/lib/toBanglaNumber";
 import { LIVING_LAYOUT_OPTIONS } from "@/lib/unitOptions";
@@ -185,6 +185,28 @@ const infoNeeds = (unit) => {
   return { required: ["bedrooms", "bathrooms"], nice: ["balconies", "sizeSqft"] };
 };
 
+// এক চাপে বাছাই — বাছা থাকলে সবুজ
+const ChoicePills = ({ name, options, value, onChange }) => (
+  <div role="radiogroup" className="flex flex-wrap gap-2">
+    {options.map((option) => (
+      <button
+        key={option.value || "any"}
+        type="button"
+        role="radio"
+        aria-checked={value === option.value}
+        data-choice={`${name}-${option.value || "any"}`}
+        onClick={() => onChange(option.value)}
+        className={cn(
+          "min-h-10 rounded-full border px-3 text-sm font-semibold transition-colors md:min-h-9",
+          value === option.value ? "border-primary bg-primary text-primary-foreground" : "border-border bg-surface text-foreground hover:border-primary"
+        )}
+      >
+        {option.label}
+      </button>
+    ))}
+  </div>
+);
+
 const EditLink = ({ label = "বদলান", ...props }) => (
   <button type="button" className="inline-flex min-h-8 items-center gap-1 text-xs font-semibold text-primary hover:underline" {...props}>
     <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
@@ -202,6 +224,12 @@ const ListingForm = ({ unit, listing, profile, settings, onClose }) => {
   // ভাড়া — না থাকলে লিখতে হয়, থাকলে "বদলান" চাপলে; ফ্ল্যাটেও সেভ হয়
   const [rent, setRent] = useState(unit.rent > 0 ? String(unit.rent) : "");
   const [isEditingRent, setIsEditingRent] = useState(!(unit.rent > 0));
+  // কার জন্য — ফ্যামিলি, ব্যাচেলর, দুটোই বা অফিস; ব্যাচেলর হলে পুরুষ বা মহিলা; ফ্ল্যাটেও সেভ হয়
+  const [audience, setAudience] = useState(unit.preferredTenant || "Any");
+  const [bachelorGender, setBachelorGender] = useState(unit.bachelorGender || "");
+  const audienceChoices = audienceOptions(unit.type);
+  const takesBachelor = audienceChoices.length > 0 && (audience === "Bachelor" || audience === "Any");
+  const audienceChanged = audience !== (unit.preferredTenant || "Any") || (takesBachelor ? bachelorGender : "") !== (unit.bachelorGender || "");
   // লোকেশন — পুরো বাড়ির; নতুন জায়গা বাছলে এলাকা ও জেলাও
   const [isEditingPlace, setIsEditingPlace] = useState(false);
   const [place, setPlace] = useState(null);
@@ -304,10 +332,11 @@ const ListingForm = ({ unit, listing, profile, settings, onClose }) => {
           city: placeCity,
         }).unwrap();
       }
-      if (rentChanged || photosChanged || Object.keys(filledInfo).length > 0) {
+      if (rentChanged || photosChanged || audienceChanged || Object.keys(filledInfo).length > 0) {
         await updateUnit({
           id: unit._id,
           ...filledInfo,
+          ...(audienceChanged ? { preferredTenant: audience, bachelorGender: takesBachelor ? bachelorGender : "" } : {}),
           ...(rentChanged ? { rent: Number(rent) } : {}),
           ...(photosChanged ? { photos: unitPhotos.map(({ publicId, version, signature }) => ({ publicId, version, signature })) } : {}),
         }).unwrap();
@@ -331,8 +360,22 @@ const ListingForm = ({ unit, listing, profile, settings, onClose }) => {
     <form data-listing-form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
       <section data-listing-confirm className="flex flex-col gap-3 rounded-xl bg-background p-3">
         <p className="text-sm font-semibold">
-          {listingTitle({ categories: unitCategories(unit), unitType: unit.type, bedrooms: unit.bedrooms })} · {unit.name}
+          {listingTitle({ categories: unitCategories({ ...unit, preferredTenant: audience }), unitType: unit.type, bedrooms: unit.bedrooms })} · {unit.name}
         </p>
+        {audienceChoices.length > 0 && (
+          <ConfirmRow icon={Users} label="কার জন্য">
+            <div data-audience-choice className="flex flex-col gap-2">
+              <ChoicePills name="audience" options={audienceChoices} value={audience} onChange={setAudience} />
+              {takesBachelor && (
+                <div className="flex flex-col gap-1">
+                  <span className="text-xs font-normal text-muted">কোন ব্যাচেলর</span>
+                  <ChoicePills name="bachelorGender" options={BACHELOR_GENDER_OPTIONS} value={bachelorGender} onChange={setBachelorGender} />
+                </div>
+              )}
+              {audienceChanged && <span className="text-xs font-normal text-muted">ফ্ল্যাটেও সেভ হবে।</span>}
+            </div>
+          </ConfirmRow>
+        )}
         <div className="grid gap-3 sm:grid-cols-2">
           <ConfirmRow icon={Layers} label="তলা">
             <span data-confirm-floor>{floorText(unit.floor, property.totalFloors)}</span>

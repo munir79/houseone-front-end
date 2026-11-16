@@ -48,6 +48,13 @@ const ToLetBrowser = ({ meta, children }) => {
             </span>
           )}
         </p>
+        {["Bachelor", "Room"].includes(params.get("category")) && (
+          <select aria-label="কোন ব্যাচেলর" value={params.get("gender") || ""} onChange={(e) => go({ gender: e.target.value })} className={selectClass}>
+            <option value="">পুরুষ বা মহিলা</option>
+            <option value="Male">পুরুষ ব্যাচেলর</option>
+            <option value="Female">মহিলা ব্যাচেলর</option>
+          </select>
+        )}
         <select aria-label="রুম" value={params.get("bedrooms") || ""} onChange={(e) => go({ bedrooms: e.target.value })} className={selectClass}>
           <option value="">যেকোনো রুম</option>
           {BEDROOM_OPTIONS.map(({ value, label }) => (

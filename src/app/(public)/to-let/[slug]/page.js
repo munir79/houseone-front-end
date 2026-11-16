@@ -1,12 +1,13 @@
 import { cache } from "react";
 import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
-import { ArrowLeft, Bath, BedDouble, CalendarDays, Eye, Layers, MapPin, PhoneCall, Ruler, Sofa, Users, Wind } from "lucide-react";
+import { ArrowLeft, Bath, BedDouble, CalendarDays, Check, Clock, Eye, X, Layers, MapPin, PhoneCall, Ruler, Sofa, Users, Wind } from "lucide-react";
 import { ContactPanel, ListingGallery, ReportButton, ShareButton, ViewTracker } from "@/components/toLet/ListingDetailParts";
 import ListingCard from "@/components/toLet/ListingCard";
+import TimeAgo from "@/components/toLet/TimeAgo";
 import LinkButton from "@/components/ui/LinkButton";
 import { formatMoney } from "@/lib/formatMoney";
-import { availableText, croppedPhoto, floorText, forWhom, listingShareText, listingTitle, placeText } from "@/lib/listingOptions";
+import { audienceRules, audienceText, availableText, croppedPhoto, floorText, listingShareText, listingTitle, placeText } from "@/lib/listingOptions";
 import { fetchListing, fetchListings } from "@/lib/publicListing";
 import { toBanglaNumber } from "@/lib/toBanglaNumber";
 import { LIVING_LAYOUT_OPTIONS } from "@/lib/unitOptions";
@@ -92,7 +93,7 @@ export default async function ListingPage({ params }) {
     listing.sizeSqft && { icon: Ruler, label: "মাপ", value: `${toBanglaNumber(listing.sizeSqft)} sqft` },
     floorText(listing.floor, listing.totalFloors) && { icon: Layers, label: "তলা", value: floorText(listing.floor, listing.totalFloors) },
     layout && { icon: Sofa, label: "ড্রয়িং-ডাইনিং", value: layout.label },
-    forWhom(listing.categories) && { icon: Users, label: "কাদের জন্য", value: forWhom(listing.categories) },
+    audienceText(listing) && { icon: Users, label: "কাদের জন্য", value: audienceText(listing) },
     listing.maxPeople && { icon: Users, label: "সর্বোচ্চ", value: `${toBanglaNumber(listing.maxPeople)} জন` },
     { icon: CalendarDays, label: "কবে থেকে", value: availableText(listing.availableFrom) },
   ].filter(Boolean);
@@ -114,9 +115,29 @@ export default async function ListingPage({ params }) {
 
           <div className="flex flex-col gap-2">
             <h1 className="text-2xl font-bold tracking-tight wrap-break-word sm:text-3xl">{title} ভাড়া</h1>
+            {audienceRules(listing).length > 0 && (
+              <ul data-audience-rules className="flex flex-wrap gap-2">
+                {audienceRules(listing).map(({ ok, text }) => (
+                  <li key={text} className={ok ? "inline-flex items-center gap-1 rounded-full bg-success-soft px-3 py-1 text-sm font-semibold text-success-foreground" : "inline-flex items-center gap-1 rounded-full bg-danger-soft px-3 py-1 text-sm font-semibold text-danger-foreground"}>
+                    {ok ? <Check className="h-4 w-4" aria-hidden="true" /> : <X className="h-4 w-4" aria-hidden="true" />}
+                    {text}
+                  </li>
+                ))}
+              </ul>
+            )}
             <p className="flex items-center gap-1.5 text-muted">
               <MapPin className="h-4 w-4 shrink-0" aria-hidden="true" />
               {placeText(listing)}
+            </p>
+            <p data-listing-meta className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
+              <span className="inline-flex items-center gap-1">
+                <Clock className="h-4 w-4 shrink-0" aria-hidden="true" />
+                <TimeAgo date={listing.listedAt} prefix="দেওয়া হয়েছে " />
+              </span>
+              <span data-total-views className="inline-flex items-center gap-1">
+                <Eye className="h-4 w-4 shrink-0" aria-hidden="true" />
+                মোট {toBanglaNumber(listing.totalViews ?? 0)} বার দেখা হয়েছে
+              </span>
             </p>
             <p className="text-3xl font-bold text-primary">
               {formatMoney(listing.rent)}

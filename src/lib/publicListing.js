@@ -4,7 +4,7 @@ import { PUBLIC_LISTING, PUBLIC_LISTINGS } from "@/utils/url";
 
 // To-Let পাতা — Login ছাড়াই, তাই RTK Query নয়; Server পাতা এক মিনিট মনে রাখে
 const REVALIDATE_SECONDS = 60;
-const SEARCH_KEYS = ["category", "city", "area", "min", "max", "bedrooms", "month", "sort", "near", "km", "box", "place", "after"];
+const SEARCH_KEYS = ["category", "city", "area", "min", "max", "bedrooms", "month", "sort", "near", "km", "box", "place", "gender", "after"];
 
 // URL এর খোঁজা থেকে শুধু চেনা ঘরগুলো — অন্য কিছু API তে যায় না
 export const searchQuery = (params) => {

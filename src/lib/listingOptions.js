@@ -72,9 +72,51 @@ export const listingTitle = ({ categories = [], unitType, bedrooms }) => {
   return `${rooms}${who}ফ্ল্যাট`;
 };
 
-export const forWhom = (categories = []) => {
-  const people = categories.filter((item) => item === "Family" || item === "Bachelor").map(categoryLabel);
-  return people.length ? people.join(" ও ") : null;
+// To-Let modal এ "কার জন্য" — ফ্ল্যাটের ধরন অনুযায়ী
+export const audienceOptions = (unitType) => {
+  if (["Shop", "Office", "Garage"].includes(unitType)) return [];
+  if (unitType === "Room") {
+    return [
+      { value: "Family", label: "ফ্যামিলি" },
+      { value: "Bachelor", label: "ব্যাচেলর" },
+      { value: "Any", label: "দুটোই" },
+    ];
+  }
+  return [
+    { value: "Family", label: "শুধু ফ্যামিলি" },
+    { value: "Bachelor", label: "শুধু ব্যাচেলর" },
+    { value: "Any", label: "ফ্যামিলি ও ব্যাচেলর" },
+    { value: "Office", label: "অফিস" },
+  ];
+};
+
+export const BACHELOR_GENDER_OPTIONS = [
+  { value: "", label: "যেকোনো" },
+  { value: "Male", label: "শুধু পুরুষ" },
+  { value: "Female", label: "শুধু মহিলা" },
+];
+
+const bachelorWord = (gender) => (gender === "Male" ? "পুরুষ ব্যাচেলর" : gender === "Female" ? "মহিলা ব্যাচেলর" : "ব্যাচেলর");
+
+// "শুধু ফ্যামিলি", "শুধু মহিলা ব্যাচেলর", "ফ্যামিলি ও ব্যাচেলর" — card এ
+export const audienceText = ({ categories = [], bachelorGender = "" }) => {
+  const family = categories.includes("Family");
+  const bachelor = categories.includes("Bachelor");
+  if (family && bachelor) return `ফ্যামিলি ও ${bachelorWord(bachelorGender)}`;
+  if (family) return "শুধু ফ্যামিলি";
+  if (bachelor) return `শুধু ${bachelorWord(bachelorGender)}`;
+  return null;
+};
+
+// বিজ্ঞাপনের পাতায় ✓ ও ✕ — কাদের দেওয়া হয়, কাদের হয় না
+export const audienceRules = ({ categories = [], bachelorGender = "" }) => {
+  if (!categories.some((item) => item === "Family" || item === "Bachelor")) return [];
+  const family = categories.includes("Family");
+  const bachelor = categories.includes("Bachelor");
+  return [
+    { ok: family, text: family ? "ফ্যামিলি ভাড়া দেওয়া হয়" : "ফ্যামিলি ভাড়া দেওয়া হয় না" },
+    { ok: bachelor, text: bachelor ? `${bachelorGender ? "শুধু " : ""}${bachelorWord(bachelorGender)} ভাড়া দেওয়া হয়` : "ব্যাচেলর ভাড়া দেওয়া হয় না" },
+  ];
 };
 
 export const floorText = (floor, totalFloors) => {

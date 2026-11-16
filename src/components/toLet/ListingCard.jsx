@@ -3,14 +3,15 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Bath, BedDouble, Camera, Home, MapPin, Ruler } from "lucide-react";
+import TimeAgo from "./TimeAgo";
 import { cloudinaryLoader } from "@/lib/cloudinaryLoader";
 import { formatMoney } from "@/lib/formatMoney";
-import { availableText, distanceText, floorText, forWhom, listingPath, listingTitle, placeText } from "@/lib/listingOptions";
+import { audienceText, availableText, distanceText, floorText, listingPath, listingTitle, placeText } from "@/lib/listingOptions";
 import { toBanglaNumber } from "@/lib/toBanglaNumber";
 
 // তালিকার একটি বিজ্ঞাপন — ছোট ছবি, ভাড়া, এলাকা, রুম
 const ListingCard = ({ listing, priority = false }) => {
-  const who = forWhom(listing.categories);
+  const who = audienceText(listing);
   const facts = [
     listing.bedrooms ? { icon: BedDouble, text: `${toBanglaNumber(listing.bedrooms)} রুম` } : null,
     listing.bathrooms ? { icon: Bath, text: `${toBanglaNumber(listing.bathrooms)} বাথ` } : null,
@@ -52,6 +53,11 @@ const ListingCard = ({ listing, priority = false }) => {
           <span className="text-sm font-normal text-muted">/মাস</span>
         </p>
         <h3 className="text-sm font-semibold wrap-break-word">{listingTitle(listing)}</h3>
+        {who && (
+          <span data-audience className="w-fit rounded-full bg-primary-soft px-2 py-0.5 text-xs font-semibold text-primary">
+            {who}
+          </span>
+        )}
         <p className="flex items-center gap-1 text-sm text-muted">
           <MapPin className="h-4 w-4 shrink-0" aria-hidden="true" />
           <span className="min-w-0 truncate">
@@ -68,8 +74,9 @@ const ListingCard = ({ listing, priority = false }) => {
             ))}
           </p>
         )}
-        <p className="mt-auto pt-1 text-xs text-muted">
-          {[who, floorText(listing.floor), listing.distance != null ? distanceText(listing.distance) : null].filter(Boolean).join(" · ")}
+        <p className="mt-auto flex flex-wrap items-center justify-between gap-x-2 gap-y-0.5 pt-1 text-xs text-muted">
+          <span className="min-w-0">{[floorText(listing.floor), listing.distance != null ? distanceText(listing.distance) : null].filter(Boolean).join(" · ")}</span>
+          {listing.listedAt && <TimeAgo date={listing.listedAt} className="shrink-0" />}
         </p>
       </div>
     </Link>
