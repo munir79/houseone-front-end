@@ -1,0 +1,62 @@
+"use client";
+
+import { Fragment } from "react";
+import Link from "next/link";
+import { useParams, usePathname } from "next/navigation";
+import { ChevronRight } from "lucide-react";
+import { GLOBAL_PAGES, isNavActive, outsideNav, propertyNav, propertyPath } from "@/lib/navigation";
+import { useGetPropertyQuery } from "@/redux/features/property/propertyApi";
+import { useGetTenancyQuery } from "@/redux/features/tenancy/tenancyApi";
+import { useGetTenantFormQuery } from "@/redux/features/tenantForm/tenantFormApi";
+import { useGetUnitQuery } from "@/redux/features/unit/unitApi";
+
+// Page এর নিজের Query ই ব্যবহার করে, তাই আলাদা Request যায় না
+const Breadcrumbs = () => {
+  const pathname = usePathname();
+  const { id, unitId, tenancyId, formId } = useParams();
+
+  const { data: property } = useGetPropertyQuery(id, { skip: !id });
+  const { data: unit } = useGetUnitQuery(unitId, { skip: !unitId });
+  const { data: tenancy } = useGetTenancyQuery(tenancyId, { skip: !tenancyId });
+  const { data: form } = useGetTenantFormQuery(formId, { skip: !formId });
+
+  // সম্পদের ভেতরে — সম্পদের নাম, তারপর সেই পাতা (Overview বাদে)
+  const section = id ? propertyNav(id, { kind: property?.data?.kind, isShared: true, isMain: true, hasMembers: true }).find((item) => !item.exact && isNavActive(pathname, item)) : null;
+  const outside = !id ? outsideNav({ hasShared: true, hasGranted: true }).find((item) => isNavActive(pathname, item)) : null;
+  const globalPage = Object.keys(GLOBAL_PAGES).find((href) => pathname === href || pathname.startsWith(`${href}/`));
+
+  const crumbs = [
+    outside && { label: outside.label, href: outside.href },
+    !outside && globalPage && { label: GLOBAL_PAGES[globalPage], href: globalPage },
+    id && { label: property?.data?.name, href: propertyPath(id) },
+    section && { label: section.label, href: section.href },
+    unitId && { label: unit?.data?.name },
+    tenancyId && { label: tenancy?.data?.tenantName },
+    formId && { label: form?.data?.name || form?.data?.unitName },
+  ].filter((crumb) => crumb?.label);
+
+  return (
+    <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-1 text-sm">
+      {crumbs.map(({ label, href }, index) => {
+        const isLast = index === crumbs.length - 1;
+
+        return (
+          <Fragment key={`${label}-${index}`}>
+            {index > 0 && <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted" aria-hidden="true" />}
+            {isLast ? (
+              <span aria-current="page" className="truncate font-semibold text-foreground">
+                {label}
+              </span>
+            ) : (
+              <Link href={href} className="truncate text-muted hover:text-foreground">
+                {label}
+              </Link>
+            )}
+          </Fragment>
+        );
+      })}
+    </nav>
+  );
+};
+
+export default Breadcrumbs;

@@ -1,0 +1,29 @@
+import { BD_TIME_ZONE } from "./bdTime";
+import { FORM_STATUS } from "./tenantFormOptions";
+
+const FORM_NEEDS_ACTION = ["Submitted", "SentBack"];
+
+const shortDate = (date) => new Date(date).toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: BD_TIME_ZONE });
+
+// ইউনিটে এখন কী চলছে — Vacant/Occupied এর পাশের দ্বিতীয় Badge
+export const unitActivity = ({ _id, property, openForm, tenancy, openIssues = 0 }) => {
+  if (openForm) {
+    const href = `/tenants/forms/${openForm._id}`;
+    // এখনকার ভাড়াটিয়া থাকতেই পরের জনের ফর্ম — বাসা ছাড়ার কাজটাই আগে
+    const prefix = tenancy ? "Next tenant: " : "";
+    if (openForm.isExpired) return { label: `${prefix}Link expired`, variant: "danger", href, needsAction: true };
+
+    const { label, variant } = FORM_STATUS[openForm.status];
+    return { label: `${prefix}${label}`, variant, href, needsAction: Boolean(tenancy) || FORM_NEEDS_ACTION.includes(openForm.status) };
+  }
+
+  if (tenancy?.notice) {
+    return { label: `Leaving ${shortDate(tenancy.notice.leavingDate)}`, variant: "warning", href: `/tenants/${tenancy._id}`, needsAction: true };
+  }
+
+  if (openIssues > 0) {
+    return { label: `${openIssues} open issue${openIssues > 1 ? "s" : ""}`, variant: "warning", href: `/properties/${property}/units/${_id}?tab=issues`, needsAction: true };
+  }
+
+  return null;
+};

@@ -1,13 +1,17 @@
 'use client';
 
 import { apiSlice } from "@/redux/api/apiSlice";
-import { SIGN_IN, SIGN_UP } from "@/utils/url";
+import {
+  FORGOT_PASSWORD,
+  GET_MY_PROFILE,
+  RESEND_OTP,
+  RESET_PASSWORD,
+  SIGN_IN,
+  SIGN_UP,
+  VERIFY_EMAIL,
+  VERIFY_OTP,
+} from "@/utils/url";
 
-
-
-// import { SIGN_IN } from "@/common/constantData/url";
-
-// console.log('SIGN_IN URL is:', SIGN_IN);
 export const authApi = apiSlice.injectEndpoints({
   overrideExisting: true,
   endpoints: (builder) => ({
@@ -20,7 +24,25 @@ export const authApi = apiSlice.injectEndpoints({
       }),
     }),
 
-    //2. SIGN -IN
+    //2. VERIFY EMAIL
+    verifyEmail: builder.mutation({
+      query: (body) => ({
+        url: VERIFY_EMAIL,
+        method: 'POST',
+        body,
+      }),
+    }),
+
+    //3. RESEND OTP
+    resendOtp: builder.mutation({
+      query: (body) => ({
+        url: RESEND_OTP,
+        method: 'POST',
+        body,
+      }),
+    }),
+
+    //4. SIGN -IN
     signIn: builder.mutation({
       query: (Credential) => ({
         url: SIGN_IN,
@@ -29,10 +51,48 @@ export const authApi = apiSlice.injectEndpoints({
       }),
     }),
 
-    // 3.refresh token
+    //5. FORGOT PASSWORD
+    forgotPassword: builder.mutation({
+      query: (body) => ({
+        url: FORGOT_PASSWORD,
+        method: 'POST',
+        body,
+      }),
+    }),
 
-  
+    //6. VERIFY RESET OTP
+    verifyOtp: builder.mutation({
+      query: (body) => ({
+        url: VERIFY_OTP,
+        method: 'POST',
+        body,
+      }),
+    }),
+
+    //7. RESET PASSWORD
+    resetPassword: builder.mutation({
+      query: (body) => ({
+        url: RESET_PASSWORD,
+        method: 'POST',
+        body,
+      }),
+    }),
+
+    //8. MY PROFILE
+    getMyProfile: builder.query({
+      query: () => GET_MY_PROFILE,
+      providesTags: ["User"],
+    }),
   }),
 });
 
-export const { useSignUpMutation,useSignInMutation } = authApi;
+export const {
+  useSignUpMutation,
+  useVerifyEmailMutation,
+  useResendOtpMutation,
+  useSignInMutation,
+  useForgotPasswordMutation,
+  useVerifyOtpMutation,
+  useResetPasswordMutation,
+  useGetMyProfileQuery,
+} = authApi;

@@ -1,0 +1,160 @@
+"use client";
+
+import { useState } from "react";
+import { toast } from "sonner";
+import ChargeRows from "@/components/tenantForm/ChargeRows";
+import Button from "@/components/ui/Button";
+import Checkbox from "@/components/ui/Checkbox";
+import FormSection from "@/components/ui/FormSection";
+import Input from "@/components/ui/Input";
+import Modal from "@/components/ui/Modal";
+import Select from "@/components/ui/Select";
+import { getErrorMessage } from "@/lib/getErrorMessage";
+import { OCCUPANT_TYPE_OPTIONS, RENT_DAY_OPTIONS, toDateInput } from "@/lib/tenancyOptions";
+import { useUpdateTenancyMutation, useUpdateTenantMutation } from "@/redux/features/tenancy/tenancyApi";
+
+// ভাড়াটিয়ার তথ্য ও ভাড়ার তথ্য — সবই পরে বদলানো যায়
+const EditTenancyModal = ({ tenancy, onClose }) => {
+  const { tenant } = tenancy;
+
+  const [person, setPerson] = useState({
+    name: tenant.name,
+    phone: tenant.phone,
+    email: tenant.email,
+    occupation: tenant.occupation,
+    permanentAddress: tenant.permanentAddress,
+    emergencyName: tenant.emergencyName,
+    emergencyPhone: tenant.emergencyPhone,
+  });
+  const [nid, setNid] = useState("");
+  const [rental, setRental] = useState({
+    occupantType: tenancy.occupantType,
+    startDate: toDateInput(tenancy.startDate),
+    rent: String(tenancy.rent),
+    advance: String(tenancy.advance),
+    dueDay: String(tenancy.dueDay),
+    hasSublet: tenancy.hasSublet,
+    subletNote: tenancy.subletNote,
+    subletPeople: String(tenancy.subletPeople),
+    note: tenancy.note,
+    declaredPeople: tenancy.declaredPeople ? String(tenancy.declaredPeople) : "",
+  });
+  const [charges, setCharges] = useState(tenancy.terms?.charges ?? []);
+  const [errors, setErrors] = useState({});
+
+  const [updateTenant, { isLoading: isSavingTenant }] = useUpdateTenantMutation();
+  const [updateTenancy, { isLoading: isSavingTenancy }] = useUpdateTenancyMutation();
+
+  const clearError = (field) => setErrors(({ [field]: removed, ...rest }) => rest);
+
+  const changePerson = (field) => (e) => {
+    setPerson((prev) => ({ ...prev, [field]: e.target.value }));
+    clearError(field);
+  };
+
+  const changeRental = (field) => (e) => {
+    setRental((prev) => ({ ...prev, [field]: e.target.value }));
+    clearError(field);
+  };
+
+  const validate = () => {
+    const newErrors = {};
+    if (!person.name.trim()) newErrors.name = "ভাড়াটিয়ার নাম লিখুন";
+    if (!person.phone.trim()) newErrors.phone = "মোবাইল নম্বর লিখুন";
+    if (rental.rent === "") newErrors.rent = "মাসিক ভাড়া লিখুন";
+    if (!rental.startDate) newErrors.startDate = "ওঠার তারিখ দিন";
+    if (charges.some(({ name, amount }) => !name.trim() || amount === "")) newErrors.charges = "প্রতিটি চার্জের নাম ও টাকা লিখুন, অথবা মুছে দিন";
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validate()) return;
+
+    try {
+      await updateTenant({ id: tenant._id, ...person, ...(nid.trim() ? { nid } : {}) }).unwrap();
+      await updateTenancy({ id: tenancy._id, ...rental, dueDay: Number(rental.dueDay), ...(tenancy.terms || charges.length > 0 ? { charges } : {}) }).unwrap();
+
+      toast.success("তথ্য সেভ হয়েছে");
+      onClose();
+    } catch (err) {
+      toast.error(getErrorMessage(err, "তথ্য সেভ হয়নি। আবার চেষ্টা করুন।"));
+    }
+  };
+
+  return (
+    <Modal title="Edit Tenant" onClose={onClose} size="lg">
+      <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
+        <FormSection title="Tenant">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Input id="tenantName" label="Full name" value={person.name} onChange={changePerson("name")} error={errors.name} />
+            <Input id="tenantPhone" type="tel" inputMode="tel" label="Mobile number" value={person.phone} onChange={changePerson("phone")} error={errors.phone} />
+            <Input id="tenantEmail" type="email" label="Email (optional)" value={person.email} onChange={changePerson("email")} />
+            <Input id="tenantOccupation" label="Occupation (optional)" value={person.occupation} onChange={changePerson("occupation")} />
+            <Input id="tenantAddress" label="Permanent address (optional)" value={person.permanentAddress} onChange={changePerson("permanentAddress")} />
+            <Input
+              id="tenantNid"
+              inputMode="numeric"
+              autoComplete="off"
+              label="NID number"
+              placeholder={tenant.nidLast4 ? `শেষ ৪ সংখ্যা ${tenant.nidLast4}, বদলাতে নতুন লিখুন` : "১০ থেকে ১৭ সংখ্যা"}
+              value={nid}
+              onChange={(e) => setNid(e.target.value)}
+            />
+          </div>
+        </FormSection>
+
+        <FormSection title="Emergency contact">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Input id="emergencyName" label="Name (optional)" value={person.emergencyName} onChange={changePerson("emergencyName")} />
+            <Input id="emergencyPhone" type="tel" inputMode="tel" label="Mobile (optional)" value={person.emergencyPhone} onChange={changePerson("emergencyPhone")} />
+          </div>
+        </FormSection>
+
+        <FormSection title="Rent details">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+            <Select id="occupantType" label="Tenant type" options={OCCUPANT_TYPE_OPTIONS} value={rental.occupantType} onChange={changeRental("occupantType")} />
+            <Input id="startDate" type="date" label="Move-in date" value={rental.startDate} onChange={changeRental("startDate")} error={errors.startDate} />
+            <Select id="dueDay" label="Rent day" options={RENT_DAY_OPTIONS} value={rental.dueDay} onChange={changeRental("dueDay")} />
+            <Input id="tenancyRent" type="number" inputMode="numeric" min="0" label="Monthly rent (৳)" value={rental.rent} onChange={changeRental("rent")} error={errors.rent} />
+            <Input id="tenancyAdvance" type="number" inputMode="numeric" min="0" label="Advance (৳)" value={rental.advance} onChange={changeRental("advance")} />
+            <Input id="declaredPeople" type="number" inputMode="numeric" min="0" label="Total people (optional)" value={rental.declaredPeople} onChange={changeRental("declaredPeople")} />
+          </div>
+        </FormSection>
+
+        <FormSection title="Monthly charges">
+          <p className="text-sm text-muted">{tenancy.terms ? "নতুন হিসাব পরের বিল থেকে কার্যকর হবে।" : "খালি থাকলে বাড়ির Charges থেকে আসবে।"}</p>
+          <ChargeRows charges={charges} onChange={setCharges} />
+          {errors.charges && <p className="text-sm text-danger">{errors.charges}</p>}
+        </FormSection>
+
+        <FormSection title="Sublet">
+          <Checkbox
+            id="hasSublet"
+            label="এই ফ্ল্যাটে সাবলেট আছে"
+            checked={rental.hasSublet}
+            onChange={(e) => setRental((prev) => ({ ...prev, hasSublet: e.target.checked }))}
+          />
+          {rental.hasSublet && (
+            <div className="grid gap-4 sm:grid-cols-[1fr_120px]">
+              <Input id="subletNote" label="Note" placeholder="যেমন: এক রুমে আরেকটি পরিবার" value={rental.subletNote} onChange={changeRental("subletNote")} />
+              <Input id="subletPeople" type="number" inputMode="numeric" min="0" label="People" value={rental.subletPeople} onChange={changeRental("subletPeople")} />
+            </div>
+          )}
+        </FormSection>
+
+        <div className="flex flex-col-reverse gap-2 border-t border-border pt-4 sm:flex-row sm:justify-end">
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button type="submit" isLoading={isSavingTenant || isSavingTenancy}>
+            Save Changes
+          </Button>
+        </div>
+      </form>
+    </Modal>
+  );
+};
+
+export default EditTenancyModal;
