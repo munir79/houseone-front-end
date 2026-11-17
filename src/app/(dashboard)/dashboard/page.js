@@ -1,29 +1,26 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, BellRing, Building2, CalendarClock, CircleAlert, Home, PiggyBank, TrendingUp, UserPlus, UserX, Users, Wallet } from "lucide-react";
+import { BarChart3, BellRing, Building2, CircleAlert, Home, PiggyBank, TrendingUp, UserPlus, UserX, Users, Wallet } from "lucide-react";
 import CollectionChart from "@/components/dashboard/CollectionChart";
-import HouseCollection from "@/components/dashboard/HouseCollection";
+import AssetGlance from "@/components/dashboard/AssetGlance";
+import LeavingSoon from "@/components/dashboard/LeavingSoon";
+import PageHero from "@/components/dashboard/PageHero";
 import RecentReceipts from "@/components/dashboard/RecentReceipts";
-import PropertyCard from "@/components/property/PropertyCard";
 import InviteList from "@/components/share/InviteList";
 import Card from "@/components/ui/Card";
-import EmptyState from "@/components/ui/EmptyState";
 import LinkButton from "@/components/ui/LinkButton";
 import Skeleton from "@/components/ui/Skeleton";
 import StatStrip from "@/components/ui/StatStrip";
 import { monthLabel } from "@/lib/billOptions";
 import { formatMoney } from "@/lib/formatMoney";
-import { formatDate } from "@/lib/tenancyOptions";
 import { toBanglaNumber } from "@/lib/toBanglaNumber";
 import { useGetMyProfileQuery } from "@/redux/features/auth/authApi";
 import { useGetDashboardMoneyQuery } from "@/redux/features/dashboard/dashboardApi";
-import { useGetPropertiesQuery, useGetPropertySummaryQuery } from "@/redux/features/property/propertyApi";
+import { useGetPropertySummaryQuery } from "@/redux/features/property/propertyApi";
 import { useGetTenancySummaryQuery } from "@/redux/features/tenancy/tenancyApi";
 
-const MAX_HOUSES = 3;
 const RING_RADIUS = 42;
 const RING_LENGTH = 2 * Math.PI * RING_RADIUS;
 
@@ -150,48 +147,35 @@ const DashboardPage = () => {
   const { data: profile } = useGetMyProfileQuery();
   const { data: propertySummaryData } = useGetPropertySummaryQuery();
   const { data: tenancySummaryData } = useGetTenancySummaryQuery();
-  const { data: propertiesData, isLoading: isListLoading } = useGetPropertiesQuery({ page: 1, search: "" });
   const { data: moneyData, isLoading: isMoneyLoading } = useGetDashboardMoneyQuery();
 
   const firstName = profile?.data?.name?.split(" ")[0];
   const propertySummary = propertySummaryData?.data;
   const tenancySummary = tenancySummaryData?.data;
-  const houses = (propertiesData?.data?.data || []).slice(0, MAX_HOUSES);
   const leavingSoon = tenancySummary?.leavingSoon || [];
   const money = moneyData?.data;
   const monthName = money ? monthLabel(money.month).split(" ")[0] : "";
 
   return (
     <div className="flex flex-col gap-5">
-      <section className="relative isolate overflow-hidden rounded-2xl border border-border bg-primary-soft shadow-card">
-        <Image
-          src="/images/dashboard/dahsboard1.jpg"
-          alt=""
-          fill
-          priority
-          sizes="(min-width: 768px) 80vw, 100vw"
-          className="-z-20 object-cover object-[75%_58%]"
-        />
-        <div className="absolute inset-0 -z-10 bg-linear-to-r from-surface via-surface/90 to-surface/55 md:via-surface/75 md:to-transparent" />
-
-        <div className="flex max-w-xl flex-col items-start gap-3 p-5 sm:p-7 lg:py-9">
-          <span className="rounded-full bg-primary-soft px-3 py-1 text-sm font-semibold text-primary">
-            {greeting()}, {firstName}!
-          </span>
-          <h1 className="text-2xl font-bold tracking-tight sm:text-4xl">Welcome back to HouseOne</h1>
-          <p className="text-base font-medium text-foreground/80">আপনার বাড়ি, ভাড়াটিয়া আর ভাড়ার হিসাব এক জায়গায়।</p>
-          <div className="flex flex-wrap gap-2">
+      <PageHero
+        eyebrow={`${greeting()}, ${firstName}!`}
+        title="Welcome back to HouseOne"
+        description="আপনার বাড়ি, ভাড়াটিয়া আর ভাড়ার হিসাব এক জায়গায়।"
+        actions={
+          <>
             <LinkButton href="/properties" size="sm">
               <Building2 className="h-4 w-4" aria-hidden="true" />
-              Properties
+              আমার সম্পদ
             </LinkButton>
-            <LinkButton href="/tenants" size="sm" variant="outline">
-              <Users className="h-4 w-4" aria-hidden="true" />
-              Tenants
+            {/* সব জায়গার লাভ-ক্ষতি একসাথে — বছরের শেষে কাজে লাগে */}
+            <LinkButton href="/reports" size="sm" variant="outline" data-all-reports>
+              <BarChart3 className="h-4 w-4" aria-hidden="true" />
+              সব সম্পদের রিপোর্ট
             </LinkButton>
-          </div>
-        </div>
-      </section>
+          </>
+        }
+      />
 
       <InviteList />
 
@@ -224,45 +208,7 @@ const DashboardPage = () => {
       <div className="grid gap-5 lg:grid-cols-3">
         <div className="flex min-w-0 flex-col gap-5 lg:col-span-2">
           {money ? <CollectionChart chart={money.chart} /> : <Skeleton className="h-72 w-full rounded-2xl" />}
-          {money && <HouseCollection houses={money.houses} monthName={monthName} />}
-          <div className="flex min-w-0 flex-col gap-3">
-          <div className="flex items-center justify-between gap-2">
-            <h2 className="text-lg font-bold">My Properties</h2>
-            <Link href="/properties" className="inline-flex min-h-11 items-center gap-1 text-sm font-semibold text-primary md:min-h-0">
-              View All
-              <ArrowRight className="h-4 w-4" aria-hidden="true" />
-            </Link>
-          </div>
-
-          {isListLoading ? (
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Skeleton className="h-72 w-full rounded-2xl" />
-              <Skeleton className="h-72 w-full rounded-2xl" />
-            </div>
-          ) : houses.length === 0 ? (
-            <Card>
-              <EmptyState
-                icon={Building2}
-                title="No properties yet"
-                description="প্রথম বাড়িটি যোগ করুন, তারপর এখানে সব হিসাব দেখবেন।"
-                action={<LinkButton href="/properties">Go to Properties</LinkButton>}
-              />
-            </Card>
-          ) : (
-            <div className="grid gap-4 sm:grid-cols-2">
-              {houses.map((property) => (
-                <PropertyCard key={property._id} property={property} />
-              ))}
-              <Card className="flex flex-col items-start justify-center gap-2 bg-primary-soft">
-                <p className="text-base font-bold">Need to add a new property?</p>
-                <p className="text-sm text-muted">বাড়ি যোগ করুন, তারপর এক ক্লিকে সব ফ্ল্যাট তৈরি হবে।</p>
-                <LinkButton href="/properties" size="sm">
-                  Add Property
-                </LinkButton>
-              </Card>
-            </div>
-          )}
-          </div>
+          <AssetGlance houses={money?.houses || []} byHouse={propertySummary?.byHouse} monthName={monthName} isLoading={!money} />
         </div>
 
         <div className="flex min-w-0 flex-col gap-4">
@@ -294,25 +240,7 @@ const DashboardPage = () => {
             </div>
           </Card>
 
-          {leavingSoon.length > 0 && (
-            <Card flush className="overflow-hidden">
-              <h2 className="flex items-center gap-2 border-b border-border px-4 py-3 text-base font-bold">
-                <CalendarClock className="h-5 w-5 text-warning" aria-hidden="true" />
-                Leaving Soon
-              </h2>
-              <ul className="divide-y divide-border">
-                {leavingSoon.slice(0, MAX_HOUSES).map((item) => (
-                  <li key={item._id}>
-                    <Link href={`/tenants/${item._id}`} className="flex items-center justify-between gap-3 px-4 py-2.5 hover:bg-background">
-                      <span className="min-w-0 text-sm font-medium wrap-break-word">{item.unitName}</span>
-                      <span className="shrink-0 text-sm text-muted">{formatDate(item.notice.leavingDate)}</span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </Card>
-          )}
-
+          <LeavingSoon items={leavingSoon} />
         </div>
       </div>
     </div>

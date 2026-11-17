@@ -11,7 +11,7 @@ import { methodLabel } from "@/lib/paymentOptions";
 import { formatDate } from "@/lib/tenancyOptions";
 
 // সর্বশেষ টাকা নেওয়া — চাপলে রসিদ খোলে
-const RecentReceipts = ({ payments }) => {
+const RecentReceipts = ({ payments, allHref = "/receipts" }) => {
   const [openId, setOpenId] = useState(null);
   const opened = payments.find(({ _id }) => _id === openId);
 
@@ -19,7 +19,7 @@ const RecentReceipts = ({ payments }) => {
     <Card flush data-recent-receipts className="overflow-hidden">
       <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-3">
         <h2 className="text-base font-bold">সাম্প্রতিক টাকা নেওয়া</h2>
-        <Link href="/receipts" className="inline-flex min-h-9 items-center gap-1 text-sm font-semibold text-primary">
+        <Link href={allHref} className="inline-flex min-h-9 items-center gap-1 text-sm font-semibold text-primary">
           সব রসিদ
           <ArrowRight className="h-4 w-4" aria-hidden="true" />
         </Link>

@@ -3,9 +3,10 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Ellipsis } from "lucide-react";
+import { ArrowLeft, Ellipsis } from "lucide-react";
 import { cn } from "@/lib/cn";
-import { isNavActive, navItems } from "@/lib/navigation";
+import { useWorkspace } from "@/hooks/useWorkspace";
+import { DASHBOARD_ITEM, isNavActive, isSharedProperty, outsideNav, propertyNav } from "@/lib/navigation";
 
 // নিচের Bar এ ৪টি প্রধান + More — বেশি হলে নাম জড়িয়ে যায়
 const MAIN_COUNT = 4;
@@ -21,11 +22,20 @@ const ItemIcon = ({ icon: Icon, isActive }) => (
 const BottomNav = () => {
   const pathname = usePathname();
   const [openedAt, setOpenedAt] = useState(null);
+  const { workspaceId, property, isSingle, hasShared } = useWorkspace();
+  // ভেতরে থাকলে সেই সম্পদের menu, More এ Dashboard আর "সব সম্পদ" এ ফেরা
+  const navItems = workspaceId
+    ? [
+        ...propertyNav(workspaceId, { kind: property?.kind, isShared: isSharedProperty(property) }),
+        DASHBOARD_ITEM,
+        ...(isSingle ? [] : [{ label: "সব সম্পদ", href: "/properties", icon: ArrowLeft, exact: true }]),
+      ]
+    : outsideNav({ hasShared });
 
   const hasMore = navItems.length > MAIN_COUNT + 1;
   const mainItems = hasMore ? navItems.slice(0, MAIN_COUNT) : navItems;
   const moreItems = hasMore ? navItems.slice(MAIN_COUNT) : [];
-  const isMoreActive = moreItems.some(({ href }) => isNavActive(pathname, href));
+  const isMoreActive = moreItems.some((item) => isNavActive(pathname, item));
   // পেজ বদলালে নিজে থেকেই বন্ধ — যে পেজে খোলা হয়েছিল শুধু সেখানেই খোলা থাকে
   const isMoreOpen = openedAt === pathname;
 
@@ -34,8 +44,9 @@ const BottomNav = () => {
       {isMoreOpen && <button type="button" aria-label="Close menu" onClick={() => setOpenedAt(null)} className="fixed inset-0 z-30 bg-foreground/20 md:hidden" />}
       {isMoreOpen && (
         <div id="more-menu" data-more-menu className="fixed inset-x-3 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-40 grid grid-cols-3 gap-2 rounded-2xl border border-border bg-surface p-3 shadow-card md:hidden">
-          {moreItems.map(({ label, href, icon }) => {
-            const isActive = isNavActive(pathname, href);
+          {moreItems.map((item) => {
+            const { label, href, icon } = item;
+            const isActive = isNavActive(pathname, item);
             return (
               <Link key={href} href={href} aria-current={isActive ? "page" : undefined} onClick={() => setOpenedAt(null)} className={cn(itemClasses(isActive), "rounded-xl hover:bg-background")}>
                 <ItemIcon icon={icon} isActive={isActive} />
@@ -47,8 +58,9 @@ const BottomNav = () => {
       )}
 
       <nav className="fixed inset-x-0 bottom-0 z-40 flex border-t border-border bg-surface pb-[env(safe-area-inset-bottom)] md:hidden">
-        {mainItems.map(({ label, href, icon }) => {
-          const isActive = isNavActive(pathname, href);
+        {mainItems.map((item) => {
+          const { label, href, icon } = item;
+          const isActive = isNavActive(pathname, item);
           return (
             <Link key={href} href={href} aria-current={isActive ? "page" : undefined} className={itemClasses(isActive)}>
               <ItemIcon icon={icon} isActive={isActive} />

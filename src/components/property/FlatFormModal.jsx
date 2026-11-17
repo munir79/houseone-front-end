@@ -26,7 +26,7 @@ const FLAT_TYPES = [
 const digits = (value) => toEnglishNumber(value).replace(/\D/g, "");
 
 // অন্যের বা সোসাইটির বিল্ডিংয়ে আমার ফ্ল্যাট — এক পাতায় বিল্ডিং আর ফ্ল্যাট একসাথে
-const FlatFormModal = ({ onClose, onSaved }) => {
+const FlatFormModal = ({ onClose, onSaved, isShared = false }) => {
   const [location, setLocation] = useState(null);
   const [form, setForm] = useState({ name: "", city: "", area: "", address: "", totalFloors: "", unitName: "", floor: "", type: "Flat", rent: "", bedrooms: "", bathrooms: "" });
   const [errors, setErrors] = useState({});
@@ -75,6 +75,7 @@ const FlatFormModal = ({ onClose, onSaved }) => {
         area: form.area.trim(),
         address: form.address.trim() || form.name.trim(),
         totalFloors,
+        isShared,
         location: { lat: location.lat, lng: location.lng, label: location.label, locality: location.locality },
         unit: {
           name: form.unitName.trim(),

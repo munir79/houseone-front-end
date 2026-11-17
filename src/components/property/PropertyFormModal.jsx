@@ -19,7 +19,8 @@ const toLocationValue = (location) =>
   location ? { lat: location.coordinates[1], lng: location.coordinates[0], label: location.label, locality: location.locality } : null;
 
 // property না দিলে নতুন বাড়ি, দিলে Edit
-const PropertyFormModal = ({ property, onClose, onSaved }) => {
+// isShared — "অংশীদারি সম্পদ" থেকে তৈরি হলে
+const PropertyFormModal = ({ property, onClose, onSaved, isShared = false }) => {
   const isEdit = Boolean(property);
 
   const [form, setForm] = useState({
@@ -104,7 +105,7 @@ const PropertyFormModal = ({ property, onClose, onSaved }) => {
     try {
       const response = isEdit
         ? await updateProperty({ id: property._id, ...body }).unwrap()
-        : await createProperty(body).unwrap();
+        : await createProperty({ ...body, isShared }).unwrap();
 
       toast.success(response.message);
       onSaved?.(response.data);

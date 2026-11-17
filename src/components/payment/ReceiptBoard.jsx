@@ -106,14 +106,15 @@ const ReceiptRow = ({ row, onOpen }) => {
 };
 
 // সব রসিদ এক জায়গায় — সাধারণত এই মাস ও গত মাস, পুরনো মাস বেছে নিয়ে বা রসিদ নম্বরে খুঁজে
-const ReceiptBoard = ({ properties }) => {
+// propertyId — একটা সম্পদের ভেতরে; তখন বাড়ি বাছাই দেখায় না
+const ReceiptBoard = ({ properties = [], propertyId: fixedPropertyId }) => {
   const months = useMemo(() => monthOptions(), []);
   // monthOptions: আগামী মাস, এই মাস, গত মাস, তারপর পুরনো
   const [currentOption, lastOption, ...olderOptions] = months.slice(1);
 
   const [period, setPeriod] = useState("current");
   const [olderMonth, setOlderMonth] = useState(olderOptions[0]?.value);
-  const [propertyId, setPropertyId] = useState("");
+  const [propertyId, setPropertyId] = useState(fixedPropertyId ?? "");
   const [kind, setKind] = useState("");
   const [method, setMethod] = useState("");
   const [status, setStatus] = useState("");
@@ -193,7 +194,7 @@ const ReceiptBoard = ({ properties }) => {
         {period === "older" && (
           <Select id="receiptMonth" compact aria-label="Older month" options={olderOptions} value={olderMonth} onChange={(e) => change(setOlderMonth)(e.target.value)} className="w-full sm:w-44" />
         )}
-        <Select id="receiptHouse" compact aria-label="House" options={houseOptions} value={propertyId} onChange={(e) => change(setPropertyId)(e.target.value)} className="w-full sm:w-48" />
+        {!fixedPropertyId && <Select id="receiptHouse" compact aria-label="House" options={houseOptions} value={propertyId} onChange={(e) => change(setPropertyId)(e.target.value)} className="w-full sm:w-48" />}
         <Button variant="outline" isLoading={isExporting} onClick={handleExport} className="sm:ml-auto">
           <Download className="h-4 w-4" aria-hidden="true" />
           Download Excel

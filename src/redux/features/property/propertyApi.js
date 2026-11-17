@@ -14,8 +14,8 @@ export const propertyApi = apiSlice.injectEndpoints({
 
     //SUMMARY FOR THE PROPERTIES PAGE
     getPropertySummary: builder.query({
-      query: () => PROPERTY_SUMMARY,
-      providesTags: ["Property", "Unit"],
+      query: (params) => ({ url: PROPERTY_SUMMARY, params }),
+      providesTags: ["Property", "Unit", "Tenancy", "Bill", "Payment"],
     }),
 
     //2. ONE HOUSE

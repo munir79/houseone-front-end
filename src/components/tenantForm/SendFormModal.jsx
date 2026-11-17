@@ -133,7 +133,7 @@ const SendFormModal = ({ unit, onClose }) => {
                   </p>
                   <div className="flex flex-wrap gap-x-4 gap-y-1">
                     <LinkAction onClick={handleWriteHere}>এখানেই লিখুন</LinkAction>
-                    <Link href={`/properties/${propertyId}?tab=charges&type=${occupantType}`} target="_blank" className="text-sm font-semibold text-primary underline-offset-2 hover:underline">
+                    <Link href={`/properties/${propertyId}/settings?view=charges&type=${occupantType}`} target="_blank" className="text-sm font-semibold text-primary underline-offset-2 hover:underline">
                       Charges tab-এ যান
                     </Link>
                   </div>

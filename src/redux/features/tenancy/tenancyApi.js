@@ -31,7 +31,7 @@ export const tenancyApi = apiSlice.injectEndpoints({
 
     //2. SUMMARY
     getTenancySummary: builder.query({
-      query: () => TENANCY_SUMMARY,
+      query: (params) => ({ url: TENANCY_SUMMARY, params }),
       providesTags: ["Tenancy"],
     }),
 

@@ -9,7 +9,8 @@ export const dashboardApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     //1. MONEY — এই মাস, Advance, আদায় হয়নি, chart, বাড়ি, সাম্প্রতিক রসিদ
     getDashboardMoney: builder.query({
-      query: () => DASHBOARD_MONEY,
+      // propertyId দিলে শুধু সেই সম্পদের — Overview তে
+      query: (params) => ({ url: DASHBOARD_MONEY, params }),
       providesTags: ["Bill", "Payment", "Tenancy", "Property", "Expense"],
     }),
   }),

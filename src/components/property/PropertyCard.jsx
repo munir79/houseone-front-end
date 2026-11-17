@@ -4,6 +4,7 @@ import { Building2, MapPin } from "lucide-react";
 import Badge from "@/components/ui/Badge";
 import Card from "@/components/ui/Card";
 import { cloudinaryLoader } from "@/lib/cloudinaryLoader";
+import { isSharedProperty } from "@/lib/navigation";
 import { toBanglaNumber } from "@/lib/toBanglaNumber";
 
 const Metric = ({ value, label }) => (
@@ -16,11 +17,12 @@ const Metric = ({ value, label }) => (
 // "পুরো বাড়ি · ২০টি ইউনিট" বা "এই বিল্ডিংয়ে আমার ১টি"
 const kindText = ({ kind, unitCount }) => (kind === "flats" ? `এই বিল্ডিংয়ে আমার ${toBanglaNumber(unitCount)}টি` : "পুরো বাড়ি");
 
-const PropertyCard = ({ property }) => {
+// note — অংশীদারি সম্পদের পাতায় "আপনি মূল মালিক", অপেক্ষায় থাকা দাওয়াত ইত্যাদি
+const PropertyCard = ({ property, note }) => {
   const { unitCount, vacantCount } = property;
 
   return (
-    <Link href={`/properties/${property._id}`} className="group block rounded-2xl focus-visible:outline-2 focus-visible:outline-primary">
+    <Link href={`/properties/${property._id}`} data-property-card={property.name} className="group block rounded-2xl focus-visible:outline-2 focus-visible:outline-primary">
       <Card flush className="flex h-full flex-col overflow-hidden transition-shadow group-hover:shadow-md">
         <div className="relative flex aspect-[16/9] items-center justify-center bg-primary-soft">
           {property.photos?.[0] ? (
@@ -40,7 +42,7 @@ const PropertyCard = ({ property }) => {
               {vacantCount > 0 ? `${vacantCount} Vacant` : "Fully Rented"}
             </Badge>
           )}
-          {property.owners?.length > 1 && (
+          {isSharedProperty(property) && (
             <Badge variant="info" className="absolute top-2.5 right-2.5 shadow-card">
               অংশীদারি
             </Badge>
@@ -58,6 +60,7 @@ const PropertyCard = ({ property }) => {
               {property.area}, {property.city}
             </span>
           </p>
+          {note}
         </div>
 
         <div className="grid grid-cols-3 divide-x divide-border border-t border-border">

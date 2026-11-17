@@ -4,7 +4,7 @@ import { Fragment } from "react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { ChevronRight } from "lucide-react";
-import { isNavActive, navItems } from "@/lib/navigation";
+import { GLOBAL_PAGES, isNavActive, outsideNav, propertyNav, propertyPath } from "@/lib/navigation";
 import { useGetPropertyQuery } from "@/redux/features/property/propertyApi";
 import { useGetTenancyQuery } from "@/redux/features/tenancy/tenancyApi";
 import { useGetTenantFormQuery } from "@/redux/features/tenantForm/tenantFormApi";
@@ -20,11 +20,16 @@ const Breadcrumbs = () => {
   const { data: tenancy } = useGetTenancyQuery(tenancyId, { skip: !tenancyId });
   const { data: form } = useGetTenantFormQuery(formId, { skip: !formId });
 
-  const page = navItems.find(({ href }) => isNavActive(pathname, href));
+  // সম্পদের ভেতরে — সম্পদের নাম, তারপর সেই পাতা (Overview বাদে)
+  const section = id ? propertyNav(id, { kind: property?.data?.kind, isShared: true }).find((item) => !item.exact && isNavActive(pathname, item)) : null;
+  const outside = !id ? outsideNav({ hasShared: true }).find((item) => isNavActive(pathname, item)) : null;
+  const globalPage = Object.keys(GLOBAL_PAGES).find((href) => pathname === href || pathname.startsWith(`${href}/`));
 
   const crumbs = [
-    { label: page?.label, href: page?.href },
-    id && { label: property?.data?.name, href: `/properties/${id}` },
+    outside && { label: outside.label, href: outside.href },
+    !outside && globalPage && { label: GLOBAL_PAGES[globalPage], href: globalPage },
+    id && { label: property?.data?.name, href: propertyPath(id) },
+    section && { label: section.label, href: section.href },
     unitId && { label: unit?.data?.name },
     tenancyId && { label: tenancy?.data?.tenantName },
     formId && { label: form?.data?.name || form?.data?.unitName },
@@ -36,7 +41,7 @@ const Breadcrumbs = () => {
         const isLast = index === crumbs.length - 1;
 
         return (
-          <Fragment key={label}>
+          <Fragment key={`${label}-${index}`}>
             {index > 0 && <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted" aria-hidden="true" />}
             {isLast ? (
               <span aria-current="page" className="truncate font-semibold text-foreground">
