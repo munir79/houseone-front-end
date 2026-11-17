@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ChevronDown, LogOut, Settings } from "lucide-react";
+import { ChevronDown, KeyRound, LogOut, Settings } from "lucide-react";
 import { cn } from "@/lib/cn";
 
 const ProfileMenu = ({ user, onLogout }) => {
@@ -67,6 +67,15 @@ const ProfileMenu = ({ user, onLogout }) => {
           >
             <Settings className="h-4 w-4" aria-hidden="true" />
             Settings
+          </Link>
+          <Link
+            href="/access"
+            data-family-access
+            onClick={() => setIsOpen(false)}
+            className="mt-1 flex min-h-11 w-full items-center gap-2 rounded-xl px-3 text-sm font-medium text-foreground hover:bg-primary-soft"
+          >
+            <KeyRound className="h-4 w-4" aria-hidden="true" />
+            পরিবারের অ্যাক্সেস
           </Link>
           <button
             type="button"

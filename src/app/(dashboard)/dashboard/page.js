@@ -8,6 +8,7 @@ import AssetGlance from "@/components/dashboard/AssetGlance";
 import LeavingSoon from "@/components/dashboard/LeavingSoon";
 import PageHero from "@/components/dashboard/PageHero";
 import RecentReceipts from "@/components/dashboard/RecentReceipts";
+import AccessInviteList from "@/components/access/AccessInviteList";
 import InviteList from "@/components/share/InviteList";
 import Card from "@/components/ui/Card";
 import LinkButton from "@/components/ui/LinkButton";
@@ -178,6 +179,7 @@ const DashboardPage = () => {
       />
 
       <InviteList />
+      <AccessInviteList />
 
       <StatStrip
         isLoading={isMoneyLoading}

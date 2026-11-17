@@ -13,6 +13,7 @@ import ExpenseBoard from "@/components/expense/ExpenseBoard";
 import ListingsBoard from "@/components/listing/ListingsBoard";
 import ReceiptBoard from "@/components/payment/ReceiptBoard";
 import ReportBoard from "@/components/report/ReportBoard";
+import AccessBoard from "@/components/access/AccessBoard";
 import SharingPanel from "@/components/share/SharingPanel";
 import TenantsBoard from "@/components/tenant/TenantsBoard";
 import ChargesPanel from "@/components/tenantForm/ChargesPanel";
@@ -31,7 +32,8 @@ import Skeleton from "@/components/ui/Skeleton";
 import Tabs from "@/components/ui/Tabs";
 import { useWorkspace } from "@/hooks/useWorkspace";
 import { getErrorMessage } from "@/lib/getErrorMessage";
-import { propertyPath } from "@/lib/navigation";
+import { levelLabel } from "@/lib/accessOptions";
+import { isSharedProperty, propertyPath } from "@/lib/navigation";
 import { useGetMyProfileQuery } from "@/redux/features/auth/authApi";
 import { useDeletePropertyMutation, useGetPropertyQuery } from "@/redux/features/property/propertyApi";
 
@@ -194,9 +196,12 @@ const PropertyWorkspace = ({ id, section }) => {
   }
 
   const isMainOwner = property.owner === profile?.data?._id;
-  const isShared = property.isShared || (property.owners?.length ?? 1) > 1;
+  const isShared = isSharedProperty(property);
+  // পরিবারের অ্যাক্সেসে দেখছেন — সম্পদ বদলানো, অংশীদার, অ্যাক্সেস, সেটিং নয়
+  const myAccess = property.myAccess;
+  const isLimitedPage = !!myAccess && ["settings", "sharing", "access"].includes(section);
 
-  const actions = [
+  const actions = myAccess ? [] : [
     { key: "edit", label: "Edit", icon: Pencil, onClick: () => setIsEditing(true) },
     // একার সম্পদে অংশীদার পরে যোগ করা — যোগ হলে অংশীদারি সম্পদে চলে যায়
     ...(isMainOwner && !isShared ? [{ key: "partner", label: "অংশীদার যোগ করুন", icon: Handshake, onClick: () => router.push(propertyPath(id, "sharing")) }] : []),
@@ -204,7 +209,12 @@ const PropertyWorkspace = ({ id, section }) => {
     ...(isMainOwner ? [{ key: "delete", label: "Delete House", icon: Trash2, onClick: () => setIsDeleteOpen(true) }] : []),
   ];
 
-  const sharedBadge = isShared ? <Badge variant="info">{isMainOwner ? "অংশীদারি" : "অংশীদার হিসেবে"}</Badge> : undefined;
+  const sharedBadge = myAccess ? (
+    <Badge variant="info">{levelLabel(myAccess.level)} · অ্যাক্সেস</Badge>
+  ) : isShared ? (
+    <Badge variant="info">{isMainOwner ? "অংশীদারি" : "অংশীদার হিসেবে"}</Badge>
+  ) : undefined;
+  const menu = actions.length > 0 ? <ActionMenu items={actions} /> : null;
 
   return (
     <div className="flex flex-col gap-5">
@@ -216,8 +226,16 @@ const PropertyWorkspace = ({ id, section }) => {
         subtitle={`${property.kind === "flats" ? "অন্যের বিল্ডিংয়ে আমার ফ্ল্যাট" : "পুরো বাড়ি"} · ${property.area}, ${property.city}`}
         photoUrl={property.photos?.[0]?.url}
         icon={Building2}
-        actions={<ActionMenu items={actions} />}
+        actions={menu}
       />
+      )}
+
+      {myAccess && (
+        <p data-access-banner className="rounded-xl border border-info/30 bg-info-soft px-4 py-2.5 text-sm text-info-foreground">
+          {myAccess.level === "view"
+            ? "আপনার এই সম্পদে শুধু দেখার অনুমতি — সব হিসাব দেখতে পারবেন, কিছু বদলানো যাবে না।"
+            : "আপনার এই সম্পদে দেখা ও কাজের অনুমতি — ভাড়া, বিল, খরচ, ভাড়াটিয়ার কাজ করতে পারবেন; সম্পদের সেটিং বা ইউনিট বদলানো যাবে না।"}
+        </p>
       )}
 
       {section === "overview" && (
@@ -225,7 +243,7 @@ const PropertyWorkspace = ({ id, section }) => {
           property={property}
           badge={sharedBadge}
           // hero তে লেখার জায়গা কম — বড় screen ছাড়া ⋮ menu
-          menu={<ActionMenu items={actions} alwaysMenu />}
+          menu={actions.length > 0 ? <ActionMenu items={actions} alwaysMenu /> : null}
           // একটাই সম্পদ — বাইরের "আমার সম্পদ" এ যাওয়ার দরকার নেই, নতুনটা এখান থেকেই
           onAddAsset={isSingle ? () => setIsAddingAsset(true) : undefined}
         />
@@ -236,8 +254,21 @@ const PropertyWorkspace = ({ id, section }) => {
       {section === "expenses" && <ExpenseBoard properties={[property]} propertyId={id} />}
       {section === "reports" && <ReportBoard properties={[property]} initialHouse={id} />}
       {section === "listings" && <ListingsBoard propertyId={id} />}
-      {section === "sharing" && <SharingPanel propertyId={id} />}
-      {section === "settings" && <SettingsSection property={property} onEdit={() => setIsEditing(true)} />}
+      {isLimitedPage && (
+        <Card>
+          <EmptyState icon={SearchX} title="এই পাতা শুধু মালিকের" description="সম্পদের সেটিং, অংশীদার আর অ্যাক্সেস শুধু মালিক দেখেন ও বদলান।" />
+        </Card>
+      )}
+      {!isLimitedPage && section === "sharing" && <SharingPanel propertyId={id} />}
+      {!isLimitedPage && section === "settings" && <SettingsSection property={property} onEdit={() => setIsEditing(true)} />}
+      {!isLimitedPage && section === "access" &&
+        (isMainOwner && !isShared ? (
+          <AccessBoard propertyId={id} />
+        ) : (
+          <Card>
+            <EmptyState icon={SearchX} title="অংশীদারি সম্পদে আলাদা অ্যাক্সেস নেই" description="অংশীদারি সম্পদে অংশীদারের দাওয়াত দিয়েই login — অংশীদারি পাতা থেকে দিন।" />
+          </Card>
+        ))}
 
       {isAddingAsset && <AddAssetModal onClose={() => setIsAddingAsset(false)} onSaved={(saved) => saved?._id && router.push(propertyPath(saved._id))} />}
       {isEditing && <PropertyFormModal property={property} onClose={() => setIsEditing(false)} />}

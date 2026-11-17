@@ -21,8 +21,8 @@ const Breadcrumbs = () => {
   const { data: form } = useGetTenantFormQuery(formId, { skip: !formId });
 
   // সম্পদের ভেতরে — সম্পদের নাম, তারপর সেই পাতা (Overview বাদে)
-  const section = id ? propertyNav(id, { kind: property?.data?.kind, isShared: true }).find((item) => !item.exact && isNavActive(pathname, item)) : null;
-  const outside = !id ? outsideNav({ hasShared: true }).find((item) => isNavActive(pathname, item)) : null;
+  const section = id ? propertyNav(id, { kind: property?.data?.kind, isShared: true, isMain: true }).find((item) => !item.exact && isNavActive(pathname, item)) : null;
+  const outside = !id ? outsideNav({ hasShared: true, hasGranted: true }).find((item) => isNavActive(pathname, item)) : null;
   const globalPage = Object.keys(GLOBAL_PAGES).find((href) => pathname === href || pathname.startsWith(`${href}/`));
 
   const crumbs = [

@@ -22,15 +22,15 @@ const ItemIcon = ({ icon: Icon, isActive }) => (
 const BottomNav = () => {
   const pathname = usePathname();
   const [openedAt, setOpenedAt] = useState(null);
-  const { workspaceId, property, isSingle, hasShared } = useWorkspace();
+  const { workspaceId, property, me, isSingle, hasShared, hasGranted } = useWorkspace();
   // ভেতরে থাকলে সেই সম্পদের menu, More এ Dashboard আর "সব সম্পদ" এ ফেরা
   const navItems = workspaceId
     ? [
-        ...propertyNav(workspaceId, { kind: property?.kind, isShared: isSharedProperty(property) }),
+        ...propertyNav(workspaceId, { kind: property?.kind, isShared: isSharedProperty(property), isMain: !!me && property?.owner === me, myAccess: property?.myAccess }),
         DASHBOARD_ITEM,
         ...(isSingle ? [] : [{ label: "সব সম্পদ", href: "/properties", icon: ArrowLeft, exact: true }]),
       ]
-    : outsideNav({ hasShared });
+    : outsideNav({ hasShared, hasGranted });
 
   const hasMore = navItems.length > MAIN_COUNT + 1;
   const mainItems = hasMore ? navItems.slice(0, MAIN_COUNT) : navItems;

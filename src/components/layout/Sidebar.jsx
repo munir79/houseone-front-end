@@ -96,8 +96,10 @@ const WorkspaceHeader = ({ property, houses, isSingle, isCollapsed }) => {
 
 const Sidebar = ({ isCollapsed }) => {
   const pathname = usePathname();
-  const { workspaceId, property, houses, isSingle, hasShared } = useWorkspace();
-  const items = workspaceId ? propertyNav(workspaceId, { kind: property?.kind, isShared: isSharedProperty(property) }) : outsideNav({ hasShared });
+  const { workspaceId, property, houses, me, isSingle, hasShared, hasGranted } = useWorkspace();
+  const items = workspaceId
+    ? propertyNav(workspaceId, { kind: property?.kind, isShared: isSharedProperty(property), isMain: !!me && property?.owner === me, myAccess: property?.myAccess })
+    : outsideNav({ hasShared, hasGranted });
 
   const renderItems = (list) =>
     list.map((item) => <NavItem key={item.href} {...item} isActive={isNavActive(pathname, item)} isCollapsed={isCollapsed} />);

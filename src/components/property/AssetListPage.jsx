@@ -19,9 +19,10 @@ import { useGetPropertiesQuery, useGetPropertySummaryQuery } from "@/redux/featu
 
 const SEARCH_DEBOUNCE_MS = 350;
 
-// আমার সম্পদ (scope own) আর অংশীদারি সম্পদ (scope shared) — একই চেহারা, একই কাজ
+// আমার সম্পদ (own), অংশীদারি সম্পদ (shared), আমাকে দেওয়া সম্পদ (granted) — একই চেহারা, একই কাজ
+// canAdd — দেওয়া সম্পদের পাতায় নতুন যোগ করার কিছু নেই
 // top — তালিকার উপরে বাড়তি অংশ (যেমন দাওয়াত); cardNote — প্রতিটা কার্ডে বাড়তি লাইন
-const AssetListPage = ({ scope, title, description, emptyTitle, emptyText, top, cardNote }) => {
+const AssetListPage = ({ scope, title, description, emptyTitle, emptyText, top, cardNote, canAdd = true }) => {
   const [searchText, setSearchText] = useState("");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
@@ -43,14 +44,15 @@ const AssetListPage = ({ scope, title, description, emptyTitle, emptyText, top, 
 
   const properties = data?.data?.data || [];
   const meta = data?.data?.meta;
-  const inScope = new Set((allData?.data?.data || []).filter((house) => isSharedProperty(house) === isSharedPage).map(({ _id }) => _id));
+  const scopeOf = (house) => (house.myAccess ? "granted" : isSharedProperty(house) ? "shared" : "own");
+  const inScope = new Set((allData?.data?.data || []).filter((house) => scopeOf(house) === scope).map(({ _id }) => _id));
   const rows = (summaryData?.data?.byHouse || []).filter(({ _id }) => inScope.has(_id));
   const sum = (field) => rows.reduce((total, row) => total + row[field], 0);
   const units = sum("units");
   const occupied = sum("occupied");
   const occupancy = units ? Math.round((occupied / units) * 100) : 0;
 
-  const addButton = (
+  const addButton = canAdd && (
     <Button onClick={() => setIsFormOpen(true)}>
       <Plus className="h-4 w-4" aria-hidden="true" />
       যোগ করুন

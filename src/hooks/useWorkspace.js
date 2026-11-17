@@ -8,7 +8,7 @@ import { useGetPropertiesQuery } from "@/redux/features/property/propertyApi";
 
 const PROPERTY_URL = /^\/properties\/([a-f0-9]{24})(?:\/|$)/;
 // এই পাতাগুলো সব সম্পদের — এখানে কোনো সম্পদ বাছা থাকে না
-export const OUTSIDE_PAGES = ["/dashboard", "/properties", "/shared"];
+export const OUTSIDE_PAGES = ["/dashboard", "/properties", "/shared", "/granted"];
 // সব পাতায় একই query — একবারই আনা হয়
 export const ALL_PROPERTIES = { page: 1, search: "", limit: 100 };
 
@@ -70,7 +70,8 @@ export const useWorkspace = () => {
     me,
     isSingle,
     isOutside,
-    hasShared: houses.some(isSharedProperty),
+    hasShared: houses.some((house) => isSharedProperty(house) && !house.myAccess),
+    hasGranted: houses.some(({ myAccess }) => !!myAccess),
     isLoading,
   };
 };
