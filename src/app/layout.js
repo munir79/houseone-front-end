@@ -4,6 +4,7 @@ import "./globals.css";
 import ReduxProvider from "@/redux/reduxProvider/ReduxProvider";
 import { Toaster } from "sonner";
 import { APP_NAME, APP_TAGLINE } from "@/lib/brand";
+import { siteUrl } from "@/utils/url";
 
 const jakarta = Plus_Jakarta_Sans({
   variable: "--font-jakarta",
@@ -22,8 +23,8 @@ const bangla = localFont({
 });
 
 export const metadata = {
-  // শেয়ার করা link এর ছবি ও ঠিকানা পুরো URL এ — Live এ NEXT_PUBLIC_SITE_URL দিন
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
+  // শেয়ার করা link এর ছবি ও ঠিকানা পুরো URL এ — dev এ localhost, live এ Vercel এর ঠিকানা
+  metadataBase: new URL(siteUrl),
   title: { default: APP_NAME, template: `%s · ${APP_NAME}` },
   description: APP_TAGLINE,
 };

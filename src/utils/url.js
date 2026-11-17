@@ -1,4 +1,13 @@
-export const baseUriBackend = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/';
+// npm run dev এ নিজের computer এর backend, build করা (Vercel) site এ live backend
+// NEXT_PUBLIC_API_URL দিলে সেটাই — অন্য কোনো server এ চালাতে
+const isProduction = process.env.NODE_ENV === "production";
+const LOCAL_API = 'http://localhost:5000/';
+const LIVE_API = 'https://houseonebackend.onrender.com/';
+const LOCAL_SITE = 'http://localhost:3000';
+const LIVE_SITE = 'https://houseone-front-end-bd5p.vercel.app';
+
+export const baseUriBackend = process.env.NEXT_PUBLIC_API_URL || (isProduction ? LIVE_API : LOCAL_API);
+export const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || (isProduction ? LIVE_SITE : LOCAL_SITE);
 
 // API Basery
 export const API_BASE_URL = baseUriBackend + 'api/v1/';
