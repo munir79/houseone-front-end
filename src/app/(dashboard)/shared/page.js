@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import AssetListPage from "@/components/property/AssetListPage";
 import InviteList from "@/components/share/InviteList";
 import { useGetMyProfileQuery } from "@/redux/features/auth/authApi";
@@ -28,15 +29,17 @@ const SharedAssetsPage = () => {
   };
 
   return (
-    <AssetListPage
-      scope="shared"
-      title="অংশীদারি সম্পদ"
-      description="কয়েকজন মিলে মালিক এমন বাড়ি ও ফ্ল্যাট — দাওয়াত, ভাগ ও দেনা-পাওনা ভেতরের অংশীদারি পাতায়"
-      emptyTitle="No shared assets yet"
-      emptyText="অংশীদারি সম্পদ যোগ করুন, তারপর অংশীদারদের দাওয়াত দিন। আগের কোনো সম্পদে অংশীদার যোগ করলে সেটাও এখানে আসবে।"
-      top={<InviteList />}
-      cardNote={cardNote}
-    />
+    <Suspense>
+      <AssetListPage
+        scope="shared"
+        title="অংশীদারি সম্পদ"
+        description="কয়েকজন মিলে মালিক এমন বাড়ি ও ফ্ল্যাট — দাওয়াত, ভাগ ও দেনা-পাওনা ভেতরের অংশীদারি পাতায়"
+        emptyTitle="No shared assets yet"
+        emptyText="অংশীদারি সম্পদ যোগ করুন, তারপর অংশীদারদের দাওয়াত দিন। আগের কোনো সম্পদে অংশীদার যোগ করলে সেটাও এখানে আসবে।"
+        top={<InviteList />}
+        cardNote={cardNote}
+      />
+    </Suspense>
   );
 };
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import AccessInviteList from "@/components/access/AccessInviteList";
 import AssetListPage from "@/components/property/AssetListPage";
 import { levelLabel } from "@/lib/accessOptions";
@@ -12,16 +13,18 @@ const cardNote = (house) => (
 );
 
 const GrantedAssetsPage = () => (
-  <AssetListPage
-    scope="granted"
-    title="আমাকে দেওয়া সম্পদ"
-    description="পরিবারের কেউ আপনাকে দেখতে বা কাজে সাহায্য করতে দিয়েছেন"
-    emptyTitle="কোনো সম্পদ দেওয়া হয়নি"
-    emptyText="কেউ আপনাকে অ্যাক্সেস দিলে এখানে দেখাবে।"
-    top={<AccessInviteList />}
-    cardNote={cardNote}
-    canAdd={false}
-  />
+  <Suspense>
+    <AssetListPage
+      scope="granted"
+      title="আমাকে দেওয়া সম্পদ"
+      description="পরিবারের কেউ আপনাকে দেখতে বা কাজে সাহায্য করতে দিয়েছেন"
+      emptyTitle="কোনো সম্পদ দেওয়া হয়নি"
+      emptyText="কেউ আপনাকে অ্যাক্সেস দিলে এখানে দেখাবে।"
+      top={<AccessInviteList />}
+      cardNote={cardNote}
+      canAdd={false}
+    />
+  </Suspense>
 );
 
 export default GrantedAssetsPage;

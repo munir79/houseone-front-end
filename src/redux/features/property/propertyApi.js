@@ -1,7 +1,7 @@
 'use client';
 
 import { apiSlice } from "@/redux/api/apiSlice";
-import { PROPERTIES, PROPERTY_BY_ID, PROPERTY_CONTACTS, PROPERTY_CONTACT_BY_ID, PROPERTY_SUMMARY } from "@/utils/url";
+import { PROPERTIES, PROPERTY_ASSETS, PROPERTY_BY_ID, PROPERTY_CONTACTS, PROPERTY_CONTACT_BY_ID, PROPERTY_SUMMARY } from "@/utils/url";
 
 export const propertyApi = apiSlice.injectEndpoints({
   overrideExisting: true,
@@ -10,6 +10,12 @@ export const propertyApi = apiSlice.injectEndpoints({
     getProperties: builder.query({
       query: (params) => ({ url: PROPERTIES, params }),
       providesTags: ["Property"],
+    }),
+
+    //MY ASSETS BY TAB — বাড়ি, ফ্ল্যাট, অন্যান্য; প্রতিটার সংখ্যা সহ
+    getMyAssets: builder.query({
+      query: (params) => ({ url: PROPERTY_ASSETS, params }),
+      providesTags: ["Property", "Unit", "Tenancy"],
     }),
 
     //SUMMARY FOR THE PROPERTIES PAGE
@@ -93,6 +99,7 @@ export const propertyApi = apiSlice.injectEndpoints({
 
 export const {
   useGetPropertiesQuery,
+  useGetMyAssetsQuery,
   useGetPropertySummaryQuery,
   useGetPropertyQuery,
   useCreatePropertyMutation,

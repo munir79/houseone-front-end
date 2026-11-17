@@ -29,6 +29,7 @@ export const UPLOAD_SIGNATURE = API_BASE_URL + 'upload/signature';
 // Property
 export const PROPERTIES = API_BASE_URL + 'property';
 export const PROPERTY_SUMMARY = API_BASE_URL + 'property/summary';
+export const PROPERTY_ASSETS = API_BASE_URL + 'property/assets';
 export const PROPERTY_BY_ID = (id) => API_BASE_URL + `property/${id}`;
 export const PROPERTY_CONTACTS = (id) => API_BASE_URL + `property/${id}/contacts`;
 export const PROPERTY_CONTACT_BY_ID = (id, contactId) => API_BASE_URL + `property/${id}/contacts/${contactId}`;
