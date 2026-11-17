@@ -7,7 +7,7 @@ import { ArrowLeft, Building2, Headset } from "lucide-react";
 import Logo from "@/components/ui/Logo";
 import { cn } from "@/lib/cn";
 import { useWorkspace } from "@/hooks/useWorkspace";
-import { DASHBOARD_ITEM, isNavActive, isSharedProperty, outsideNav, propertyNav, propertyPath } from "@/lib/navigation";
+import { DASHBOARD_ITEM, hasMembersOf, isNavActive, isSharedProperty, outsideNav, propertyNav, propertyPath } from "@/lib/navigation";
 
 const NavItem = ({ label, href, icon: Icon, soon, isActive, isCollapsed }) => {
   const classes = cn(
@@ -98,7 +98,7 @@ const Sidebar = ({ isCollapsed }) => {
   const pathname = usePathname();
   const { workspaceId, property, houses, me, isSingle, hasShared, hasGranted } = useWorkspace();
   const items = workspaceId
-    ? propertyNav(workspaceId, { kind: property?.kind, isShared: isSharedProperty(property), isMain: !!me && property?.owner === me, myAccess: property?.myAccess })
+    ? propertyNav(workspaceId, { kind: property?.kind, isShared: isSharedProperty(property), isMain: !!me && property?.owner === me, myAccess: property?.myAccess, hasMembers: hasMembersOf(property) })
     : outsideNav({ hasShared, hasGranted });
 
   const renderItems = (list) =>

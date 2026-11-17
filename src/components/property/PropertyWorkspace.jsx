@@ -14,6 +14,7 @@ import ListingsBoard from "@/components/listing/ListingsBoard";
 import ReceiptBoard from "@/components/payment/ReceiptBoard";
 import ReportBoard from "@/components/report/ReportBoard";
 import AccessBoard from "@/components/access/AccessBoard";
+import ActivityBoard from "@/components/activity/ActivityBoard";
 import SharingPanel from "@/components/share/SharingPanel";
 import TenantsBoard from "@/components/tenant/TenantsBoard";
 import ChargesPanel from "@/components/tenantForm/ChargesPanel";
@@ -259,6 +260,7 @@ const PropertyWorkspace = ({ id, section }) => {
           <EmptyState icon={SearchX} title="এই পাতা শুধু মালিকের" description="সম্পদের সেটিং, অংশীদার আর অ্যাক্সেস শুধু মালিক দেখেন ও বদলান।" />
         </Card>
       )}
+      {section === "activity" && <ActivityBoard propertyId={id} />}
       {!isLimitedPage && section === "sharing" && <SharingPanel propertyId={id} />}
       {!isLimitedPage && section === "settings" && <SettingsSection property={property} onEdit={() => setIsEditing(true)} />}
       {!isLimitedPage && section === "access" &&

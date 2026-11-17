@@ -1,7 +1,10 @@
-import { BarChart3, ClipboardList, DoorOpen, Handshake, Home, KeyRound, LayoutDashboard, Megaphone, Receipt, Settings, UserCheck, Users } from "lucide-react";
+import { BarChart3, ClipboardList, DoorOpen, Handshake, History, Home, KeyRound, LayoutDashboard, Megaphone, Receipt, Settings, UserCheck, Users } from "lucide-react";
 
 // একটা সম্পদের ভেতরের পাতা — /properties/id/billing
 export const propertyPath = (id, section = "") => `/properties/${id}${section ? `/${section}` : ""}`;
+
+// owners এ মালিক ছাড়া আর কেউ (অংশীদার বা পরিবারের অ্যাক্সেস) — Activity দেখানোর কারণ
+export const hasMembersOf = (property) => (property?.owners?.length ?? 1) > 1;
 
 // অংশীদারি — তৈরির সময় বাছা, বা পরে অংশীদার যোগ হয়েছে (owners এ পরিবারের অ্যাক্সেসও থাকে, তাই সংখ্যা নয়)
 export const isSharedProperty = (property) => !!property?.isShared;
@@ -17,8 +20,8 @@ export const outsideNav = ({ hasShared = false, hasGranted = false } = {}) => [
 ];
 
 // একটা সম্পদের ভেতরে — সব পাতা শুধু সেই সম্পদের; অংশীদারি menu অংশীদারি সম্পদে, অ্যাক্সেস একার সম্পদে মূল মালিকের
-// myAccess — পরিবারের অ্যাক্সেসে দেখছেন, তখন সেটিং নেই
-export const propertyNav = (id, { kind, isShared = false, isMain = false, myAccess = null } = {}) => [
+// myAccess — পরিবারের অ্যাক্সেসে দেখছেন, তখন সেটিং নেই; hasMembers — অংশীদার বা পরিবারের কেউ আছেন, তখন Activity
+export const propertyNav = (id, { kind, isShared = false, isMain = false, myAccess = null, hasMembers = false } = {}) => [
   { label: "Overview", href: propertyPath(id), icon: LayoutDashboard, exact: true },
   { label: kind === "flats" ? "আমার ফ্ল্যাট" : "ইউনিট", href: propertyPath(id, "units"), icon: DoorOpen },
   { label: "ভাড়াটিয়া", href: propertyPath(id, "tenants"), icon: Users },
@@ -28,6 +31,7 @@ export const propertyNav = (id, { kind, isShared = false, isMain = false, myAcce
   { label: "To-Let", href: propertyPath(id, "listings"), icon: Megaphone },
   ...(isShared ? [{ label: "অংশীদারি", href: propertyPath(id, "sharing"), icon: Handshake }] : []),
   ...(!isShared && isMain ? [{ label: "অ্যাক্সেস", href: propertyPath(id, "access"), icon: KeyRound }] : []),
+  ...(hasMembers ? [{ label: "Activity", href: propertyPath(id, "activity"), icon: History }] : []),
   ...(myAccess ? [] : [{ label: "সেটিং", href: propertyPath(id, "settings"), icon: Settings }]),
 ];
 

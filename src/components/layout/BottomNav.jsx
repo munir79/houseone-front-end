@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { ArrowLeft, Ellipsis } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { useWorkspace } from "@/hooks/useWorkspace";
-import { DASHBOARD_ITEM, isNavActive, isSharedProperty, outsideNav, propertyNav } from "@/lib/navigation";
+import { DASHBOARD_ITEM, hasMembersOf, isNavActive, isSharedProperty, outsideNav, propertyNav } from "@/lib/navigation";
 
 // নিচের Bar এ ৪টি প্রধান + More — বেশি হলে নাম জড়িয়ে যায়
 const MAIN_COUNT = 4;
@@ -26,7 +26,7 @@ const BottomNav = () => {
   // ভেতরে থাকলে সেই সম্পদের menu, More এ Dashboard আর "সব সম্পদ" এ ফেরা
   const navItems = workspaceId
     ? [
-        ...propertyNav(workspaceId, { kind: property?.kind, isShared: isSharedProperty(property), isMain: !!me && property?.owner === me, myAccess: property?.myAccess }),
+        ...propertyNav(workspaceId, { kind: property?.kind, isShared: isSharedProperty(property), isMain: !!me && property?.owner === me, myAccess: property?.myAccess, hasMembers: hasMembersOf(property) }),
         DASHBOARD_ITEM,
         ...(isSingle ? [] : [{ label: "সব সম্পদ", href: "/properties", icon: ArrowLeft, exact: true }]),
       ]
