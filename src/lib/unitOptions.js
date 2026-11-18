@@ -19,6 +19,7 @@ export const LIVING_LAYOUT_OPTIONS = [
 export const PREFERRED_TENANT_OPTIONS = ["Any", "Family", "Bachelor", "Office", "Shop"].map((value) => ({ value, label: value }));
 
 export const floorName = (floor) => {
+  if (floor < 0) return `Basement ${-floor}`;
   if (floor === 0) return "Ground Floor";
 
   const lastTwo = floor % 100;
@@ -26,5 +27,13 @@ export const floorName = (floor) => {
   return `${floor}${suffix} Floor`;
 };
 
-export const floorOptions = (totalFloors) =>
-  Array.from({ length: totalFloors + 1 }, (_, floor) => ({ value: String(floor), label: floorName(floor) }));
+// basements — মার্কেটের বেসমেন্ট, নিচ থেকে উপরে
+export const floorOptions = (totalFloors, basements = 0) =>
+  Array.from({ length: totalFloors + basements + 1 }, (_, index) => index - basements).map((floor) => ({ value: String(floor), label: floorName(floor) }));
+
+// মার্কেটের দোকানের ধরন
+export const SHOP_TYPE_OPTIONS = [
+  { value: "Shop", label: "দোকান" },
+  { value: "Office", label: "অফিস" },
+  { value: "Other", label: "অন্যান্য" },
+];

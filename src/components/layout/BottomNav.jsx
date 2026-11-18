@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { ArrowLeft, Ellipsis } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { useWorkspace } from "@/hooks/useWorkspace";
-import { DASHBOARD_ITEM, hasMembersOf, isNavActive, isSharedProperty, outsideNav, propertyNav } from "@/lib/navigation";
+import { dashboardItem, hasMembersOf, isNavActive, isSharedProperty, outsideNav, propertyNav } from "@/lib/navigation";
 
 // নিচের Bar এ ৪টি প্রধান + More — বেশি হলে নাম জড়িয়ে যায়
 const MAIN_COUNT = 4;
@@ -22,15 +22,15 @@ const ItemIcon = ({ icon: Icon, isActive }) => (
 const BottomNav = () => {
   const pathname = usePathname();
   const [openedAt, setOpenedAt] = useState(null);
-  const { workspaceId, property, me, isSingle, hasShared, hasGranted } = useWorkspace();
+  const { workspaceId, property, me, isSingle, hasShared, hasGranted, world } = useWorkspace();
   // ভেতরে থাকলে সেই সম্পদের menu, More এ Dashboard আর "সব সম্পদ" এ ফেরা
   const navItems = workspaceId
     ? [
         ...propertyNav(workspaceId, { kind: property?.kind, isShared: isSharedProperty(property), isMain: !!me && property?.owner === me, myAccess: property?.myAccess, hasMembers: hasMembersOf(property) }),
-        DASHBOARD_ITEM,
-        ...(isSingle ? [] : [{ label: "সব সম্পদ", href: "/properties", icon: ArrowLeft, exact: true }]),
+        dashboardItem(world),
+        ...(isSingle ? [] : [{ label: world === "market" ? "সব মার্কেট" : "সব সম্পদ", href: world === "market" ? "/markets" : "/properties", icon: ArrowLeft, exact: true }]),
       ]
-    : outsideNav({ hasShared, hasGranted });
+    : outsideNav({ world, hasShared, hasGranted });
 
   const hasMore = navItems.length > MAIN_COUNT + 1;
   const mainItems = hasMore ? navItems.slice(0, MAIN_COUNT) : navItems;

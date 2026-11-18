@@ -7,7 +7,7 @@ import { ArrowLeft, Building2, Headset } from "lucide-react";
 import Logo from "@/components/ui/Logo";
 import { cn } from "@/lib/cn";
 import { useWorkspace } from "@/hooks/useWorkspace";
-import { DASHBOARD_ITEM, hasMembersOf, isNavActive, isSharedProperty, outsideNav, propertyNav, propertyPath } from "@/lib/navigation";
+import { dashboardItem, hasMembersOf, isNavActive, isSharedProperty, outsideNav, propertyNav, propertyPath } from "@/lib/navigation";
 
 const NavItem = ({ label, href, icon: Icon, soon, isActive, isCollapsed }) => {
   const classes = cn(
@@ -55,11 +55,12 @@ const NavItem = ({ label, href, icon: Icon, soon, isActive, isCollapsed }) => {
 };
 
 // একটা সম্পদের ভেতরে — কোন সম্পদ, আর অন্যটায় সরাসরি যাওয়া
-const WorkspaceHeader = ({ property, houses, isSingle, isCollapsed }) => {
+const WorkspaceHeader = ({ property, houses, isSingle, isCollapsed, world }) => {
   const router = useRouter();
+  const listHref = world === "market" ? "/markets" : "/properties";
   if (isCollapsed) {
     return (
-      <Link href={isSingle ? propertyPath(property._id) : "/properties"} title={isSingle ? property.name : "সব সম্পদ"} aria-label={isSingle ? property.name : "সব সম্পদ"} className="flex min-h-11 items-center justify-center rounded-xl text-sidebar-foreground hover:bg-sidebar-foreground/10">
+      <Link href={isSingle ? propertyPath(property._id) : listHref} title={isSingle ? property.name : "সব সম্পদ"} aria-label={isSingle ? property.name : "সব সম্পদ"} className="flex min-h-11 items-center justify-center rounded-xl text-sidebar-foreground hover:bg-sidebar-foreground/10">
         {isSingle ? <Building2 className="h-5 w-5" aria-hidden="true" /> : <ArrowLeft className="h-5 w-5" aria-hidden="true" />}
       </Link>
     );
@@ -67,7 +68,7 @@ const WorkspaceHeader = ({ property, houses, isSingle, isCollapsed }) => {
   return (
     <div data-workspace-header className="flex flex-col gap-1.5 px-1">
       {!isSingle && (
-        <Link href="/properties" className="inline-flex min-h-9 w-fit items-center gap-1 px-1.5 text-xs font-semibold text-sidebar-foreground/80 hover:text-sidebar-foreground">
+        <Link href={listHref} className="inline-flex min-h-9 w-fit items-center gap-1 px-1.5 text-xs font-semibold text-sidebar-foreground/80 hover:text-sidebar-foreground">
           <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
           সব সম্পদ
         </Link>
@@ -96,10 +97,11 @@ const WorkspaceHeader = ({ property, houses, isSingle, isCollapsed }) => {
 
 const Sidebar = ({ isCollapsed }) => {
   const pathname = usePathname();
-  const { workspaceId, property, houses, me, isSingle, hasShared, hasGranted } = useWorkspace();
+  const { workspaceId, property, houses, me, isSingle, hasShared, hasGranted, world } = useWorkspace();
+  const home = dashboardItem(world);
   const items = workspaceId
     ? propertyNav(workspaceId, { kind: property?.kind, isShared: isSharedProperty(property), isMain: !!me && property?.owner === me, myAccess: property?.myAccess, hasMembers: hasMembersOf(property) })
-    : outsideNav({ hasShared, hasGranted });
+    : outsideNav({ world, hasShared, hasGranted });
 
   const renderItems = (list) =>
     list.map((item) => <NavItem key={item.href} {...item} isActive={isNavActive(pathname, item)} isCollapsed={isCollapsed} />);
@@ -114,7 +116,7 @@ const Sidebar = ({ isCollapsed }) => {
       <Image src="/images/dashboard/sidenavbar.jpg" alt="" fill sizes="900px" className="-z-20 object-cover object-[72%_100%]" />
       <div className="absolute inset-0 -z-10 bg-linear-to-b from-sidebar via-sidebar/80 to-sidebar/10" />
 
-      <Link href="/dashboard" aria-label="Go to dashboard" className={cn("w-fit pt-2 pb-1", isCollapsed ? "self-center" : "px-2")}>
+      <Link href={home.href} aria-label="Go to dashboard" className={cn("w-fit pt-2 pb-1", isCollapsed ? "self-center" : "px-2")}>
         <Logo showTagline light iconOnly={isCollapsed} />
       </Link>
 
@@ -123,9 +125,9 @@ const Sidebar = ({ isCollapsed }) => {
         {workspaceId && property && (
           <>
             {/* সম্পদের ভেতরেও Dashboard এ ফেরা সবসময় এক চাপে */}
-            <NavItem {...DASHBOARD_ITEM} isActive={isNavActive(pathname, DASHBOARD_ITEM)} isCollapsed={isCollapsed} />
+            <NavItem {...home} isActive={isNavActive(pathname, home)} isCollapsed={isCollapsed} />
             <hr className="my-2 border-sidebar-foreground/10" />
-            <WorkspaceHeader property={property} houses={houses} isSingle={isSingle} isCollapsed={isCollapsed} />
+            <WorkspaceHeader property={property} houses={houses} isSingle={isSingle} isCollapsed={isCollapsed} world={world} />
             <hr className="my-2 border-sidebar-foreground/10" />
           </>
         )}

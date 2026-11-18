@@ -2,9 +2,10 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { CheckCircle2, ChevronRight, LayoutGrid, ListChecks, Plus, ReceiptText, Search, SearchX, Zap } from "lucide-react";
+import { CheckCircle2, ChevronRight, LayoutGrid, ListChecks, Plus, ReceiptText, Search, SearchX, Store, Zap } from "lucide-react";
 import BulkSetupModal from "./BulkSetupModal";
 import QuickAddUnitsModal from "./QuickAddUnitsModal";
+import ShopsSetupModal from "./ShopsSetupModal";
 import UnitFormModal from "./UnitFormModal";
 import GenerateBillsModal from "@/components/bill/GenerateBillsModal";
 import SendBillButton from "@/components/bill/SendBillButton";
@@ -102,10 +103,16 @@ const UnitRow = ({ propertyId, unit, bill, onCreateBill, onPay }) => {
             </span>
           )}
           <span className="block text-xs text-muted xl:hidden">
-            {floorName(unit.floor)} · {typeLabel} · {formatMoney(rent)}
+            {floorName(unit.floor)}
+            {unit.block && ` · ব্লক ${unit.block}`}
+            {unit.sizeSqft ? ` · ${toBanglaNumber(unit.sizeSqft)} বর্গফুট` : ""} · {typeLabel} · {formatMoney(rent)}
             {unit.tenancy && ` · Advance ${formatMoney(unit.tenancy.advance)}`}
           </span>
-          <span className="hidden text-xs text-muted xl:block">{floorName(unit.floor)}</span>
+          <span className="hidden text-xs text-muted xl:block">
+            {floorName(unit.floor)}
+            {unit.block && ` · ব্লক ${unit.block}`}
+            {unit.sizeSqft ? ` · ${toBanglaNumber(unit.sizeSqft)} বর্গফুট` : ""}
+          </span>
         </span>
         <span data-unit-type className="hidden text-sm text-muted xl:block">
           {typeLabel}
@@ -142,6 +149,7 @@ const UnitRow = ({ propertyId, unit, bill, onCreateBill, onPay }) => {
 const UnitList = ({ property, initialFilter = "All" }) => {
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isQuickOpen, setIsQuickOpen] = useState(false);
+  const [isShopsOpen, setIsShopsOpen] = useState(false);
   const [isBulkOpen, setIsBulkOpen] = useState(false);
   const [justCreated, setJustCreated] = useState(0);
   const [filter, setFilter] = useState(initialFilter);
@@ -183,9 +191,15 @@ const UnitList = ({ property, initialFilter = "All" }) => {
       .sort(SORTERS[sort]);
   }, [units, activeType, filter, search, sort]);
 
-  // অন্যের বিল্ডিংয়ে আমার কয়েকটা ফ্ল্যাট — একসাথে অনেক বানানোর দরকার নেই
+  // অন্যের বিল্ডিংয়ে আমার কয়েকটা ফ্ল্যাট — একসাথে অনেক বানানোর দরকার নেই; মার্কেটে তলা ধরে দোকান
   const isFlats = property.kind === "flats";
-  const quickAddButton = isFlats ? (
+  const isMarket = property.kind === "market";
+  const quickAddButton = isMarket ? (
+    <Button size="sm" onClick={() => setIsShopsOpen(true)}>
+      <Store className="h-4 w-4" aria-hidden="true" />
+      একসাথে দোকান তৈরি
+    </Button>
+  ) : isFlats ? (
     <Button size="sm" onClick={() => setIsAddOpen(true)}>
       <Plus className="h-4 w-4" aria-hidden="true" />
       আরেকটা ফ্ল্যাট যোগ করুন
@@ -208,7 +222,7 @@ const UnitList = ({ property, initialFilter = "All" }) => {
             onChange={(next) => setFilter(Object.keys(FILTER_LABELS).find((key) => FILTER_LABELS[key] === next) ?? next)}
           />
           <div className="flex flex-wrap gap-2">
-            {units.length > 0 && !isFlats && (
+            {units.length > 0 && !isFlats && !isMarket && (
               <Button size="sm" onClick={() => setIsBulkOpen(true)}>
                 <ListChecks className="h-4 w-4" aria-hidden="true" />
                 Bulk Setup
@@ -217,7 +231,7 @@ const UnitList = ({ property, initialFilter = "All" }) => {
             {units.length > 0 && !isFlats && quickAddButton}
             <Button variant="outline" size="sm" onClick={() => setIsAddOpen(true)}>
               <Plus className="h-4 w-4" aria-hidden="true" />
-              {isFlats ? "আরেকটা ফ্ল্যাট যোগ করুন" : "Add Unit"}
+              {isMarket ? "দোকান যোগ" : isFlats ? "আরেকটা ফ্ল্যাট যোগ করুন" : "Add Unit"}
             </Button>
           </div>
         </div>
@@ -239,7 +253,7 @@ const UnitList = ({ property, initialFilter = "All" }) => {
             compact
             type="search"
             aria-label="Search units"
-            placeholder="ইউনিটের নাম খুঁজুন"
+            placeholder={isMarket ? "দোকান নম্বর খুঁজুন" : "ইউনিটের নাম খুঁজুন"}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             suffix={<Search className="h-4 w-4 shrink-0 text-muted" aria-hidden="true" />}
@@ -260,11 +274,13 @@ const UnitList = ({ property, initialFilter = "All" }) => {
       {justCreated > 0 && (
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-primary-soft px-4 py-3">
           <p data-created-banner className="text-sm font-semibold">
-            {toBanglaNumber(justCreated)}টি ইউনিট তৈরি হয়েছে। এবার ভাড়া ও রুমের তথ্য দিন।
+            {isMarket ? `${toBanglaNumber(justCreated)}টি দোকান তৈরি হয়েছে। দরকার হলে প্রতিটা দোকানের মাপ, ভাড়া আর সার্ভিস চার্জ বদলাতে পারবেন।` : `${toBanglaNumber(justCreated)}টি ইউনিট তৈরি হয়েছে। এবার ভাড়া ও রুমের তথ্য দিন।`}
           </p>
-          <Button size="sm" onClick={() => setIsBulkOpen(true)}>
-            Bulk Setup করুন
-          </Button>
+          {!isMarket && (
+            <Button size="sm" onClick={() => setIsBulkOpen(true)}>
+              Bulk Setup করুন
+            </Button>
+          )}
         </div>
       )}
 
@@ -277,8 +293,8 @@ const UnitList = ({ property, initialFilter = "All" }) => {
       ) : units.length === 0 ? (
         <EmptyState
           icon={LayoutGrid}
-          title="No units yet"
-          description={isFlats ? "এই বিল্ডিংয়ে আপনার ফ্ল্যাট বা দোকান যোগ করুন।" : "Quick Add দিয়ে একবারে সব ফ্ল্যাট তৈরি করুন, পরে যেকোনোটি বদলাতে পারবেন।"}
+          title={isMarket ? "এখনো কোনো দোকান নেই" : "No units yet"}
+          description={isMarket ? "তলা বেছে কয়টা দোকান দিলেই নম্বর নিজে থেকে বসবে — G-01, 1-01, B1-01 …" : isFlats ? "এই বিল্ডিংয়ে আপনার ফ্ল্যাট বা দোকান যোগ করুন।" : "Quick Add দিয়ে একবারে সব ফ্ল্যাট তৈরি করুন, পরে যেকোনোটি বদলাতে পারবেন।"}
           action={quickAddButton}
         />
       ) : shownUnits.length === 0 ? (
@@ -319,9 +335,10 @@ const UnitList = ({ property, initialFilter = "All" }) => {
       {payingId && <PayModal key={payingId} bill={[...billByTenancy.values()].find(({ _id }) => _id === payingId)} onClose={() => setPayingId(null)} />}
 
       {isAddOpen && (
-        <UnitFormModal propertyId={property._id} totalFloors={property.totalFloors} onClose={() => setIsAddOpen(false)} />
+        <UnitFormModal propertyId={property._id} totalFloors={property.totalFloors} isMarket={isMarket} basements={property.basementFloors ?? 0} blocks={property.blocks ?? []} onClose={() => setIsAddOpen(false)} />
       )}
 
+      {isShopsOpen && <ShopsSetupModal property={property} onCreated={setJustCreated} onClose={() => setIsShopsOpen(false)} />}
       {isQuickOpen && (
         <QuickAddUnitsModal
           propertyId={property._id}

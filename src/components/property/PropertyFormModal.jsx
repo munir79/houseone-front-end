@@ -18,10 +18,13 @@ import { useCreatePropertyMutation, useUpdatePropertyMutation } from "@/redux/fe
 const toLocationValue = (location) =>
   location ? { lat: location.coordinates[1], lng: location.coordinates[0], label: location.label, locality: location.locality } : null;
 
+const BASEMENT_OPTIONS = [0, 1, 2, 3, 4, 5].map((count) => ({ value: String(count), label: count === 0 ? "বেসমেন্ট নেই" : `${count}টা বেসমেন্ট` }));
+
 // property না দিলে নতুন বাড়ি, দিলে Edit
-// isShared — "অংশীদারি সম্পদ" থেকে তৈরি হলে
-const PropertyFormModal = ({ property, onClose, onSaved, isShared = false }) => {
+// isShared — "অংশীদারি সম্পদ" থেকে তৈরি হলে; kind="market" — মার্কেট (বেসমেন্ট ও ব্লক সহ)
+const PropertyFormModal = ({ property, onClose, onSaved, isShared = false, kind = "whole" }) => {
   const isEdit = Boolean(property);
+  const isMarket = (property?.kind ?? kind) === "market";
 
   const [form, setForm] = useState({
     name: property?.name || "",
@@ -31,7 +34,9 @@ const PropertyFormModal = ({ property, onClose, onSaved, isShared = false }) => 
     totalFloors: property?.totalFloors?.toString() || "",
     receiptName: property?.receiptName || "",
     receiptPhone: property?.receiptPhone || "",
-    kind: property?.kind || "whole",
+    kind: property?.kind || kind,
+    basementFloors: String(property?.basementFloors ?? 0),
+    blocks: (property?.blocks ?? []).join(", "),
   });
   const [errors, setErrors] = useState({});
   const [location, setLocation] = useState(toLocationValue(property?.location));
@@ -74,7 +79,7 @@ const PropertyFormModal = ({ property, onClose, onSaved, isShared = false }) => 
     const newErrors = {};
     const floors = Number(form.totalFloors);
 
-    if (!form.name.trim()) newErrors.name = "বাড়ির নাম লিখুন";
+    if (!form.name.trim()) newErrors.name = isMarket ? "মার্কেটের নাম লিখুন" : "বাড়ির নাম লিখুন";
     if (!location) newErrors.location = "ম্যাপে বাড়ির লোকেশন দিন — নাম লিখে খুঁজুন বা পাশের বোতামে নিজের লোকেশন";
     if (!form.city) newErrors.city = "জেলা বেছে নিন";
     if (!finalArea) newErrors.area = "এলাকার নাম লিখুন";
@@ -100,6 +105,7 @@ const PropertyFormModal = ({ property, onClose, onSaved, isShared = false }) => 
       kind: form.kind,
       location: { lat: location.lat, lng: location.lng, label: location.label, locality: location.locality },
       photos: photos.map(({ publicId, version, signature }) => ({ publicId, version, signature })),
+      ...(isMarket ? { basementFloors: Number(form.basementFloors), blocks: form.blocks } : {}),
     };
 
     try {
@@ -111,15 +117,15 @@ const PropertyFormModal = ({ property, onClose, onSaved, isShared = false }) => 
       onSaved?.(response.data);
       onClose();
     } catch (err) {
-      toast.error(getErrorMessage(err, "বাড়ি সেভ হয়নি। আবার চেষ্টা করুন।"));
+      toast.error(getErrorMessage(err, isMarket ? "মার্কেট সেভ হয়নি। আবার চেষ্টা করুন।" : "বাড়ি সেভ হয়নি। আবার চেষ্টা করুন।"));
     }
   };
 
   return (
-    <Modal title={isEdit ? "Edit House" : "Add House"} onClose={onClose} size="lg">
-      <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
+    <Modal title={isMarket ? (isEdit ? "মার্কেট বদলান" : "মার্কেট যোগ করুন") : isEdit ? "Edit House" : "Add House"} onClose={onClose} size="lg">
+      <form data-property-form={isMarket ? "market" : "house"} onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
         <FormSection title="Basic information">
-          {isEdit && (
+          {isEdit && !isMarket && (
             <Select
               id="propertyKind"
               label="কী আছে"
@@ -134,15 +140,15 @@ const PropertyFormModal = ({ property, onClose, onSaved, isShared = false }) => 
           <div className="grid gap-4 sm:grid-cols-[1fr_140px]">
             <Input
               id="name"
-              label="House name"
-              placeholder="Sunshine Residency"
+              label={isMarket ? "মার্কেটের নাম" : "House name"}
+              placeholder={isMarket ? "Rupayan Shopping Center" : "Sunshine Residency"}
               value={form.name}
               onChange={handleChange("name")}
               error={errors.name}
             />
             <Input
               id="totalFloors"
-              label="Total floors"
+              label={isMarket ? "নিচতলার উপরে তলা" : "Total floors"}
               type="number"
               inputMode="numeric"
               min="1"
@@ -153,6 +159,12 @@ const PropertyFormModal = ({ property, onClose, onSaved, isShared = false }) => 
               error={errors.totalFloors}
             />
           </div>
+          {isMarket && (
+            <div className="grid gap-4 sm:grid-cols-[180px_1fr]">
+              <Select id="basementFloors" label="বেসমেন্ট (মাটির নিচের তলা)" options={BASEMENT_OPTIONS} value={form.basementFloors} onChange={handleChange("basementFloors")} />
+              <Input id="blocks" label="ব্লক বা লাইন (ঐচ্ছিক)" placeholder="যেমন: A, B, C" value={form.blocks} onChange={handleChange("blocks")} />
+            </div>
+          )}
         </FormSection>
 
         <FormSection title="Location">
@@ -209,7 +221,7 @@ const PropertyFormModal = ({ property, onClose, onSaved, isShared = false }) => 
             Cancel
           </Button>
           <Button type="submit" disabled={isPhotoBusy} isLoading={isCreating || isUpdating}>
-            {isEdit ? "Save Changes" : "Add House"}
+            {isEdit ? "Save Changes" : isMarket ? "মার্কেট যোগ করুন" : "Add House"}
           </Button>
         </div>
       </form>

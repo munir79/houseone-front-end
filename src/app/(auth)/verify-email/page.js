@@ -10,6 +10,7 @@ import Skeleton from "@/components/ui/Skeleton";
 import { setToken } from "@/lib/authStorage";
 import { getErrorMessage } from "@/lib/getErrorMessage";
 import { useResendOtpMutation, useVerifyEmailMutation } from "@/redux/features/auth/authApi";
+import { landingPath } from "@/lib/navigation";
 
 const RESEND_SECONDS = 60;
 
@@ -41,7 +42,7 @@ const VerifyEmailForm = () => {
       const response = await verifyEmail({ email, otp: otp.trim() }).unwrap();
       setToken(response.data.token);
       toast.success("Email verified. Welcome to HouseOne!");
-      router.replace("/dashboard");
+      router.replace(landingPath());
     } catch (err) {
       setError(getErrorMessage(err, "Could not verify the OTP."));
     }

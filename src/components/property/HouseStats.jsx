@@ -68,6 +68,7 @@ const HouseStats = ({ property, onOpenRent, onOpenPending }) => {
   const monthName = monthLabel(month).split(" ")[0];
   const { data, isLoading } = useGetBillsQuery({ month, propertyId: property._id });
 
+  const isMarket = property.kind === "market";
   const occupied = property.unitCount - property.vacantCount;
   const occupancy = property.unitCount ? Math.round((occupied / property.unitCount) * 100) : 0;
 
@@ -81,9 +82,9 @@ const HouseStats = ({ property, onOpenRent, onOpenPending }) => {
   const step = isLoading ? null : nextStep({ notBilled, unsent: summary?.unsent || 0, overdue: summary?.overdue || 0, monthName });
 
   const items = [
-    { key: "units", label: "Total Units", value: property.unitCount, icon: LayoutGrid },
-    { key: "occupied", label: "Occupied", value: occupied, hint: `${occupancy}%`, icon: KeyRound, tone: "blue" },
-    { key: "vacant", label: "Vacant", value: property.vacantCount, icon: DoorOpen, tone: "amber" },
+    { key: "units", label: isMarket ? "মোট দোকান" : "Total Units", value: property.unitCount, icon: LayoutGrid },
+    { key: "occupied", label: isMarket ? "ভাড়া হয়েছে" : "Occupied", value: occupied, hint: `${occupancy}%`, icon: KeyRound, tone: "blue" },
+    { key: "vacant", label: isMarket ? "খালি" : "Vacant", value: property.vacantCount, icon: DoorOpen, tone: "amber" },
     ...(showCollection
       ? [
           {

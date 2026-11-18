@@ -22,7 +22,7 @@ const Breadcrumbs = () => {
 
   // সম্পদের ভেতরে — সম্পদের নাম, তারপর সেই পাতা (Overview বাদে)
   const section = id ? propertyNav(id, { kind: property?.data?.kind, isShared: true, isMain: true, hasMembers: true }).find((item) => !item.exact && isNavActive(pathname, item)) : null;
-  const outside = !id ? outsideNav({ hasShared: true, hasGranted: true }).find((item) => isNavActive(pathname, item)) : null;
+  const outside = !id ? [...outsideNav({ hasShared: true, hasGranted: true }), ...outsideNav({ world: "market" })].find((item) => isNavActive(pathname, item)) : null;
   const globalPage = Object.keys(GLOBAL_PAGES).find((href) => pathname === href || pathname.startsWith(`${href}/`));
 
   const crumbs = [

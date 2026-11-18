@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useDispatch } from "react-redux";
 import { WifiOff } from "lucide-react";
 import BottomNav from "./BottomNav";
@@ -22,6 +22,7 @@ import SocketProvider from "@/socket/SocketProvider";
 
 const AppLayout = ({ children }) => {
   const router = useRouter();
+  const pathname = usePathname();
   const dispatch = useDispatch();
   const token = useAuthToken();
   const { isCollapsed, toggleSidebar } = useSidebarCollapsed();
@@ -31,6 +32,13 @@ const AppLayout = ({ children }) => {
   useEffect(() => {
     if (!getToken()) router.replace("/login");
   }, [router]);
+
+  // কী ভাড়া দেন এখনো বাছেননি — প্রথমবার স্বাগত পাতা
+  const needsWelcome = !!data && (data.data?.assetTypes ?? []).length === 0;
+  const isWelcome = pathname === "/welcome";
+  useEffect(() => {
+    if (needsWelcome && !isWelcome) router.replace("/welcome");
+  }, [needsWelcome, isWelcome, router]);
 
   const handleLogout = () => {
     clearAuth();
@@ -51,13 +59,18 @@ const AppLayout = ({ children }) => {
     );
   }
 
-  if (!token || isLoading || !data) {
+  if (!token || isLoading || !data || (needsWelcome && !isWelcome)) {
     return (
       <div className="flex flex-col gap-4 p-4 md:p-6">
         <Skeleton className="h-12 w-full" />
         <Skeleton className="h-40 w-full" />
       </div>
     );
+  }
+
+  // স্বাগত পাতা — sidebar ছাড়া, পুরো পর্দায়
+  if (isWelcome) {
+    return <SocketProvider token={token}>{children}</SocketProvider>;
   }
 
   return (

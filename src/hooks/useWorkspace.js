@@ -3,12 +3,13 @@
 import { useEffect, useSyncExternalStore } from "react";
 import { usePathname } from "next/navigation";
 import { useGetMyProfileQuery } from "@/redux/features/auth/authApi";
-import { isSharedProperty } from "@/lib/navigation";
+import { isSharedProperty, rememberWorld, worldOf } from "@/lib/navigation";
 import { useGetPropertiesQuery } from "@/redux/features/property/propertyApi";
 
 const PROPERTY_URL = /^\/properties\/([a-f0-9]{24})(?:\/|$)/;
 // এই পাতাগুলো সব সম্পদের — এখানে কোনো সম্পদ বাছা থাকে না
-export const OUTSIDE_PAGES = ["/dashboard", "/properties", "/shared", "/granted"];
+export const OUTSIDE_PAGES = ["/dashboard", "/properties", "/shared", "/granted", "/market", "/markets"];
+const MARKET_PAGES = ["/market", "/markets"];
 // সব পাতায় একই query — একবারই আনা হয়
 export const ALL_PROPERTIES = { page: 1, search: "", limit: 100 };
 
@@ -51,27 +52,53 @@ export const useWorkspace = () => {
   const { data: profile } = useGetMyProfileQuery();
   const last = useSyncExternalStore(subscribe, readLast, () => null);
 
-  const houses = data?.data?.data || [];
+  const all = data?.data?.data || [];
   const me = profile?.data?._id;
   const fromUrl = pathname.match(PROPERTY_URL)?.[1] ?? null;
-  const isSingle = houses.length === 1;
   const isOutside = OUTSIDE_PAGES.includes(pathname);
+  // কী ভাড়া দেন (স্বাগত পাতা বা Settings), অথবা যা আসলে আছে
+  const assetTypes = profile?.data?.assetTypes ?? [];
+  const hasMarket = assetTypes.includes("market") || all.some((house) => worldOf(house) === "market");
+  const hasHouse = assetTypes.includes("house") || all.some((house) => worldOf(house) === "house");
+
+  // কোন জগৎ — সম্পদের ভেতরে তার ধরন, বাইরে URL; শুধু মার্কেট থাকলে মার্কেট
+  const urlProperty = all.find(({ _id }) => _id === fromUrl);
+  const lastProperty = !isOutside ? all.find(({ _id }) => _id === last) : null;
+  const world = urlProperty
+    ? worldOf(urlProperty)
+    : MARKET_PAGES.includes(pathname)
+      ? "market"
+      : lastProperty
+        ? worldOf(lastProperty)
+        : hasMarket && !hasHouse
+          ? "market"
+          : "house";
+  // এই জগতের সম্পদ — switcher, "একটাই সম্পদ" এর হিসাব এগুলো দিয়ে
+  const houses = all.filter((house) => worldOf(house) === world);
+  const isSingle = houses.length === 1;
 
   useEffect(() => {
     if (fromUrl) saveLast(fromUrl);
   }, [fromUrl]);
 
+  useEffect(() => {
+    if (!isLoading) rememberWorld(world);
+  }, [world, isLoading]);
+
   const workspaceId = fromUrl ?? (isSingle ? houses[0]._id : !isOutside && houses.some(({ _id }) => _id === last) ? last : null);
 
   return {
     workspaceId,
-    property: houses.find(({ _id }) => _id === workspaceId) ?? null,
+    property: all.find(({ _id }) => _id === workspaceId) ?? null,
     houses,
     me,
     isSingle,
     isOutside,
     hasShared: houses.some((house) => isSharedProperty(house) && !house.myAccess),
     hasGranted: houses.some(({ myAccess }) => !!myAccess),
+    world,
+    hasMarket,
+    hasHouse,
     isLoading,
   };
 };

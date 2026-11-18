@@ -10,6 +10,7 @@ import PasswordInput from "@/components/ui/PasswordInput";
 import { setToken } from "@/lib/authStorage";
 import { getErrorMessage } from "@/lib/getErrorMessage";
 import { useSignInMutation } from "@/redux/features/auth/authApi";
+import { landingPath } from "@/lib/navigation";
 
 const LoginPage = () => {
   const router = useRouter();
@@ -35,7 +36,7 @@ const LoginPage = () => {
       const response = await signIn({ email, password }).unwrap();
       setToken(response.data.token);
       toast.success("Login successful!");
-      router.replace("/dashboard");
+      router.replace(landingPath());
     } catch (err) {
       if (err?.data?.code === "EMAIL_NOT_VERIFIED") {
         toast.info("We sent an OTP to your email. Please verify it first.");

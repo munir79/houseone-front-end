@@ -15,7 +15,7 @@ import Skeleton from "@/components/ui/Skeleton";
 import StatStrip from "@/components/ui/StatStrip";
 import { monthLabel } from "@/lib/billOptions";
 import { formatMoney } from "@/lib/formatMoney";
-import { propertyPath } from "@/lib/navigation";
+import { kindLabel, propertyPath } from "@/lib/navigation";
 import { toBanglaNumber } from "@/lib/toBanglaNumber";
 import { unitActivity } from "@/lib/unitActivity";
 import { useGetDashboardMoneyQuery } from "@/redux/features/dashboard/dashboardApi";
@@ -34,7 +34,8 @@ const PropertyOverview = ({ property, badge, menu, onAddAsset }) => {
   const monthName = money ? monthLabel(money.month).split(" ")[0] : "";
   const units = unitsData?.data || [];
   const actionCount = units.filter((unit) => unitActivity(unit)?.needsAction).length;
-  const kindText = property.kind === "flats" ? "অন্যের বিল্ডিংয়ে আমার ফ্ল্যাট" : "পুরো বাড়ি";
+  const isMarket = property.kind === "market";
+  const kindText = kindLabel(property.kind);
 
   return (
     <>
@@ -42,7 +43,7 @@ const PropertyOverview = ({ property, badge, menu, onAddAsset }) => {
         eyebrow={`${kindText} · ${property.area}, ${property.city}`}
         title={property.name}
         badge={badge}
-        description="এই সম্পদের ভাড়া, খরচ আর লাভের হিসাব এক জায়গায়।"
+        description={isMarket ? "এই মার্কেটের দোকান, ভাড়া, খরচ আর লাভের হিসাব এক জায়গায়।" : "এই সম্পদের ভাড়া, খরচ আর লাভের হিসাব এক জায়গায়।"}
         aside={menu}
         actions={
           <>
@@ -102,7 +103,7 @@ const PropertyOverview = ({ property, badge, menu, onAddAsset }) => {
                 এই সম্পদে এখন কোনো কাজ বাকি নেই
               </p>
               <LinkButton href={propertyPath(id, "units")} variant="outline" size="sm">
-                {property.kind === "flats" ? "আমার ফ্ল্যাট" : "সব ইউনিট"}
+                {isMarket ? "সব দোকান" : property.kind === "flats" ? "আমার ফ্ল্যাট" : "সব ইউনিট"}
               </LinkButton>
             </Card>
           )}

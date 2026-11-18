@@ -6,13 +6,16 @@ import Breadcrumbs from "./Breadcrumbs";
 import ProfileMenu from "./ProfileMenu";
 import NotificationBell from "@/components/notification/NotificationBell";
 import Logo from "@/components/ui/Logo";
+import { useWorkspace } from "@/hooks/useWorkspace";
+import { homeOf } from "@/lib/navigation";
 
 const Topbar = ({ user, onLogout, isCollapsed, onToggleSidebar }) => {
   const ToggleIcon = isCollapsed ? PanelLeftOpen : PanelLeftClose;
+  const { world } = useWorkspace();
 
   return (
     <header className="sticky top-0 z-20 flex min-h-16 items-center justify-between gap-3 border-b border-border bg-surface px-4 py-2 md:px-6">
-      <Link href="/dashboard" aria-label="Go to dashboard" className="md:hidden">
+      <Link href={homeOf(world)} aria-label="Go to dashboard" className="md:hidden">
         <Logo />
       </Link>
 

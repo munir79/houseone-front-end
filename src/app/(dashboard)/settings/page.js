@@ -309,6 +309,43 @@ const DataSection = () => {
   );
 };
 
+// কী ভাড়া দেন — বাসা-বাড়ি, মার্কেট বা দুটোই; কোন জগৎ দেখাবে তা এ দিয়ে
+const ASSET_TYPES = [
+  { value: "house", label: "বাসা-বাড়ি / ফ্ল্যাট", description: "পুরো বাড়ি, বা অন্যের বিল্ডিংয়ে আমার ফ্ল্যাট ও দোকান" },
+  { value: "market", label: "মার্কেট / শপিং কমপ্লেক্স", description: "অনেক দোকান — সালামি, সিকিউরিটি, সার্ভিস চার্জ" },
+];
+
+const AssetTypeSection = ({ account }) => {
+  const [types, setTypes] = useState(account.assetTypes ?? []);
+  const [updateProfile, { isLoading }] = useUpdateProfileMutation();
+  const toggle = (value, checked) => setTypes((prev) => (checked ? [...new Set([...prev, value])] : prev.filter((type) => type !== value)));
+
+  const handleSave = async () => {
+    if (types.length === 0) return toast.error("অন্তত একটা বাছুন");
+    try {
+      await updateProfile({ assetTypes: types }).unwrap();
+      toast.success("সেভ হয়েছে");
+    } catch (err) {
+      toast.error(getErrorMessage(err, "সেভ হয়নি। আবার চেষ্টা করুন।"));
+    }
+  };
+
+  return (
+    <Section title="আপনি কী ভাড়া দেন" description="দুটোই বাছলে উপরের profile menu থেকে বাড়ি আর মার্কেটের মধ্যে এক চাপে বদলাতে পারবেন" data-settings="asset-types">
+      <div className="flex flex-col gap-3">
+        {ASSET_TYPES.map(({ value, label, description }) => (
+          <Checkbox key={value} id={`assetType-${value}`} label={label} description={description} checked={types.includes(value)} onChange={(e) => toggle(value, e.target.checked)} />
+        ))}
+      </div>
+      <div>
+        <Button onClick={handleSave} isLoading={isLoading}>
+          Save
+        </Button>
+      </div>
+    </Section>
+  );
+};
+
 const SettingsPage = () => {
   const { data, isLoading } = useGetAccountQuery();
   const account = data?.data;
@@ -321,6 +358,7 @@ const SettingsPage = () => {
       ) : (
         <div className="flex flex-col gap-4">
           <ProfileSection key={`profile-${account.name}-${account.phone}-${account.photo}`} account={account} />
+          <AssetTypeSection key={`types-${(account.assetTypes ?? []).join()}`} account={account} />
           <PasswordSection />
           <ReceiptSection key={`receipt-${account.settings.receiptName}-${account.settings.receiptPhone}`} settings={account.settings} />
           <NotificationSection account={account} />

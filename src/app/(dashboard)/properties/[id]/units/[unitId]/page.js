@@ -222,6 +222,9 @@ const UnitDetailsPage = () => {
         <UnitFormModal
           propertyId={id}
           totalFloors={unit.property?.totalFloors ?? unit.floor}
+          isMarket={unit.property?.kind === "market"}
+          basements={unit.property?.basementFloors ?? 0}
+          blocks={unit.property?.blocks ?? []}
           unit={unit}
           onClose={() => setIsEditing(false)}
         />

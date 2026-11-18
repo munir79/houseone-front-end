@@ -5,9 +5,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Building2, Handshake, Image as ImageIcon, Layers, MapPin, Pencil, ReceiptText, SearchX, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import AddAssetModal from "./AddAssetModal";
+import PropertyFormModal from "./PropertyFormModal";
 import ContactList from "./ContactList";
 import PropertyOverview from "./PropertyOverview";
-import PropertyFormModal from "./PropertyFormModal";
 import BillBoard from "@/components/bill/BillBoard";
 import ExpenseBoard from "@/components/expense/ExpenseBoard";
 import ListingsBoard from "@/components/listing/ListingsBoard";
@@ -34,7 +34,7 @@ import Tabs from "@/components/ui/Tabs";
 import { useWorkspace } from "@/hooks/useWorkspace";
 import { getErrorMessage } from "@/lib/getErrorMessage";
 import { levelLabel } from "@/lib/accessOptions";
-import { isSharedProperty, propertyPath } from "@/lib/navigation";
+import { isSharedProperty, kindLabel, propertyPath } from "@/lib/navigation";
 import { useGetMyProfileQuery } from "@/redux/features/auth/authApi";
 import { useDeletePropertyMutation, useGetPropertyQuery } from "@/redux/features/property/propertyApi";
 
@@ -197,6 +197,7 @@ const PropertyWorkspace = ({ id, section }) => {
   }
 
   const isMainOwner = property.owner === profile?.data?._id;
+  const isMarket = property.kind === "market";
   const isShared = isSharedProperty(property);
   // পরিবারের অ্যাক্সেসে দেখছেন — সম্পদ বদলানো, অংশীদার, অ্যাক্সেস, সেটিং নয়
   const myAccess = property.myAccess;
@@ -205,9 +206,10 @@ const PropertyWorkspace = ({ id, section }) => {
   const actions = myAccess ? [] : [
     { key: "edit", label: "Edit", icon: Pencil, onClick: () => setIsEditing(true) },
     // একার সম্পদে অংশীদার পরে যোগ করা — যোগ হলে অংশীদারি সম্পদে চলে যায়
-    ...(isMainOwner && !isShared ? [{ key: "partner", label: "অংশীদার যোগ করুন", icon: Handshake, onClick: () => router.push(propertyPath(id, "sharing")) }] : []),
+    // মার্কেটে একাধিক মালিক অ্যাক্সেস দিয়ে — অংশীদারের ভাগ নয়
+    ...(isMainOwner && !isShared && !isMarket ? [{ key: "partner", label: "অংশীদার যোগ করুন", icon: Handshake, onClick: () => router.push(propertyPath(id, "sharing")) }] : []),
     // বাড়ি মোছা শুধু মূল মালিকের
-    ...(isMainOwner ? [{ key: "delete", label: "Delete House", icon: Trash2, onClick: () => setIsDeleteOpen(true) }] : []),
+    ...(isMainOwner ? [{ key: "delete", label: isMarket ? "মার্কেট মুছুন" : "Delete House", icon: Trash2, onClick: () => setIsDeleteOpen(true) }] : []),
   ];
 
   const sharedBadge = myAccess ? (
@@ -224,7 +226,7 @@ const PropertyWorkspace = ({ id, section }) => {
         compact
         badge={sharedBadge}
         title={property.name}
-        subtitle={`${property.kind === "flats" ? "অন্যের বিল্ডিংয়ে আমার ফ্ল্যাট" : "পুরো বাড়ি"} · ${property.area}, ${property.city}`}
+        subtitle={`${kindLabel(property.kind)} · ${property.area}, ${property.city}`}
         photoUrl={property.photos?.[0]?.url}
         icon={Building2}
         actions={menu}
@@ -272,11 +274,17 @@ const PropertyWorkspace = ({ id, section }) => {
           </Card>
         ))}
 
-      {isAddingAsset && <AddAssetModal onClose={() => setIsAddingAsset(false)} onSaved={(saved) => saved?._id && router.push(propertyPath(saved._id))} />}
+      {/* মার্কেটের ভেতর থেকে আরেকটা মার্কেট, বাড়ির ভেতর থেকে বাড়ি বা ফ্ল্যাট */}
+      {isAddingAsset &&
+        (property.kind === "market" ? (
+          <PropertyFormModal kind="market" onClose={() => setIsAddingAsset(false)} onSaved={(saved) => saved?._id && router.push(propertyPath(saved._id, "units"))} />
+        ) : (
+          <AddAssetModal onClose={() => setIsAddingAsset(false)} onSaved={(saved) => saved?._id && router.push(propertyPath(saved._id))} />
+        ))}
       {isEditing && <PropertyFormModal property={property} onClose={() => setIsEditing(false)} />}
       {isDeleteOpen && (
         <ConfirmDialog
-          title="Delete house?"
+          title={isMarket ? "মার্কেট মুছবেন?" : "Delete house?"}
           message={`"${property.name}" আপনার তালিকা থেকে মুছে যাবে।`}
           isLoading={isDeleting}
           onConfirm={handleDelete}

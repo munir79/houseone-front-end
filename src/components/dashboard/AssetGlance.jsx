@@ -10,10 +10,11 @@ import { formatMoney } from "@/lib/formatMoney";
 import { propertyPath } from "@/lib/navigation";
 import { toBanglaNumber } from "@/lib/toBanglaNumber";
 
-const kindText = (kind) => (kind === "flats" ? "অন্যের বিল্ডিংয়ে আমার ফ্ল্যাট" : "পুরো বাড়ি");
+const kindText = (kind) => (kind === "market" ? "মার্কেট" : kind === "flats" ? "অন্যের বিল্ডিংয়ে আমার ফ্ল্যাট" : "পুরো বাড়ি");
 
 // সম্পদ এক নজরে — প্রতিটা সম্পদে এই মাসের আদায়, খালি ইউনিট আর করণীয়; চাপলে ভেতরে
-const AssetGlance = ({ houses, byHouse = [], monthName, isLoading }) => {
+// title, allHref — বাড়ি বা মার্কেটের জগৎ অনুযায়ী
+const AssetGlance = ({ houses, byHouse = [], monthName, isLoading, title = "সম্পদ এক নজরে", allHref = "/properties", allLabel = "সব সম্পদ" }) => {
   if (isLoading) {
     return (
       <div className="grid gap-3 sm:grid-cols-2">
@@ -30,7 +31,7 @@ const AssetGlance = ({ houses, byHouse = [], monthName, isLoading }) => {
           icon={Building2}
           title="No properties yet"
           description="প্রথম বাড়ি বা ফ্ল্যাটটি যোগ করুন, তারপর এখানে সব হিসাব দেখবেন।"
-          action={<LinkButton href="/properties">সম্পদ যোগ করুন</LinkButton>}
+          action={<LinkButton href={allHref}>সম্পদ যোগ করুন</LinkButton>}
         />
       </Card>
     );
@@ -41,9 +42,9 @@ const AssetGlance = ({ houses, byHouse = [], monthName, isLoading }) => {
   return (
     <section data-asset-glance className="flex min-w-0 flex-col gap-3">
       <div className="flex items-center justify-between gap-2">
-        <h2 className="text-lg font-bold">সম্পদ এক নজরে</h2>
-        <Link href="/properties" className="inline-flex min-h-11 items-center gap-1 text-sm font-semibold text-primary md:min-h-0">
-          সব সম্পদ
+        <h2 className="text-lg font-bold">{title}</h2>
+        <Link href={allHref} className="inline-flex min-h-11 items-center gap-1 text-sm font-semibold text-primary md:min-h-0">
+          {allLabel}
           <ArrowRight className="h-4 w-4" aria-hidden="true" />
         </Link>
       </div>

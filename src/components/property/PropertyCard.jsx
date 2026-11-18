@@ -15,7 +15,7 @@ const Metric = ({ value, label }) => (
 );
 
 // "পুরো বাড়ি · ২০টি ইউনিট" বা "এই বিল্ডিংয়ে আমার ১টি"
-const kindText = ({ kind, unitCount }) => (kind === "flats" ? `এই বিল্ডিংয়ে আমার ${toBanglaNumber(unitCount)}টি` : "পুরো বাড়ি");
+const kindText = ({ kind, unitCount }) => (kind === "market" ? `মার্কেট · ${toBanglaNumber(unitCount)}টি দোকান` : kind === "flats" ? `এই বিল্ডিংয়ে আমার ${toBanglaNumber(unitCount)}টি` : "পুরো বাড়ি");
 
 // note — অংশীদারি সম্পদের পাতায় "আপনি মূল মালিক", অপেক্ষায় থাকা দাওয়াত ইত্যাদি
 const PropertyCard = ({ property, note }) => {

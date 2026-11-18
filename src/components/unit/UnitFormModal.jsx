@@ -9,19 +9,22 @@ import Modal from "@/components/ui/Modal";
 import MultiImageUpload from "@/components/ui/MultiImageUpload";
 import Select from "@/components/ui/Select";
 import { getErrorMessage } from "@/lib/getErrorMessage";
-import { LIVING_LAYOUT_OPTIONS, PREFERRED_TENANT_OPTIONS, UNIT_STATUS_OPTIONS, UNIT_TYPE_OPTIONS, floorOptions } from "@/lib/unitOptions";
+import { LIVING_LAYOUT_OPTIONS, PREFERRED_TENANT_OPTIONS, SHOP_TYPE_OPTIONS, UNIT_STATUS_OPTIONS, UNIT_TYPE_OPTIONS, floorOptions } from "@/lib/unitOptions";
 import { useCreateUnitMutation, useUpdateUnitMutation } from "@/redux/features/unit/unitApi";
 
 const toText = (value) => (value === null || value === undefined ? "" : String(value));
 
 // unit না দিলে নতুন ইউনিট, দিলে Edit — সব ঘর পরে বদলানো যায়
-const UnitFormModal = ({ propertyId, totalFloors, unit, onClose }) => {
+// isMarket — মার্কেটের দোকান: বেসমেন্ট, ব্লক, সার্ভিস চার্জ; বাসার ঘর (রুম, গ্যাস …) নেই
+const UnitFormModal = ({ propertyId, totalFloors, unit, onClose, isMarket = false, basements = 0, blocks = [] }) => {
   const isEdit = Boolean(unit);
 
   const [form, setForm] = useState({
     name: unit?.name || "",
     floor: toText(unit?.floor),
-    type: unit?.type || "Flat",
+    type: unit?.type || (isMarket ? "Shop" : "Flat"),
+    block: unit?.block || "",
+    serviceCharge: toText(unit?.serviceCharge),
     status: unit?.status || "Vacant",
     preferredTenant: unit?.preferredTenant || "Any",
     rent: toText(unit?.rent),
@@ -51,7 +54,7 @@ const UnitFormModal = ({ propertyId, totalFloors, unit, onClose }) => {
 
   const validate = () => {
     const newErrors = {};
-    if (!form.name.trim()) newErrors.name = "ইউনিটের নাম লিখুন";
+    if (!form.name.trim()) newErrors.name = isMarket ? "দোকান নম্বর লিখুন" : "ইউনিটের নাম লিখুন";
     if (form.floor === "") newErrors.floor = "তলা বেছে নিন";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -61,8 +64,13 @@ const UnitFormModal = ({ propertyId, totalFloors, unit, onClose }) => {
     e.preventDefault();
     if (!validate()) return;
 
+    // মার্কেটে শুধু দোকানের ঘর যায়; বাসায় ব্লক বা সার্ভিস চার্জ নেই
+    const { block, serviceCharge, ...houseFields } = form;
+    const fields = isMarket
+      ? { name: form.name, type: form.type, status: form.status, rent: form.rent, sizeSqft: form.sizeSqft, electricityMeter: form.electricityMeter, note: form.note, block, serviceCharge }
+      : houseFields;
     const body = {
-      ...form,
+      ...fields,
       floor: Number(form.floor),
       availableFrom: form.availableFrom || null,
       photos: photos.map(({ publicId, version, signature }) => ({ publicId, version, signature })),
@@ -76,12 +84,12 @@ const UnitFormModal = ({ propertyId, totalFloors, unit, onClose }) => {
       toast.success(response.message);
       onClose();
     } catch (err) {
-      toast.error(getErrorMessage(err, "ইউনিট সেভ হয়নি। আবার চেষ্টা করুন।"));
+      toast.error(getErrorMessage(err, isMarket ? "দোকান সেভ হয়নি। আবার চেষ্টা করুন।" : "ইউনিট সেভ হয়নি। আবার চেষ্টা করুন।"));
     }
   };
 
   return (
-    <Modal title={isEdit ? "Edit Unit" : "Add Unit"} onClose={onClose} size="lg">
+    <Modal title={isMarket ? (isEdit ? "দোকান বদলান" : "দোকান যোগ করুন") : isEdit ? "Edit Unit" : "Add Unit"} onClose={onClose} size="lg">
       <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
         <FormSection title="Basic information">
           <Input
@@ -97,12 +105,15 @@ const UnitFormModal = ({ propertyId, totalFloors, unit, onClose }) => {
               id="unitFloor"
               label="Floor"
               placeholder="তলা বেছে নিন"
-              options={floorOptions(totalFloors)}
+              options={floorOptions(totalFloors, isMarket ? basements : 0)}
               value={form.floor}
               onChange={handleChange("floor")}
               error={errors.floor}
             />
-            <Select id="unitType" label="Type" options={UNIT_TYPE_OPTIONS} value={form.type} onChange={handleChange("type")} />
+            <Select id="unitType" label="Type" options={isMarket ? SHOP_TYPE_OPTIONS : UNIT_TYPE_OPTIONS} value={form.type} onChange={handleChange("type")} />
+            {isMarket && blocks.length > 0 && (
+              <Select id="unitBlock" label="ব্লক বা লাইন" options={[{ value: "", label: "ব্লক ছাড়া" }, ...blocks.map((value) => ({ value, label: `ব্লক ${value}` }))]} value={form.block} onChange={handleChange("block")} />
+            )}
             <Select id="unitStatus" label="Status" options={UNIT_STATUS_OPTIONS} value={form.status} onChange={handleChange("status")} />
           </div>
         </FormSection>
@@ -119,37 +130,41 @@ const UnitFormModal = ({ propertyId, totalFloors, unit, onClose }) => {
               value={form.rent}
               onChange={handleChange("rent")}
             />
-            <Input
-              id="unitBedrooms"
-              type="number"
-              inputMode="numeric"
-              min="0"
-              label="Bedrooms"
-              placeholder="3"
-              value={form.bedrooms}
-              onChange={handleChange("bedrooms")}
-            />
-            <Input
-              id="unitBathrooms"
-              type="number"
-              inputMode="numeric"
-              min="0"
-              label="Bathrooms"
-              placeholder="2"
-              value={form.bathrooms}
-              onChange={handleChange("bathrooms")}
-            />
-            <Input
-              id="unitBalconies"
-              type="number"
-              inputMode="numeric"
-              min="0"
-              label="Balconies"
-              placeholder="2"
-              value={form.balconies}
-              onChange={handleChange("balconies")}
-            />
-            <Select id="unitLayout" label="Drawing & dining" options={LIVING_LAYOUT_OPTIONS} value={form.livingLayout} onChange={handleChange("livingLayout")} />
+            {!isMarket && (
+              <>
+                <Input
+                  id="unitBedrooms"
+                  type="number"
+                  inputMode="numeric"
+                  min="0"
+                  label="Bedrooms"
+                  placeholder="3"
+                  value={form.bedrooms}
+                  onChange={handleChange("bedrooms")}
+                />
+                <Input
+                  id="unitBathrooms"
+                  type="number"
+                  inputMode="numeric"
+                  min="0"
+                  label="Bathrooms"
+                  placeholder="2"
+                  value={form.bathrooms}
+                  onChange={handleChange("bathrooms")}
+                />
+                <Input
+                  id="unitBalconies"
+                  type="number"
+                  inputMode="numeric"
+                  min="0"
+                  label="Balconies"
+                  placeholder="2"
+                  value={form.balconies}
+                  onChange={handleChange("balconies")}
+                />
+                <Select id="unitLayout" label="Drawing & dining" options={LIVING_LAYOUT_OPTIONS} value={form.livingLayout} onChange={handleChange("livingLayout")} />
+              </>
+            )}
             <Input
               id="unitSize"
               type="number"
@@ -160,17 +175,21 @@ const UnitFormModal = ({ propertyId, totalFloors, unit, onClose }) => {
               value={form.sizeSqft}
               onChange={handleChange("sizeSqft")}
             />
-            <Input
-              id="unitMaxPeople"
-              type="number"
-              inputMode="numeric"
-              min="1"
-              max="30"
-              label="Maximum people"
-              placeholder="বাড়ির সেটিং"
-              value={form.maxPeople}
-              onChange={handleChange("maxPeople")}
-            />
+            {isMarket ? (
+              <Input id="unitServiceCharge" type="number" inputMode="numeric" min="0" label="সার্ভিস চার্জ (৳)" placeholder="1500" value={form.serviceCharge} onChange={handleChange("serviceCharge")} />
+            ) : (
+              <Input
+                id="unitMaxPeople"
+                type="number"
+                inputMode="numeric"
+                min="1"
+                max="30"
+                label="Maximum people"
+                placeholder="বাড়ির সেটিং"
+                value={form.maxPeople}
+                onChange={handleChange("maxPeople")}
+              />
+            )}
           </div>
         </FormSection>
 
@@ -187,13 +206,15 @@ const UnitFormModal = ({ propertyId, totalFloors, unit, onClose }) => {
               value={form.availableFrom}
               onChange={handleChange("availableFrom")}
             />
-            <Select
-              id="unitPreferred"
-              label="Prefer to rent to"
-              options={PREFERRED_TENANT_OPTIONS}
-              value={form.preferredTenant}
-              onChange={handleChange("preferredTenant")}
-            />
+            {!isMarket && (
+              <Select
+                id="unitPreferred"
+                label="Prefer to rent to"
+                options={PREFERRED_TENANT_OPTIONS}
+                value={form.preferredTenant}
+                onChange={handleChange("preferredTenant")}
+              />
+            )}
             <Input
               id="unitMeter"
               label="Electricity meter (optional)"
@@ -201,13 +222,15 @@ const UnitFormModal = ({ propertyId, totalFloors, unit, onClose }) => {
               value={form.electricityMeter}
               onChange={handleChange("electricityMeter")}
             />
-            <Input
-              id="unitGas"
-              label="Gas details (optional)"
-              placeholder="লাইন না সিলিন্ডার"
-              value={form.gasInfo}
-              onChange={handleChange("gasInfo")}
-            />
+            {!isMarket && (
+              <Input
+                id="unitGas"
+                label="Gas details (optional)"
+                placeholder="লাইন না সিলিন্ডার"
+                value={form.gasInfo}
+                onChange={handleChange("gasInfo")}
+              />
+            )}
             <Input id="unitNote" label="Note (optional)" placeholder="মনে রাখার মতো কিছু" value={form.note} onChange={handleChange("note")} />
           </div>
         </FormSection>
@@ -217,7 +240,7 @@ const UnitFormModal = ({ propertyId, totalFloors, unit, onClose }) => {
             Cancel
           </Button>
           <Button type="submit" disabled={isPhotoBusy} isLoading={isCreating || isUpdating}>
-            {isEdit ? "Save Changes" : "Add Unit"}
+            {isEdit ? "Save Changes" : isMarket ? "দোকান যোগ করুন" : "Add Unit"}
           </Button>
         </div>
       </form>
