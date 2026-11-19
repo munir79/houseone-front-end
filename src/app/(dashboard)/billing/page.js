@@ -5,14 +5,14 @@ import { useSearchParams } from "next/navigation";
 import BillBoard from "@/components/bill/BillBoard";
 import PageHeader from "@/components/ui/PageHeader";
 import Select from "@/components/ui/Select";
-import { useGetPropertiesQuery } from "@/redux/features/property/propertyApi";
+import { useWorkspace } from "@/hooks/useWorkspace";
 
 const BillingContent = () => {
   const searchParams = useSearchParams();
   const [propertyId, setPropertyId] = useState("");
-  const { data } = useGetPropertiesQuery({ page: 1, search: "", limit: 100 });
+  const { houses, world } = useWorkspace();
 
-  const options = [{ value: "", label: "All houses" }, ...(data?.data?.data || []).map(({ _id, name }) => ({ value: _id, label: name }))];
+  const options = [{ value: "", label: world === "market" ? "সব মার্কেট" : "All houses" }, ...houses.map(({ _id, name }) => ({ value: _id, label: name }))];
 
   return (
     <div className="flex flex-col gap-5">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useWorkspace } from "@/hooks/useWorkspace";
 import Link from "next/link";
 import { ChevronRight, MessageSquareWarning, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -160,7 +161,8 @@ const IssuePanel = ({ tenancyId, canAdd = true }) => {
   const [isAdding, setIsAdding] = useState(false);
   const [openId, setOpenId] = useState(null);
 
-  const { data, isLoading } = useGetIssuesQuery(tenancyId ? { tenancyId } : { open: "true" });
+  const { world } = useWorkspace();
+  const { data, isLoading } = useGetIssuesQuery(tenancyId ? { tenancyId } : { open: "true", world });
 
   const issues = useMemo(() => data?.data || [], [data]);
   const shown = useMemo(() => issues.filter(({ status }) => filter === ALL || (filter === DONE ? status === "Done" : status !== "Done")), [issues, filter]);

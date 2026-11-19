@@ -32,7 +32,7 @@ export const tenantFormApi = apiSlice.injectEndpoints({
 
     //3. OPEN FORMS
     getOpenForms: builder.query({
-      query: () => TENANT_FORMS,
+      query: (world) => ({ url: TENANT_FORMS, params: world ? { world } : undefined }),
       providesTags: ["TenantForm"],
     }),
 

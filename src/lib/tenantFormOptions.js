@@ -22,7 +22,12 @@ export const FORM_FIELDS = [
   { key: "emergency", label: "জরুরি যোগাযোগ" },
   { key: "companyName", label: "প্রতিষ্ঠান বা দোকানের নাম" },
   { key: "tradeLicense", label: "Trade License নম্বর" },
+  { key: "tradeLicensePhoto", label: "Trade License এর ছবি", marketOnly: true },
 ];
+
+// মার্কেটের দোকানের ফর্মে যে ঘরগুলো কাজে লাগে
+export const MARKET_FORM_FIELDS = ["companyName", "tradeLicense", "tradeLicensePhoto", "permanentAddress", "nid", "nidPhoto", "photo"];
+export const MARKET_FIELD_LABELS = { companyName: "ব্যবসার নাম ও ধরন", permanentAddress: "ঠিকানা" };
 
 export const GENDERS = [
   { value: "Male", label: "পুরুষ" },

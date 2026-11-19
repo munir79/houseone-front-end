@@ -21,13 +21,13 @@ import { formatMoney } from "@/lib/formatMoney";
 import { CLOSED_REASONS, LISTING_STATUS, availableText, banglaDate, daysLeft, listingTitle } from "@/lib/listingOptions";
 import { toBanglaNumber } from "@/lib/toBanglaNumber";
 import { useGetMyListingsQuery } from "@/redux/features/listing/listingApi";
-import { useGetPropertiesQuery } from "@/redux/features/property/propertyApi";
+import { useWorkspace } from "@/hooks/useWorkspace";
 import { useGetPropertyUnitsQuery } from "@/redux/features/unit/unitApi";
 
 // খালি বা নোটিশ দেওয়া ফ্ল্যাট বেছে নতুন বিজ্ঞাপন
 const PickUnitModal = ({ listedUnits, onPick, onClose, fixedPropertyId }) => {
-  const { data: housesData, isLoading } = useGetPropertiesQuery({ page: 1, search: "", limit: 100 });
-  const houses = housesData?.data?.data || [];
+  // এই জগতের সম্পদ — মার্কেটে শুধু মার্কেটের দোকান
+  const { houses, isLoading } = useWorkspace();
   const [propertyId, setPropertyId] = useState("");
   const houseId = fixedPropertyId || propertyId || houses[0]?._id || "";
   const { data: unitsData, isFetching } = useGetPropertyUnitsQuery(houseId, { skip: !houseId });
@@ -166,7 +166,8 @@ const ListingsBoard = ({ propertyId }) => {
   const [isPicking, setIsPicking] = useState(false);
   const [postingUnit, setPostingUnit] = useState(null);
   const [sortBy, setSortBy] = useState("new");
-  const { data, isLoading } = useGetMyListingsQuery();
+  const { world } = useWorkspace();
+  const { data, isLoading } = useGetMyListingsQuery(world);
 
   const listings = (data?.data || []).filter((listing) => !propertyId || listing.property?._id === propertyId);
   const open = listings.filter(({ isOpen }) => isOpen).sort(OWNER_SORTS[sortBy].by);

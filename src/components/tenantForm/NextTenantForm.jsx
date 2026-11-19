@@ -13,6 +13,7 @@ import { useGetUnitFormQuery } from "@/redux/features/tenantForm/tenantFormApi";
 // autoSend — To-Let থেকে "ফর্ম পাঠান" চাপলে নিজেই খোলে
 const NextTenantForm = ({ unit, autoSend = false }) => {
   const [isSendOpen, setIsSendOpen] = useState(autoSend);
+  const [isCreatedHere, setIsCreatedHere] = useState(false);
   const { data, isLoading } = useGetUnitFormQuery(unit._id);
   const form = data?.data;
 
@@ -47,7 +48,7 @@ const NextTenantForm = ({ unit, autoSend = false }) => {
         </>
       )}
 
-      {isSendOpen && !form && <SendFormModal unit={unit} onClose={() => setIsSendOpen(false)} />}
+      {isSendOpen && (!form || isCreatedHere) && <SendFormModal unit={unit} onCreated={() => setIsCreatedHere(true)} onClose={() => { setIsSendOpen(false); setIsCreatedHere(false); }} />}
     </div>
   );
 };

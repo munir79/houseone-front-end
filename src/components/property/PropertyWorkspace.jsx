@@ -94,8 +94,9 @@ const SettingsSection = ({ property, onEdit }) => {
       { value: "details", label: "তথ্য" },
       { value: "photos", label: "ছবি", count: property.photos?.length || 0 },
       { value: "contacts", label: "জরুরি নম্বর" },
-      { value: "charges", label: "চার্জ" },
-      { value: "form", label: "ভাড়াটিয়ার ফর্ম" },
+      // মার্কেটে সার্ভিস চার্জ দোকান ধরে, বাড়ির চার্জের তালিকা লাগে না
+      ...(property.kind === "market" ? [] : [{ value: "charges", label: "চার্জ" }]),
+      { value: "form", label: property.kind === "market" ? "ব্যবসায়ীর ফর্ম" : "ভাড়াটিয়ার ফর্ম" },
     ],
   });
   return (
@@ -252,7 +253,7 @@ const PropertyWorkspace = ({ id, section }) => {
         />
       )}
       {section === "units" && <UnitList property={property} initialFilter={searchParams.get("filter") || "All"} />}
-      {section === "tenants" && <TenantsBoard propertyId={id} />}
+      {section === "tenants" && <TenantsBoard propertyId={id} isMarket={property.kind === "market"} />}
       {section === "billing" && <BillingSection id={id} />}
       {section === "expenses" && <ExpenseBoard properties={[property]} propertyId={id} />}
       {section === "reports" && <ReportBoard properties={[property]} initialHouse={id} />}

@@ -9,7 +9,7 @@ import PropertyFormModal from "@/components/property/PropertyFormModal";
 import { useWorkspace } from "@/hooks/useWorkspace";
 import { cn } from "@/lib/cn";
 import { getErrorMessage } from "@/lib/getErrorMessage";
-import { WORLD_ROLE, homeOf, propertyPath } from "@/lib/navigation";
+import { WORLD_ROLE, homeOf, switchWorld, propertyPath } from "@/lib/navigation";
 import { useUpdateProfileMutation } from "@/redux/features/account/accountApi";
 
 const WORLDS = [
@@ -54,7 +54,7 @@ const ProfileMenu = ({ user, onLogout }) => {
       return toast.error(getErrorMessage(err, "হয়নি। আবার চেষ্টা করুন।"));
     }
     if (next === "market") setIsAddingMarket(true);
-    else router.push(homeOf(next));
+    else switchWorld(next);
   };
 
   return (
@@ -106,7 +106,13 @@ const ProfileMenu = ({ user, onLogout }) => {
                     href={homeOf(value)}
                     data-world={value}
                     aria-current={isActive ? "page" : undefined}
-                    onClick={() => setIsOpen(false)}
+                    onClick={(event) => {
+                      // অন্য জগতে — পুরো পাতা নতুন করে; একই জগতে শুধু তার Dashboard
+                      setIsOpen(false);
+                      if (isActive) return;
+                      event.preventDefault();
+                      switchWorld(value);
+                    }}
                     className={cn(itemClass, isActive && "bg-primary-soft font-semibold text-primary")}
                   >
                     <Icon className="h-4 w-4" aria-hidden="true" />

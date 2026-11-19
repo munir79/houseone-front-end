@@ -5,6 +5,7 @@ import Link from "next/link";
 import { TriangleAlert } from "lucide-react";
 import { toast } from "sonner";
 import ShareForm from "./ShareForm";
+import MarketFormLink from "@/components/market/MarketFormLink";
 import TermsEditor from "./TermsEditor";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
@@ -29,7 +30,8 @@ const LinkAction = ({ onClick, children }) => (
   </button>
 );
 
-const SendFormModal = ({ unit, onClose }) => {
+// onCreated — লিংক তৈরি হলে; তখন খোলা ফর্ম থাকলেও Modal বন্ধ হয় না, যাতে লিংক শেয়ার করা যায়
+const HouseSendForm = ({ unit, onClose, onCreated }) => {
   const [occupantType, setOccupantType] = useState("Family");
   const [limits, setLimits] = useState({});
   const [editedTerms, setEditedTerms] = useState({});
@@ -89,6 +91,7 @@ const SendFormModal = ({ unit, onClose }) => {
         saveTo: isEdited ? saveTo : "Unit",
         terms: { ...terms, rent, advance: manualAdvance ?? "" },
       }).unwrap();
+      onCreated?.();
       setForm(response.data);
     } catch (err) {
       toast.error(getErrorMessage(err, "লিংক তৈরি হয়নি। আবার চেষ্টা করুন।"));
@@ -204,5 +207,9 @@ const SendFormModal = ({ unit, onClose }) => {
     </Modal>
   );
 };
+
+// মার্কেটের দোকানে চার্জের হিসাব নেই — শুধু ব্যবসায়ীর তথ্যের লিংক
+const SendFormModal = ({ unit, onClose, onCreated }) =>
+  unit.property?.kind === "market" ? <MarketFormLink unit={unit} onClose={onClose} onCreated={onCreated} /> : <HouseSendForm unit={unit} onClose={onClose} onCreated={onCreated} />;
 
 export default SendFormModal;

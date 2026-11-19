@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { ChevronRight, FileText, Send, UserPlus, Users } from "lucide-react";
 import AddTenantModal from "./AddTenantModal";
+import AddBusinessmanModal from "@/components/market/AddBusinessmanModal";
 import SendFormModal from "@/components/tenantForm/SendFormModal";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
@@ -34,32 +35,20 @@ const TenancyRow = ({ tenancy, onOpen }) => (
   </li>
 );
 
-// আগের ভাড়াটিয়ারা — চাপলে এই পেজেই খোলে
-export const PreviousTenants = ({ tenancies, onOpen }) =>
-  tenancies.length === 0 ? (
-    <Card>
-      <EmptyState icon={Users} title="No previous tenants" description="এই ইউনিটে আগে কেউ ছিলেন না।" />
-    </Card>
-  ) : (
-    <Card flush className="overflow-hidden">
-      <ul className="divide-y divide-border">
-        {tenancies.map((tenancy) => (
-          <TenancyRow key={tenancy._id} tenancy={tenancy} onOpen={onOpen} />
-        ))}
-      </ul>
-    </Card>
-  );
-
 // autoSend — To-Let থেকে "ফর্ম পাঠান" চাপলে নিজেই খোলে
 const UnitTenantPanel = ({ unit, onOpen, autoSend = false }) => {
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isSendOpen, setIsSendOpen] = useState(autoSend);
+  // এখানেই লিংক বানালে খোলা ফর্ম থাকলেও Modal থাকে, লিংক শেয়ার করা যায়
+  const [isCreatedHere, setIsCreatedHere] = useState(false);
   const { data, isLoading } = useGetUnitTenanciesQuery(unit._id);
   const { data: formData } = useGetUnitFormQuery(unit._id);
 
-  const tenancies = data?.data || [];
+  // শুধু এখনকার ভাড়াটিয়া — আগের জনেরা আর দেখায় না (হিসাবের জন্য Database এ থাকে)
+  const tenancies = (data?.data || []).filter(({ status }) => status === "Active");
   const hasActive = tenancies.some(({ status }) => status === "Active");
   const openForm = formData?.data;
+  const isMarket = unit.property?.kind === "market";
 
   const addButton = (
     <div className="flex flex-wrap justify-center gap-2">
@@ -71,7 +60,7 @@ const UnitTenantPanel = ({ unit, onOpen, autoSend = false }) => {
       )}
       <Button size="sm" onClick={() => setIsAddOpen(true)}>
         <UserPlus className="h-4 w-4" aria-hidden="true" />
-        Add Tenant
+        {isMarket ? "দোকান ভাড়া দিন" : "Add Tenant"}
       </Button>
     </div>
   );
@@ -79,7 +68,7 @@ const UnitTenantPanel = ({ unit, onOpen, autoSend = false }) => {
   return (
     <Card flush className="overflow-hidden">
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border p-3 sm:p-4">
-        <h2 className="text-sm font-semibold">Tenants</h2>
+        <h2 className="text-sm font-semibold">{isMarket ? "ব্যবসায়ী" : "Tenants"}</h2>
         {!hasActive && tenancies.length > 0 && addButton}
       </div>
 
@@ -101,7 +90,12 @@ const UnitTenantPanel = ({ unit, onOpen, autoSend = false }) => {
           <Skeleton className="h-12 w-full" />
         </div>
       ) : tenancies.length === 0 ? (
-        <EmptyState icon={Users} title="No tenant yet" description="নিজে যোগ করুন, অথবা ফর্ম পাঠান, ভাড়াটিয়া নিজেই তথ্য দেবেন।" action={addButton} />
+        <EmptyState
+          icon={Users}
+          title={isMarket ? "দোকান খালি" : "No tenant yet"}
+          description={isMarket ? "নিজে চুক্তি লিখে ভাড়া দিন, অথবা ফর্ম পাঠান, ব্যবসায়ী নিজেই তথ্য দেবেন।" : "নিজে যোগ করুন, অথবা ফর্ম পাঠান, ভাড়াটিয়া নিজেই তথ্য দেবেন।"}
+          action={addButton}
+        />
       ) : (
         <ul className="divide-y divide-border">
           {tenancies.map((tenancy) => (
@@ -110,8 +104,8 @@ const UnitTenantPanel = ({ unit, onOpen, autoSend = false }) => {
         </ul>
       )}
 
-      {isAddOpen && <AddTenantModal unit={unit} onClose={() => setIsAddOpen(false)} />}
-      {isSendOpen && !openForm && <SendFormModal unit={unit} onClose={() => setIsSendOpen(false)} />}
+      {isAddOpen && (isMarket ? <AddBusinessmanModal unit={unit} onClose={() => setIsAddOpen(false)} /> : <AddTenantModal unit={unit} onClose={() => setIsAddOpen(false)} />)}
+      {isSendOpen && (!openForm || isCreatedHere) && <SendFormModal unit={unit} onCreated={() => setIsCreatedHere(true)} onClose={() => { setIsSendOpen(false); setIsCreatedHere(false); }} />}
     </Card>
   );
 };

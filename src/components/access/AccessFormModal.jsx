@@ -7,12 +7,13 @@ import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Modal from "@/components/ui/Modal";
 import Select from "@/components/ui/Select";
-import { ALL_PROPERTIES } from "@/hooks/useWorkspace";
+import { ALL_PROPERTIES, useWorkspace } from "@/hooks/useWorkspace";
 import { ACCESS_LEVELS, ACCESS_RELATIONS } from "@/lib/accessOptions";
 import { cn } from "@/lib/cn";
 import { getErrorMessage } from "@/lib/getErrorMessage";
 import { useInviteAccessMutation, useUpdateAccessMutation } from "@/redux/features/access/accessApi";
 import { useGetMyProfileQuery } from "@/redux/features/auth/authApi";
+import { worldOf } from "@/lib/navigation";
 import { useGetPropertiesQuery } from "@/redux/features/property/propertyApi";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -27,7 +28,9 @@ const AccessFormModal = ({ grant, propertyId, onClose }) => {
   const [updateAccess, { isLoading: isUpdating }] = useUpdateAccessMutation();
 
   const me = profile?.data?._id;
-  const choices = (data?.data?.data || []).filter((house) => house.owner === me && !house.isShared);
+  const { world } = useWorkspace();
+  // এই জগতের নিজের একার সম্পদ — মার্কেটে থাকলে মার্কেট, বাড়িতে বাড়ি
+  const choices = (data?.data?.data || []).filter((house) => house.owner === me && !house.isShared && worldOf(house) === world);
   const [form, setForm] = useState({
     email: grant?.email ?? "",
     relation: grant?.relation ?? "",

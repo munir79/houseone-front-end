@@ -3,10 +3,10 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, Banknote, Bath, BedDouble, DoorOpen, Layers, Pencil, SearchX, Trash2 } from "lucide-react";
+import { ArrowLeft, Banknote, Bath, BedDouble, DoorOpen, Layers, Pencil, Ruler, SearchX, Trash2, Wrench } from "lucide-react";
 import { toast } from "sonner";
 import TenancyDetails from "@/components/tenant/TenancyDetails";
-import UnitTenantPanel, { PreviousTenants } from "@/components/tenant/UnitTenantPanel";
+import UnitTenantPanel from "@/components/tenant/UnitTenantPanel";
 import UnitListingCard from "@/components/listing/UnitListingCard";
 import UnitFormModal from "@/components/unit/UnitFormModal";
 import UnitPhotosPanel from "@/components/unit/UnitPhotosPanel";
@@ -80,10 +80,22 @@ const UnitDetailsPage = () => {
 
   const tenancies = tenanciesData?.data || [];
   const activeTenancy = tenancies.find(({ status }) => status === "Active");
-  const previousTenancies = tenancies.filter(({ status }) => status !== "Active");
   const shownTenancyId = viewedTenancyId ?? activeTenancy?._id;
 
-  const details = [
+  // মার্কেটের দোকানে ঘর-বারান্দা নেই — মাপ, ব্লক আর সার্ভিস চার্জ
+  const isShop = unit.property?.kind === "market";
+  const sizeText = unit.sizeSqft ? `${unit.sizeSqft.toLocaleString("en-IN")} sq ft` : "Not set";
+  const details = isShop
+    ? [
+        ["Floor", floorName(unit.floor)],
+        ["Block", unit.block || "—"],
+        ["Shop rent", formatMoney(unit.rent)],
+        ["Service charge", formatMoney(unit.serviceCharge ?? 0)],
+        ["Size", sizeText],
+        ["Available from", unit.availableFrom ? formatDate(unit.availableFrom) : "Not set"],
+        ["Electricity meter", unit.electricityMeter || "Not set"],
+      ]
+    : [
     ["Floor", floorName(unit.floor)],
     ["Flat rent", formatMoney(unit.rent)],
     ["Bedrooms", unit.bedrooms ?? "Not set"],
@@ -96,7 +108,7 @@ const UnitDetailsPage = () => {
     ["Available from", unit.availableFrom ? formatDate(unit.availableFrom) : "Not set"],
     ["Electricity meter", unit.electricityMeter || "Not set"],
     ["Gas", unit.gasInfo || "Not set"],
-  ];
+      ];
 
   const unitHeader = (
     <DetailHeader
@@ -182,7 +194,6 @@ const UnitDetailsPage = () => {
             }
             onMovedOut={setViewedTenancyId}
             extraTabs={[
-              { value: "previous", label: "Previous Tenants", count: previousTenancies.length, content: <PreviousTenants tenancies={previousTenancies} onOpen={setViewedTenancyId} /> },
               { value: "unit", label: "Unit Details", content: unitInfo },
             ]}
           />
@@ -193,8 +204,15 @@ const UnitDetailsPage = () => {
             items={[
               { key: "rent", label: "Monthly rent", value: formatMoney(unit.rent), icon: Banknote },
               { key: "floor", label: "Floor", value: floorName(unit.floor), icon: Layers, tone: "violet" },
-              { key: "bedrooms", label: "Bedrooms", value: unit.bedrooms ?? "—", icon: BedDouble, tone: "blue" },
-              { key: "bathrooms", label: "Bathrooms", value: unit.bathrooms ?? "—", icon: Bath, tone: "amber" },
+              ...(isShop
+                ? [
+                    { key: "service", label: "Service charge", value: formatMoney(unit.serviceCharge ?? 0), icon: Wrench, tone: "blue" },
+                    { key: "size", label: "Size", value: unit.sizeSqft ? `${unit.sizeSqft.toLocaleString("en-IN")} sq ft` : "—", icon: Ruler, tone: "amber" },
+                  ]
+                : [
+                    { key: "bedrooms", label: "Bedrooms", value: unit.bedrooms ?? "—", icon: BedDouble, tone: "blue" },
+                    { key: "bathrooms", label: "Bathrooms", value: unit.bathrooms ?? "—", icon: Bath, tone: "amber" },
+                  ]),
             ]}
           />
           <div className="flex flex-col gap-4">

@@ -2,9 +2,13 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Banknote, CalendarClock, CalendarDays, Clock, KeyRound, Link2, LogOut, MessageCircle, Pencil, Phone, SearchX, User, Users } from "lucide-react";
+import { ArrowLeft, Banknote, CalendarClock, CalendarDays, ChevronRight, Clock, FileSignature, KeyRound, Link2, LogOut, MessageCircle, Pencil, Phone, Receipt, SearchX, Store, User, Users } from "lucide-react";
 import { toast } from "sonner";
 import TenancyBills from "@/components/bill/TenancyBills";
+import EditContractModal from "@/components/market/EditContractModal";
+import RenewContractModal from "@/components/market/RenewContractModal";
+import InstallmentsPanel from "@/components/market/InstallmentsPanel";
+import ShopContractPanel from "@/components/market/ShopContractPanel";
 import IssuePanel from "@/components/issue/IssuePanel";
 import DateActionModal from "@/components/tenant/DateActionModal";
 import MoveOutModal from "@/components/tenant/MoveOutModal";
@@ -31,6 +35,7 @@ import Tabs from "@/components/ui/Tabs";
 import { formatMoney } from "@/lib/formatMoney";
 import { getErrorMessage } from "@/lib/getErrorMessage";
 import { rentStatusLine } from "@/lib/billOptions";
+import { businessTypeLabel } from "@/lib/marketOptions";
 import { formatDate, formatSince, formatStay, toDateInput } from "@/lib/tenancyOptions";
 import { GENDERS } from "@/lib/tenantFormOptions";
 import { toBanglaNumber } from "@/lib/toBanglaNumber";
@@ -117,6 +122,7 @@ const TenancyDetails = ({ tenancyId, embedded = false, extraTabs = [], leading =
   const [isSettlementOpen, setIsSettlementOpen] = useState(false);
   const [editingSection, setEditingSection] = useState(null);
   const [isLinkOpen, setIsLinkOpen] = useState(false);
+  const [isRenewOpen, setIsRenewOpen] = useState(false);
 
   const { data, error, isLoading } = useGetTenancyQuery(tenancyId);
   const { data: billsData } = useGetTenancyBillsQuery(tenancyId);
@@ -169,23 +175,37 @@ const TenancyDetails = ({ tenancyId, embedded = false, extraTabs = [], leading =
     );
   }
 
-  const { tenant } = tenancy;
+  const { tenant, market } = tenancy;
   const isActive = tenancy.status === "Active";
   const whatsappNumber = `88${tenant.phone}`;
+  // মার্কেটের দোকান — ব্যবসার নাম আগে, চুক্তি ও জমার আলাদা tab
+  const isShop = Boolean(market);
+  const place = isShop ? "দোকান" : "বাসা";
+  const hasInstallments = isShop && tenancy.deposits.position.installments.length > 1;
+  const depositDue = isShop ? tenancy.deposits.security.due + tenancy.deposits.advance.due + tenancy.deposits.position.due : 0;
 
   const actions = [
     ...(tenancy.copyToken ? [{ key: "link", label: "Form Link", icon: Link2, onClick: () => setIsLinkOpen(true) }] : []),
-    { key: "edit", label: embedded ? "Edit Tenant" : "Edit", icon: Pencil, onClick: () => setIsEditing(true) },
+    { key: "edit", label: isShop ? "চুক্তি Edit" : embedded ? "Edit Tenant" : "Edit", icon: Pencil, onClick: () => setIsEditing(true) },
+    ...(isShop && isActive ? [{ key: "renew", label: "নবায়ন করুন", icon: FileSignature, onClick: () => setIsRenewOpen(true) }] : []),
     ...(isActive ? [{ key: "moveOut", label: "Move Out", icon: LogOut, onClick: () => setIsMoveOutOpen(true) }] : []),
   ];
 
   const tenantHeader = (
     <DetailHeader
       compact={embedded}
-      title={tenancy.tenantName}
-      subtitle={embedded ? `মূল ভাড়াটিয়া · ${tenancy.tenantPhone}` : `${tenancy.unitName}, ${tenancy.propertyName}`}
-      icon={User}
-      badge={isActive ? <Badge variant="success">{tenancy.occupantType}</Badge> : <Badge>Former</Badge>}
+      title={isShop ? market.businessName : tenancy.tenantName}
+      subtitle={
+        isShop
+          ? embedded
+            ? `${tenancy.tenantName} · ${tenancy.tenantPhone}`
+            : `${tenancy.tenantName} · ${tenancy.unitName}, ${tenancy.propertyName}`
+          : embedded
+            ? `মূল ভাড়াটিয়া · ${tenancy.tenantPhone}`
+            : `${tenancy.unitName}, ${tenancy.propertyName}`
+      }
+      icon={isShop ? Store : User}
+      badge={isActive ? <Badge variant="success">{isShop ? businessTypeLabel(market) || "দোকান" : tenancy.occupantType}</Badge> : <Badge>Former</Badge>}
       actions={<ActionMenu items={actions} alwaysMenu={embedded} />}
     />
   );
@@ -218,13 +238,13 @@ const TenancyDetails = ({ tenancyId, embedded = false, extraTabs = [], leading =
               <CalendarClock className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
               <div className="min-w-0">
                 <p className="text-base font-bold">
-                  {formatDate(tenancy.notice.leavingDate)} তারিখে বাসা ছাড়বেন
+                  {formatDate(tenancy.notice.leavingDate)} তারিখে {place} ছাড়বেন
                   {daysLeft > 0 ? `, আর ${toBanglaNumber(daysLeft)} দিন বাকি` : ""}
                 </p>
                 <p className="text-sm">
                   {daysLeft > 0
                     ? `${toBanglaNumber(daysBetween(tenancy.notice.givenAt, tenancy.notice.leavingDate))} দিন আগে জানিয়েছেন`
-                    : "তারিখ পার হয়ে গেছে। বাসা ছেড়ে থাকলে Move Out করুন।"}
+                    : `তারিখ পার হয়ে গেছে। ${place} ছেড়ে থাকলে Move Out করুন।`}
                 </p>
               </div>
             </div>
@@ -244,16 +264,33 @@ const TenancyDetails = ({ tenancyId, embedded = false, extraTabs = [], leading =
             className="flex min-h-11 w-fit items-center gap-1.5 text-sm text-muted hover:text-foreground"
           >
             <CalendarClock className="h-4 w-4" aria-hidden="true" />
-            ভাড়াটিয়া বাসা ছাড়ার কথা জানিয়েছেন?
+            {isShop ? "ব্যবসায়ী দোকান ছাড়ার কথা জানিয়েছেন?" : "ভাড়াটিয়া বাসা ছাড়ার কথা জানিয়েছেন?"}
           </button>
         ))}
+
+      {isShop && isActive && tenancy.renewDue && (
+        <div data-renew-due className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-warning/40 bg-warning-soft px-4 py-3">
+          <div className="flex min-w-0 items-start gap-2 text-warning-foreground">
+            <FileSignature className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
+            <div className="min-w-0">
+              <p className="text-base font-bold">
+                {new Date(market.contractEnd) < new Date() ? `চুক্তি ${formatDate(market.contractEnd)} তারিখে শেষ হয়ে গেছে` : `চুক্তি ${formatDate(market.contractEnd)} তারিখে শেষ হবে`}
+              </p>
+              <p className="text-sm">থাকতে চাইলে নবায়ন করুন, না চাইলে নোটিশ লিখে রাখুন।</p>
+            </div>
+          </div>
+          <Button size="sm" onClick={() => setIsRenewOpen(true)}>
+            নবায়ন করুন
+          </Button>
+        </div>
+      )}
 
       {isActive && tenancy.notice && afterNotice}
 
       {!isActive && tenancy.settlement && (
         <div data-settlement-card className="flex flex-col gap-3 rounded-xl border border-border bg-surface px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm">
-            <span className="block font-semibold">{formatDate(tenancy.endDate)} তারিখে বাসা ছেড়েছেন</span>
+            <span className="block font-semibold">{formatDate(tenancy.endDate)} তারিখে {place} ছেড়েছেন</span>
             <span className="text-muted">
               {[
                 tenancy.settlement.refund > 0 && `Advance ফেরত ${formatMoney(tenancy.settlement.refund)}`,
@@ -271,12 +308,21 @@ const TenancyDetails = ({ tenancyId, embedded = false, extraTabs = [], leading =
       )}
 
       <StatStrip
-        items={[
-          { key: "rent", label: "Monthly rent", value: formatMoney(tenancy.rent), hint: isActive ? rentStatusLine(billsData?.data || []) : undefined, icon: Banknote, onClick: () => setActiveTab("bills") },
-          { key: "dueDay", label: "Rent day", value: `Day ${tenancy.dueDay}`, icon: CalendarDays, tone: "blue" },
-          { key: "stay", label: "Staying for", value: formatStay(tenancy.startDate, tenancy.endDate), hint: formatSince(tenancy.startDate), icon: Clock, tone: "amber" },
-          { key: "people", label: "People", value: tenancy.peopleCount, icon: Users, tone: "violet" },
-        ]}
+        items={
+          isShop
+            ? [
+                { key: "rent", label: "মাসিক ভাড়া", value: formatMoney(tenancy.rent), hint: isActive ? rentStatusLine(billsData?.data || []) : undefined, icon: Banknote, onClick: () => setActiveTab("bills") },
+                { key: "service", label: "সার্ভিস চার্জ", value: formatMoney(market.serviceCharge), hint: `প্রতি মাসের ${toBanglaNumber(tenancy.dueDay)} তারিখ`, icon: CalendarDays, tone: "blue" },
+                { key: "contract", label: "চুক্তি শেষ", value: market.contractEnd ? formatDate(market.contractEnd) : "—", hint: formatSince(tenancy.startDate), icon: FileSignature, tone: "amber", onClick: () => setActiveTab("contract") },
+                { key: "deposit", label: "জমা বাকি", value: formatMoney(depositDue), hint: depositDue > 0 ? "সিকিউরিটি, অগ্রিম, পজিশন" : "সব পেয়েছেন", icon: Receipt, tone: "violet", onClick: () => setActiveTab("contract") },
+              ]
+            : [
+                { key: "rent", label: "Monthly rent", value: formatMoney(tenancy.rent), hint: isActive ? rentStatusLine(billsData?.data || []) : undefined, icon: Banknote, onClick: () => setActiveTab("bills") },
+                { key: "dueDay", label: "Rent day", value: `Day ${tenancy.dueDay}`, icon: CalendarDays, tone: "blue" },
+                { key: "stay", label: "Staying for", value: formatStay(tenancy.startDate, tenancy.endDate), hint: formatSince(tenancy.startDate), icon: Clock, tone: "amber" },
+                { key: "people", label: "People", value: tenancy.peopleCount, icon: Users, tone: "violet" },
+              ]
+        }
       />
 
       <div className="flex flex-col gap-4">
@@ -286,7 +332,13 @@ const TenancyDetails = ({ tenancyId, embedded = false, extraTabs = [], leading =
           onChange={setActiveTab}
           tabs={[
             { value: "overview", label: "Overview" },
-            { value: "members", label: "Members", count: tenancy.members.filter(({ leftAt }) => !leftAt).length + 1 },
+            ...(isShop
+              ? [
+                  { value: "contract", label: "চুক্তি ও টাকা" },
+                  // পজিশন মানি কিস্তিতে নিলে তবেই
+                  ...(hasInstallments ? [{ value: "installments", label: "কিস্তি", count: tenancy.deposits.position.installments.filter(({ status }) => status !== "Paid").length }] : []),
+                ]
+              : [{ value: "members", label: "Members", count: tenancy.members.filter(({ leftAt }) => !leftAt).length + 1 }]),
             { value: "items", label: "Items given", count: tenancy.handoverItems.length },
             { value: "bills", label: "Bills" },
             { value: "documents", label: "Documents", count: tenant.documents?.length || 0 },
@@ -295,7 +347,91 @@ const TenancyDetails = ({ tenancyId, embedded = false, extraTabs = [], leading =
           ]}
         />
 
-        {activeTab === "overview" && (
+        {activeTab === "overview" && isShop && (
+          <div className="grid gap-4 lg:grid-cols-2">
+            <SectionCard title="ব্যবসা ও মালিক" onEdit={() => setEditingSection(SECTIONS.personal)}>
+              <InfoRow label="ব্যবসা">{market.businessName}</InfoRow>
+              <InfoRow label="ধরন">{businessTypeLabel(market)}</InfoRow>
+              <InfoRow label="মালিক">{tenant.name}</InfoRow>
+              <InfoRow label="Trade License">{market.tradeLicense}</InfoRow>
+              <div className="col-span-2 min-w-0">
+                <dt className="text-xs text-muted">মোবাইল</dt>
+                <dd className="flex flex-wrap items-center gap-3 text-sm">
+                  <a href={`tel:${tenant.phone}`} className="inline-flex min-h-9 items-center gap-1 font-medium">
+                    <Phone className="h-3.5 w-3.5" aria-hidden="true" />
+                    {tenant.phone}
+                  </a>
+                  <a href={`https://wa.me/${whatsappNumber}`} target="_blank" rel="noreferrer" className="inline-flex min-h-9 items-center gap-1 text-muted hover:text-foreground">
+                    <MessageCircle className="h-3.5 w-3.5" aria-hidden="true" />
+                    WhatsApp
+                  </a>
+                </dd>
+              </div>
+            </SectionCard>
+
+            <SectionCard title={SECTIONS.address.title} onEdit={() => setEditingSection(SECTIONS.address)}>
+              <div className="col-span-2 min-w-0">
+                <dt className="text-xs text-muted">NID</dt>
+                <dd>
+                  <NidField last4={tenant.nidLast4} isLoading={isRevealing} onReveal={() => revealNid(tenant._id).unwrap()} />
+                </dd>
+              </div>
+              <InfoRow label="ঠিকানা">{tenant.permanentAddress}</InfoRow>
+            </SectionCard>
+
+            <SectionCard title="পরিবারের সদস্য" onEdit={() => setIsEditing(true)}>
+              {market.family.length === 0 ? (
+                <p className="col-span-2 text-sm text-muted">কারও তথ্য দেওয়া হয়নি।</p>
+              ) : (
+                market.family.map((member) => (
+                  <div key={`${member.name}-${member.phone}`} data-family-member className="col-span-2 flex flex-wrap items-center justify-between gap-2 sm:col-span-1">
+                    <span className="min-w-0">
+                      <span className="block text-sm font-medium wrap-break-word">{member.name}</span>
+                      <span className="block text-xs text-muted">{member.relation}</span>
+                    </span>
+                    <a href={`tel:${member.phone}`} className="inline-flex min-h-9 items-center gap-1 text-sm">
+                      <Phone className="h-3.5 w-3.5" aria-hidden="true" />
+                      {member.phone}
+                    </a>
+                  </div>
+                ))
+              )}
+            </SectionCard>
+
+            <Card flush className="overflow-hidden">
+              <h2 className="border-b border-border px-4 py-3 text-base font-bold">এই ব্যবসায়ীর অন্য দোকান</h2>
+              {tenancy.otherShops.length === 0 ? (
+                <p className="px-4 py-3 text-sm text-muted">আর কোনো দোকান নেই।</p>
+              ) : (
+                <ul data-other-shops className="divide-y divide-border">
+                  {tenancy.otherShops.map((shop) => (
+                    <li key={shop._id}>
+                      <Link href={`/tenants/${shop._id}`} className="flex items-center justify-between gap-3 px-4 py-3 hover:bg-background">
+                        <span className="min-w-0">
+                          <span className="block text-sm font-medium wrap-break-word">
+                            {shop.unitName} · {shop.market?.businessName}
+                          </span>
+                          <span className="block text-xs text-muted">
+                            {shop.propertyName} · {formatMoney(shop.rent)}
+                          </span>
+                        </span>
+                        <span className="flex shrink-0 items-center gap-2">
+                          <Badge variant={shop.status === "Active" ? "success" : "primary"}>{shop.status === "Active" ? "চলছে" : "ছেড়েছেন"}</Badge>
+                          <ChevronRight className="h-4 w-4 text-muted" aria-hidden="true" />
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Card>
+          </div>
+        )}
+
+        {activeTab === "contract" && isShop && <ShopContractPanel tenancy={tenancy} onOpenInstallments={hasInstallments ? () => setActiveTab("installments") : undefined} />}
+        {activeTab === "installments" && hasInstallments && <InstallmentsPanel tenancy={tenancy} />}
+
+        {activeTab === "overview" && !isShop && (
           <div className="grid gap-4 lg:grid-cols-2">
             <SectionCard title={SECTIONS.personal.title} onEdit={() => setEditingSection(SECTIONS.personal)}>
               <div className="col-span-2 min-w-0">
@@ -354,7 +490,7 @@ const TenancyDetails = ({ tenancyId, embedded = false, extraTabs = [], leading =
 
         {activeTab === "overview" && tenancy.rules?.length > 0 && (
           <Card>
-            <h2 className="text-base font-bold">House rules</h2>
+            <h2 className="text-base font-bold">{isShop ? "মার্কেটের নিয়ম" : "House rules"}</h2>
             {tenancy.rulesAcceptedAt && <p className="mb-2 text-sm text-muted">{formatDate(tenancy.rulesAcceptedAt)} তারিখে সম্মতি দিয়েছেন</p>}
             <ol className="flex list-decimal flex-col gap-1 pl-5 text-sm">
               {tenancy.rules.map((rule, index) => (
@@ -405,7 +541,8 @@ const TenancyDetails = ({ tenancyId, embedded = false, extraTabs = [], leading =
         {extraTabs.find(({ value }) => value === activeTab)?.content}
       </div>
 
-      {isEditing && <EditTenancyModal tenancy={tenancy} onClose={() => setIsEditing(false)} />}
+      {isEditing && (isShop ? <EditContractModal tenancy={tenancy} onClose={() => setIsEditing(false)} /> : <EditTenancyModal tenancy={tenancy} onClose={() => setIsEditing(false)} />)}
+      {isRenewOpen && <RenewContractModal tenancy={tenancy} onClose={() => setIsRenewOpen(false)} />}
       {editingSection && <EditSectionModal tenant={tenant} section={editingSection} onClose={() => setEditingSection(null)} />}
 
       {isLinkOpen && (

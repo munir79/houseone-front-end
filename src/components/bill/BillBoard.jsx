@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import BillDetailsModal from "./BillDetailsModal";
 import GenerateBillsModal from "./GenerateBillsModal";
+import { useWorkspace } from "@/hooks/useWorkspace";
 import SendBillButton from "./SendBillButton";
 import PayModal from "@/components/payment/PayModal";
 import Badge from "@/components/ui/Badge";
@@ -107,9 +108,10 @@ const BillBoard = ({ propertyId, initialMonth }) => {
   const [payingId, setPayingId] = useState(null);
 
   const options = useMemo(() => monthOptions(), []);
+  const { world } = useWorkspace();
   const { data, isLoading } = useGetBillsQuery({
     month,
-    ...(propertyId ? { propertyId } : {}),
+    ...(propertyId ? { propertyId } : { world }),
   });
 
   const bills = useMemo(() => data?.data?.bills || [], [data]);

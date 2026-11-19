@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useWorkspace } from "@/hooks/useWorkspace";
 import { CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import Button from "@/components/ui/Button";
@@ -21,7 +22,8 @@ const sumLines = (lines) => lines.reduce((sum, { amount }) => sum + amount, 0);
 // tenancyId — ইউনিটের পেজ থেকে শুধু ওই ভাড়াটিয়ার বিল
 const GenerateBillsModal = ({ month, propertyId, tenancyId, onClose }) => {
   const [inputs, setInputs] = useState({});
-  const { data, isLoading } = useGetBillPreviewQuery({ month, ...(propertyId ? { propertyId } : {}), ...(tenancyId ? { tenancyId } : {}) });
+  const { world } = useWorkspace();
+  const { data, isLoading } = useGetBillPreviewQuery({ month, ...(propertyId ? { propertyId } : {}), ...(tenancyId ? { tenancyId } : {}), ...(propertyId || tenancyId ? {} : { world }) });
   const [generateBills, { isLoading: isSaving }] = useGenerateBillsMutation();
 
   const rows = data?.data?.rows || [];

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, ChevronRight, FileText, SearchX } from "lucide-react";
 import { toast } from "sonner";
+import MarketApproveModal from "@/components/market/MarketApproveModal";
 import PersonDetailsModal from "@/components/tenantForm/PersonDetailsModal";
 import TermsCard from "@/components/tenantForm/TermsCard";
 import ShareForm from "@/components/tenantForm/ShareForm";
@@ -20,6 +21,7 @@ import Modal from "@/components/ui/Modal";
 import Select from "@/components/ui/Select";
 import Skeleton from "@/components/ui/Skeleton";
 import { getErrorMessage } from "@/lib/getErrorMessage";
+import { businessTypeLabel } from "@/lib/marketOptions";
 import { toBanglaNumber } from "@/lib/toBanglaNumber";
 import { DEFAULT_RENT_DAY, RENT_DAY_OPTIONS, formatDate, todayInput } from "@/lib/tenancyOptions";
 import { FORM_STATUS } from "@/lib/tenantFormOptions";
@@ -188,6 +190,8 @@ const TenantFormPage = () => {
   const isSubmitted = form.status === "Submitted";
   const isWaiting = ["Sent", "SentBack"].includes(form.status);
   const isExpired = isWaiting && new Date(form.expiresAt) <= new Date();
+  // মার্কেটের দোকানের ফর্ম — ব্যবসায়ী আর পরিবারের ১–২ জন
+  const isShop = Boolean(form.config?.market);
 
   return (
     <div className="flex flex-col gap-5">
@@ -197,8 +201,8 @@ const TenantFormPage = () => {
       </Link>
 
       <DetailHeader
-        title={form.name || "Tenant Form"}
-        subtitle={`${form.unitName}, ${form.propertyName} · ${form.occupantType}`}
+        title={isShop ? form.companyName || form.name || "ব্যবসায়ীর ফর্ম" : form.name || "Tenant Form"}
+        subtitle={isShop ? `${form.unitName} দোকান, ${form.propertyName}${form.name ? ` · ${form.name}` : ""}` : `${form.unitName}, ${form.propertyName} · ${form.occupantType}`}
         icon={FileText}
         badge={<Badge variant={isExpired ? "danger" : status.variant}>{isExpired ? "Link expired" : status.label}</Badge>}
         actions={
@@ -235,7 +239,7 @@ const TenantFormPage = () => {
       {form.isOpen && form.currentTenant && (
         <div data-current-tenant className="flex flex-col gap-3 rounded-xl border border-warning/40 bg-warning-soft px-4 py-3 text-warning-foreground sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm font-semibold">
-            এই ফ্ল্যাটে এখনো {form.currentTenant.tenantName} আছেন
+            এই {isShop ? "দোকানে" : "ফ্ল্যাটে"} এখনো {form.currentTenant.tenantName} আছেন
             {form.currentTenant.leavingDate ? `, ${formatDate(form.currentTenant.leavingDate)} তারিখে ছাড়বেন` : ""}। তিনি বাসা ছাড়লে আগে Move Out করুন, তারপর Approve করা যাবে।
           </p>
           <LinkButton href={`/properties/${form.property}/units/${form.unit}`} variant="outline" size="sm" className="shrink-0">
@@ -254,7 +258,9 @@ const TenantFormPage = () => {
       {form.submittedAt && (
         <>
           <p className="text-sm text-muted">
-            মোট {toBanglaNumber(form.totalPeople)} জন থাকবেন, {toBanglaNumber(form.people.length)} জনের তথ্য দেওয়া হয়েছে।
+            {isShop
+              ? `ব্যবসায়ী ও পরিবারের ${toBanglaNumber(form.people.length - 1)} জনের তথ্য দেওয়া হয়েছে।`
+              : `মোট ${toBanglaNumber(form.totalPeople)} জন থাকবেন, ${toBanglaNumber(form.people.length)} জনের তথ্য দেওয়া হয়েছে।`}
           </p>
 
           <div className="grid gap-3 sm:grid-cols-2">
@@ -271,7 +277,7 @@ const TenantFormPage = () => {
                   <span className="block text-xs text-muted">{[person.relation, person.occupation, person.phone].filter(Boolean).join(" · ")}</span>
                 </span>
                 <span className="flex shrink-0 items-center gap-2">
-                  {person.isMain && <Badge variant="info">প্রধান</Badge>}
+                  {person.isMain && <Badge variant="info">{isShop ? "ব্যবসায়ী" : "প্রধান"}</Badge>}
                   <ChevronRight className="h-4 w-4 text-muted" aria-hidden="true" />
                 </span>
               </button>
@@ -280,11 +286,12 @@ const TenantFormPage = () => {
 
           {(form.companyName || form.tradeLicense || form.emergencyName || form.answers.some(({ answer }) => answer)) && (
             <Card>
-              <h2 className="mb-3 text-sm font-semibold">Other details</h2>
+              <h2 className="mb-3 text-sm font-semibold">{isShop ? "ব্যবসা" : "Other details"}</h2>
               <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {[
-                  ["Company", form.companyName],
-                  ["Trade License", form.tradeLicense],
+                  [isShop ? "ব্যবসার নাম" : "Company", form.companyName],
+                  ...(isShop ? [["ধরন", businessTypeLabel(form)]] : []),
+                  ["Trade License", [form.tradeLicense, form.tradeLicensePhoto && "ছবি দিয়েছেন (ব্যবসায়ীর তথ্যে দেখুন)"].filter(Boolean).join(" · ")],
                   ["Emergency contact", [form.emergencyName, form.emergencyPhone].filter(Boolean).join(", ")],
                   ...form.answers.map(({ question, answer }) => [question, answer]),
                 ]
@@ -305,7 +312,7 @@ const TenantFormPage = () => {
 
       {form.rulesAcceptedAt && (
         <Card>
-          <h2 className="text-sm font-semibold">House rules</h2>
+          <h2 className="text-sm font-semibold">{isShop ? "মার্কেটের নিয়ম" : "House rules"}</h2>
           <p className="mb-2 text-sm text-muted">{formatDate(form.rulesAcceptedAt)} তারিখে সম্মতি দিয়েছেন</p>
           <ol className="flex list-decimal flex-col gap-1 pl-5 text-sm">
             {form.config.rules.map((rule, index) => (
@@ -320,7 +327,7 @@ const TenantFormPage = () => {
           key={openPerson._id}
           person={openPerson}
           isMain={openPerson.isMain}
-          hasImages={Boolean(openPerson.nidFront || openPerson.nidBack || openPerson.photo)}
+          hasImages={Boolean(openPerson.nidFront || openPerson.nidBack || openPerson.photo || (openPerson.isMain && form.tradeLicensePhoto))}
           isRevealing={isRevealing}
           onReveal={() => revealNid({ id: formId, personId: openPerson._id }).unwrap()}
           loadImages={() => getLinks({ id: formId, personId: openPerson._id }).unwrap()}
@@ -328,7 +335,7 @@ const TenantFormPage = () => {
         />
       )}
 
-      {dialog === "approve" && <ApproveModal form={form} onClose={() => setDialog(null)} />}
+      {dialog === "approve" && (isShop ? <MarketApproveModal form={form} onClose={() => setDialog(null)} /> : <ApproveModal form={form} onClose={() => setDialog(null)} />)}
       {dialog === "back" && <SendBackModal form={form} onClose={() => setDialog(null)} />}
       {dialog === "cancel" && (
         <ConfirmDialog

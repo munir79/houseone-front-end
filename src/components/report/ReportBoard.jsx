@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useWorkspace } from "@/hooks/useWorkspace";
 import { BarChart3, Building2, Check, ChevronDown, Download, FileSpreadsheet } from "lucide-react";
 import { toast } from "sonner";
 import ReportView from "./ReportView";
@@ -37,7 +38,7 @@ const rangeOf = (period) => {
 };
 
 // সব বাড়ি, একটি, বা কয়েকটি — টিক দিয়ে
-const HousePicker = ({ properties, selected, onChange }) => {
+const HousePicker = ({ properties, selected, onChange, allLabel, oneLabel }) => {
   const [isOpen, setIsOpen] = useState(false);
   const boxRef = useRef(null);
 
@@ -48,7 +49,7 @@ const HousePicker = ({ properties, selected, onChange }) => {
     return () => document.removeEventListener("pointerdown", close);
   }, [isOpen]);
 
-  const label = selected.length === 0 ? "সব বাড়ি" : selected.length === 1 ? properties.find(({ _id }) => _id === selected[0])?.name ?? "১টি বাড়ি" : `${selected.length}টি বাড়ি`;
+  const label = selected.length === 0 ? allLabel : selected.length === 1 ? properties.find(({ _id }) => _id === selected[0])?.name ?? `১টি ${oneLabel}` : `${selected.length}টি ${oneLabel}`;
   const toggle = (id) => onChange(selected.includes(id) ? selected.filter((item) => item !== id) : [...selected, id]);
 
   return (
@@ -68,7 +69,7 @@ const HousePicker = ({ properties, selected, onChange }) => {
       </button>
       {isOpen && (
         <div role="listbox" aria-multiselectable="true" className="absolute top-full left-0 z-20 mt-1 max-h-72 w-full overflow-y-auto rounded-xl border border-border bg-surface p-1 shadow-card">
-          {[{ _id: "", name: "সব বাড়ি" }, ...properties].map(({ _id, name }) => {
+          {[{ _id: "", name: allLabel }, ...properties].map(({ _id, name }) => {
             const isChecked = _id ? selected.includes(_id) : selected.length === 0;
             return (
               <button
@@ -103,7 +104,10 @@ const ReportBoard = ({ properties, initialHouse }) => {
 
   const range = period === "custom" ? custom : rangeOf(period);
   const isRangeValid = range.from && range.to && range.from <= range.to;
-  const { data, error, isFetching } = useGetReportQuery({ ...range, ...(selected.length ? { propertyIds: selected.join(",") } : {}) }, { skip: !isRangeValid });
+  // "সব" মানে শুধু এই জগতের সব — বাড়িতে বাড়ি, মার্কেটে মার্কেট
+  const { world } = useWorkspace();
+  const oneLabel = world === "market" ? "মার্কেট" : "বাড়ি";
+  const { data, error, isFetching } = useGetReportQuery({ ...range, world, ...(selected.length ? { propertyIds: selected.join(",") } : {}) }, { skip: !isRangeValid });
 
   const report = data?.data;
   const fileBase = report ? `Report-${report.isAll ? "All" : report.houses.map(({ name }) => name).join("-")}-${range.from}-to-${range.to}`.replace(/\s+/g, "-") : "Report";
@@ -169,7 +173,7 @@ const ReportBoard = ({ properties, initialHouse }) => {
               <Input id="reportTo" type="date" compact aria-label="To" value={custom.to} onChange={(e) => setCustom((prev) => ({ ...prev, to: e.target.value }))} className="sm:w-44" />
             </div>
           )}
-          <HousePicker properties={properties} selected={selected} onChange={setSelected} />
+          <HousePicker properties={properties} selected={selected} onChange={setSelected} allLabel={`সব ${oneLabel}`} oneLabel={oneLabel} />
           <div className="flex gap-2 sm:ml-auto">
             <Button variant="outline" disabled={!report || isFetching} onClick={handleExcel} className="flex-1 sm:flex-none">
               <FileSpreadsheet className="h-4 w-4" aria-hidden="true" />

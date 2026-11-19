@@ -1,7 +1,6 @@
 import { forwardRef } from "react";
-import { monthLabel } from "@/lib/billOptions";
 import { formatMoney } from "@/lib/formatMoney";
-import { methodLabel } from "@/lib/paymentOptions";
+import { depositName, isDeposit, methodLabel, paymentPurpose } from "@/lib/paymentOptions";
 import { formatDate } from "@/lib/tenancyOptions";
 
 const Row = ({ label, value, strong }) => (
@@ -54,7 +53,7 @@ const ReceiptView = forwardRef(({ payment }, ref) => {
         </div>
         <div>
           <dt className="text-muted">বাবদ</dt>
-          <dd className="font-semibold">{payment.kind === "Advance" ? "Advance" : `${monthLabel(payment.month)} মাসের ভাড়া`}</dd>
+          <dd className="font-semibold">{paymentPurpose(payment)}</dd>
         </div>
         <div>
           <dt className="text-muted">মাধ্যম</dt>
@@ -82,7 +81,7 @@ const ReceiptView = forwardRef(({ payment }, ref) => {
             {formatMoney(payment.amount)}
           </dd>
         </div>
-        <Row label={payment.kind === "Advance" ? "Advance বাকি" : "এখনো বাকি"} value={formatMoney(payment.dueAfter)} strong />
+        <Row label={isDeposit(payment.kind) ? `${depositName(payment)} বাকি` : "এখনো বাকি"} value={formatMoney(payment.dueAfter)} strong />
       </dl>
 
       {payment.note && <p className="text-sm">নোট: {payment.note}</p>}

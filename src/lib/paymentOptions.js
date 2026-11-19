@@ -17,9 +17,16 @@ export const receiptLink = (token) => `${window.location.origin}/receipt/${token
 
 export const receiptFileName = (payment) => `Receipt-${payment.receiptNo}.pdf`;
 
+// জমার টাকা — Advance, আর মার্কেটে সিকিউরিটি ও পজিশন মানি; নাম রসিদের লাইনেই লেখা থাকে
+export const DEPOSIT_KINDS = ["Advance", "Security", "Position"];
+export const isDeposit = (kind) => DEPOSIT_KINDS.includes(kind);
+export const depositName = (payment) => payment.lines?.[0]?.name || "Advance";
+// কোন বাবদ — জমা হলে তার নাম, ভাড়া হলে কোন মাসের
+export const paymentPurpose = (payment) => (isDeposit(payment.kind) ? depositName(payment) : `${monthLabel(payment.month)} মাসের ভাড়া`);
+
 // WhatsApp এর ধন্যবাদ বার্তা — রসিদের সাথে যায়
 export const receiptMessage = (payment) => {
-  const purpose = payment.kind === "Advance" ? "Advance বাবদ" : `${monthLabel(payment.month)} মাসের ভাড়া বাবদ`;
+  const purpose = `${paymentPurpose(payment)} বাবদ`;
   const due = payment.dueAfter > 0 ? ` এখনো বাকি ${formatMoney(payment.dueAfter)}।` : "";
   return `${payment.tenantName}, ধন্যবাদ! ${payment.unitName}, ${payment.propertyName}-এর ${purpose} ${formatMoney(payment.amount)} বুঝে পেয়েছি (${formatDate(payment.paidAt)})।${due} রসিদ নং ${payment.receiptNo}। রসিদ দেখুন: ${receiptLink(payment.token)}`;
 };

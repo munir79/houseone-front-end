@@ -9,8 +9,11 @@ import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import Checkbox from "@/components/ui/Checkbox";
+import ImageSlot from "./ImageSlot";
 import Input from "@/components/ui/Input";
-import { emptyPerson, extraErrors, isBlankPerson, isPersonComplete, personLabel } from "@/lib/formPeople";
+import Select from "@/components/ui/Select";
+import { emptyPerson, extraErrors, familyErrors, isBlankPerson, isPersonComplete, personLabel } from "@/lib/formPeople";
+import { BUSINESS_TYPE_OPTIONS, businessTypeLabel } from "@/lib/marketOptions";
 import { getErrorMessage } from "@/lib/getErrorMessage";
 import { FORM_TYPE_LABELS, GENDERS } from "@/lib/tenantFormOptions";
 import { toBanglaNumber, toEnglishNumber } from "@/lib/toBanglaNumber";
@@ -72,16 +75,62 @@ const Summary = ({ label, value }) =>
     </div>
   ) : null;
 
+// মার্কেটের ফর্মে পরিবারের সদস্য — তিনটি ঘর, একবারেই
+const FamilyEditor = ({ person, title, onChange, onRemove, onClose }) => {
+  const [errors, setErrors] = useState({});
+  const change = (field, value) => {
+    onChange({ ...person, [field]: value });
+    setErrors(({ [field]: removed, ...rest }) => rest);
+  };
+  const handleDone = () => {
+    const found = familyErrors(person);
+    setErrors(found);
+    if (Object.keys(found).length === 0) onClose();
+  };
+
+  return (
+    <div data-family-editor className="flex flex-col gap-4">
+      <BackLink onClick={onClose} />
+      <div>
+        <h1 className="text-lg font-semibold">{title}</h1>
+        <p className="text-sm text-muted">দরকারে যোগাযোগের জন্য — আপনার না পাওয়া গেলে এঁকে ফোন করা হবে।</p>
+      </div>
+      <Card className="flex flex-col gap-4">
+        <Input id="familyName" label="নাম" value={person.name} onChange={(e) => change("name", e.target.value)} error={errors.name} />
+        <Input id="familyRelation" label="সম্পর্ক" placeholder="ভাই, ছেলে, স্ত্রী" value={person.relation} onChange={(e) => change("relation", e.target.value)} error={errors.relation} />
+        <Input id="familyPhone" type="tel" inputMode="tel" label="মোবাইল নম্বর" placeholder="01XXXXXXXXX" value={person.phone} onChange={(e) => change("phone", toEnglishNumber(e.target.value))} error={errors.phone} />
+      </Card>
+      <Button size="lg" fullWidth onClick={handleDone}>
+        সম্পন্ন
+      </Button>
+      <Button variant="ghost" fullWidth onClick={onRemove}>
+        এই সদস্যকে বাদ দিন
+      </Button>
+    </div>
+  );
+};
+
 const PublicFormFlow = ({ token, form, onDone }) => {
   const { config, values } = form;
   const { fields, mainCount, maxMembers, othersFull, questions, rules = [] } = config;
-  const labelFor = (index) => personLabel(index, { mainCount, occupantType: form.occupantType });
+  // মার্কেটের দোকান — ব্যবসার মালিক আর পরিবারের ১–২ জন, মোট সংখ্যা লাগে না
+  const isMarket = Boolean(config.market);
+  const asksTotal = !othersFull && !isMarket;
+  const labelFor = (index) => personLabel(index, { mainCount, occupantType: form.occupantType, isMarket });
 
   const [draft] = useState(() => readDraft(token, form.status));
   const [people, setPeople] = useState(draft?.people || initialPeople(values, mainCount));
   const [totalPeople, setTotalPeople] = useState(draft?.totalPeople ?? (values.totalPeople || ""));
   const [extra, setExtra] = useState(
-    draft?.extra || { companyName: values.companyName, tradeLicense: values.tradeLicense, emergencyName: values.emergencyName, emergencyPhone: values.emergencyPhone }
+    draft?.extra || {
+      companyName: values.companyName,
+      tradeLicense: values.tradeLicense,
+      businessType: values.businessType ?? "",
+      businessTypeOther: values.businessTypeOther ?? "",
+      tradeLicensePhoto: values.tradeLicensePhoto ?? null,
+      emergencyName: values.emergencyName,
+      emergencyPhone: values.emergencyPhone,
+    }
   );
   const [answers, setAnswers] = useState(draft?.answers || questions.map((_, index) => values.answers[index]?.answer || ""));
   const [consent, setConsent] = useState(false);
@@ -127,10 +176,12 @@ const PublicFormFlow = ({ token, form, onDone }) => {
   };
 
   const isFull = (index) => index < mainCount || othersFull;
-  const hasExtra = fields.emergency !== "Off" || fields.companyName !== "Off" || fields.tradeLicense !== "Off" || questions.length > 0;
-  const isExtraComplete = Object.keys(extraErrors(extra, fields)).length === 0;
+  const isFamily = (index) => isMarket && index > 0;
+  const hasExtra = fields.emergency !== "Off" || fields.companyName !== "Off" || fields.tradeLicense !== "Off" || (isMarket && fields.tradeLicensePhoto !== "Off") || questions.length > 0;
+  const isExtraComplete = Object.keys(extraErrors(extra, fields, isMarket)).length === 0;
+  const extraTitle = isMarket ? "ব্যবসার তথ্য" : "অন্যান্য তথ্য";
 
-  const doneCount = people.filter((person, index) => isPersonComplete(person, fields, isFull(index))).length;
+  const doneCount = people.filter((person, index) => isPersonComplete(person, fields, isFull(index), isFamily(index))).length;
 
   const changeExtra = (key, value) => {
     setExtra((prev) => ({ ...prev, [key]: value }));
@@ -151,18 +202,18 @@ const PublicFormFlow = ({ token, form, onDone }) => {
   const handlePreview = () => {
     const newErrors = {};
     const count = people.length;
-    if (!othersFull && (Number(totalPeople) < count || Number(totalPeople) > maxMembers)) {
+    if (asksTotal && (Number(totalPeople) < count || Number(totalPeople) > maxMembers)) {
       newErrors.totalPeople = `মোট সংখ্যা ${toBanglaNumber(count)} থেকে ${toBanglaNumber(maxMembers)} এর মধ্যে লিখুন`;
     }
     setErrors(newErrors);
 
-    const unfinished = people.findIndex((person, index) => !isPersonComplete(person, fields, isFull(index)));
+    const unfinished = people.findIndex((person, index) => !isPersonComplete(person, fields, isFull(index), isFamily(index)));
     if (unfinished !== -1) {
       toast.error(`${labelFor(unfinished)} এর তথ্য বাকি আছে`);
       return;
     }
     if (hasExtra && !isExtraComplete) {
-      toast.error("অন্যান্য তথ্য অংশটি পূরণ করুন");
+      toast.error(`${extraTitle} অংশটি পূরণ করুন`);
       return;
     }
     if (Object.keys(newErrors).length > 0) return;
@@ -186,7 +237,9 @@ const PublicFormFlow = ({ token, form, onDone }) => {
 
     try {
       const payload = people.map(({ key, nidLast4, ...person }) => person);
-      await submitForm({ token, people: payload, totalPeople: Number(totalPeople), ...extra, answers, consent, rulesAccepted, termsAccepted }).unwrap();
+      const { businessType, businessTypeOther, tradeLicensePhoto, ...rest } = extra;
+      const business = isMarket ? { businessType, businessTypeOther, tradeLicensePhoto } : {};
+      await submitForm({ token, people: payload, totalPeople: Number(totalPeople), ...rest, ...business, answers, consent, rulesAccepted, termsAccepted }).unwrap();
       clearDraft(token);
       onDone();
     } catch (err) {
@@ -197,6 +250,19 @@ const PublicFormFlow = ({ token, form, onDone }) => {
   if (view.name === "person") {
     const index = people.findIndex((person) => person.key === view.key);
     if (index === -1) return null;
+
+    if (isFamily(index)) {
+      return (
+        <FamilyEditor
+          key={view.key}
+          person={people[index]}
+          title={labelFor(index)}
+          onChange={(next) => setPeople((prev) => prev.map((person) => (person.key === view.key ? next : person)))}
+          onRemove={() => handleRemove(view.key)}
+          onClose={close}
+        />
+      );
+    }
 
     return (
       <PersonEditor
@@ -217,7 +283,7 @@ const PublicFormFlow = ({ token, form, onDone }) => {
 
   if (view.name === "extra") {
     const handleExtraDone = () => {
-      const found = extraErrors(extra, fields);
+      const found = extraErrors(extra, fields, isMarket);
       setErrors(found);
       if (Object.keys(found).length === 0) close();
     };
@@ -226,13 +292,22 @@ const PublicFormFlow = ({ token, form, onDone }) => {
     return (
       <div className="flex flex-col gap-4">
         <BackLink onClick={close} />
-        <h1 className="text-lg font-semibold">অন্যান্য তথ্য</h1>
+        <h1 className="text-lg font-semibold">{extraTitle}</h1>
         <Card className="flex flex-col gap-4">
           {fields.companyName !== "Off" && (
-            <Input id="companyName" label={optional("companyName", "প্রতিষ্ঠান বা দোকানের নাম")} value={extra.companyName} onChange={(e) => changeExtra("companyName", e.target.value)} error={errors.companyName} />
+            <Input id="companyName" label={optional("companyName", isMarket ? "ব্যবসা বা দোকানের নাম" : "প্রতিষ্ঠান বা দোকানের নাম")} value={extra.companyName} onChange={(e) => changeExtra("companyName", e.target.value)} error={errors.companyName} />
+          )}
+          {isMarket && fields.companyName !== "Off" && (
+            <Select id="businessType" label={optional("companyName", "ব্যবসার ধরন")} placeholder="বেছে নিন" options={BUSINESS_TYPE_OPTIONS} value={extra.businessType} onChange={(e) => changeExtra("businessType", e.target.value)} error={errors.businessType} />
+          )}
+          {isMarket && extra.businessType === "Other" && (
+            <Input id="businessTypeOther" label="কী ব্যবসা" placeholder="যেমন: মোবাইল সার্ভিসিং" value={extra.businessTypeOther} onChange={(e) => changeExtra("businessTypeOther", e.target.value)} error={errors.businessTypeOther} />
           )}
           {fields.tradeLicense !== "Off" && (
             <Input id="tradeLicense" label={optional("tradeLicense", "Trade License নম্বর")} value={extra.tradeLicense} onChange={(e) => changeExtra("tradeLicense", e.target.value)} error={errors.tradeLicense} />
+          )}
+          {isMarket && fields.tradeLicensePhoto !== "Off" && (
+            <ImageSlot id="tradeLicensePhoto" label={optional("tradeLicensePhoto", "Trade License এর ছবি")} value={extra.tradeLicensePhoto} error={errors.tradeLicensePhoto} getSignature={signature} onChange={(value) => changeExtra("tradeLicensePhoto", value)} />
           )}
           {fields.emergency !== "Off" && (
             <>
@@ -275,7 +350,7 @@ const PublicFormFlow = ({ token, form, onDone }) => {
           <p className="text-sm text-muted">সব ঠিক থাকলে নিচে জমা দিন।</p>
         </div>
 
-        {!othersFull && <p className="text-sm">মোট {toBanglaNumber(totalPeople)} জন থাকবেন</p>}
+        {asksTotal && <p className="text-sm">মোট {toBanglaNumber(totalPeople)} জন থাকবেন</p>}
 
         {people.map((person, index) => {
           const images = [person.nidFront && "NID সামনে", person.nidBack && "NID পেছনে", person.photo && "ছবি"].filter(Boolean);
@@ -288,10 +363,11 @@ const PublicFormFlow = ({ token, form, onDone }) => {
               </div>
               <dl className="grid grid-cols-2 gap-3">
                 <Summary label="নাম" value={person.name} />
+                {isFamily(index) && <Summary label="সম্পর্ক" value={person.relation} />}
                 <Summary label="মোবাইল" value={person.phone} />
                 <Summary label="লিঙ্গ" value={GENDERS.find(({ value }) => value === person.gender)?.label} />
                 <Summary label="বয়স" value={person.age && toBanglaNumber(person.age)} />
-                <Summary label="সম্পর্ক" value={person.relation} />
+                {!isFamily(index) && <Summary label="সম্পর্ক" value={person.relation} />}
                 <Summary label="পেশা" value={person.occupation} />
                 <Summary label="কর্মস্থল" value={person.workplace} />
                 <Summary label="স্থায়ী ঠিকানা" value={person.permanentAddress} />
@@ -306,12 +382,13 @@ const PublicFormFlow = ({ token, form, onDone }) => {
         {hasExtra && (
           <Card className="flex flex-col gap-3">
             <div className="flex items-center justify-between gap-2">
-              <h2 className="text-sm font-semibold">অন্যান্য তথ্য</h2>
+              <h2 className="text-sm font-semibold">{extraTitle}</h2>
               <EditLink onClick={() => setView({ name: "extra" })} />
             </div>
             <dl className="grid grid-cols-2 gap-3">
-              <Summary label="প্রতিষ্ঠান" value={extra.companyName} />
-              <Summary label="Trade License" value={extra.tradeLicense} />
+              <Summary label={isMarket ? "ব্যবসা" : "প্রতিষ্ঠান"} value={extra.companyName} />
+              {isMarket && <Summary label="ধরন" value={businessTypeLabel(extra)} />}
+              <Summary label="Trade License" value={[extra.tradeLicense, isMarket && extra.tradeLicensePhoto && "ছবি দিয়েছেন"].filter(Boolean).join(", ")} />
               <Summary label="জরুরি যোগাযোগ" value={[extra.emergencyName, extra.emergencyPhone].filter(Boolean).join(", ")} />
               {questions.map((question, index) => (
                 <Summary key={index} label={question} value={answers[index]} />
@@ -340,7 +417,7 @@ const PublicFormFlow = ({ token, form, onDone }) => {
 
         {rules.length > 0 && (
           <Card className="flex flex-col gap-3">
-            <h2 className="text-sm font-semibold">বাড়ির নিয়ম</h2>
+            <h2 className="text-sm font-semibold">{isMarket ? "মার্কেটের নিয়ম" : "বাড়ির নিয়ম"}</h2>
             <ol className="flex list-decimal flex-col gap-1.5 pl-5 text-sm">
               {rules.map((rule, index) => (
                 <li key={index}>{rule}</li>
@@ -363,7 +440,7 @@ const PublicFormFlow = ({ token, form, onDone }) => {
           <Checkbox
             id="consent"
             label="আমার দেওয়া তথ্য সঠিক"
-            description="আমি জানি এই তথ্য ও ছবি বাড়িওয়ালার কাছে থাকবে।"
+            description={isMarket ? "আমি জানি এই তথ্য ও ছবি মার্কেটের মালিকের কাছে থাকবে।" : "আমি জানি এই তথ্য ও ছবি বাড়িওয়ালার কাছে থাকবে।"}
             checked={consent}
             onChange={(e) => {
               setConsent(e.target.checked);
@@ -383,16 +460,18 @@ const PublicFormFlow = ({ token, form, onDone }) => {
   return (
     <div className="flex flex-col gap-4">
       <div className="text-center">
-        <h1 className="text-xl font-semibold">ভাড়াটিয়ার তথ্য ফর্ম</h1>
+        <h1 className="text-xl font-semibold">{isMarket ? "ব্যবসায়ীর তথ্য ফর্ম" : "ভাড়াটিয়ার তথ্য ফর্ম"}</h1>
         <p className="text-sm text-muted">
-          {form.propertyName}, {form.unitName} · {FORM_TYPE_LABELS[form.occupantType]}
+          {form.propertyName}, {form.unitName} · {isMarket ? "দোকান" : FORM_TYPE_LABELS[form.occupantType]}
         </p>
       </div>
 
       {form.terms && <TermsCard terms={form.terms} />}
 
       {form.ownerNote && (
-        <p className="rounded-xl border border-warning/40 bg-warning-soft px-4 py-3 text-sm text-warning-foreground">বাড়িওয়ালার নোট: {form.ownerNote}</p>
+        <p className="rounded-xl border border-warning/40 bg-warning-soft px-4 py-3 text-sm text-warning-foreground">
+          {isMarket ? "মালিকের নোট" : "বাড়িওয়ালার নোট"}: {form.ownerNote}
+        </p>
       )}
 
       <div>
@@ -409,7 +488,7 @@ const PublicFormFlow = ({ token, form, onDone }) => {
 
       <div className="grid grid-cols-2 gap-3">
         {people.map((person, index) => {
-          const isDone = isPersonComplete(person, fields, isFull(index));
+          const isDone = isPersonComplete(person, fields, isFull(index), isFamily(index));
           return (
             <button
               key={person.key}
@@ -419,7 +498,7 @@ const PublicFormFlow = ({ token, form, onDone }) => {
               className="flex min-h-28 min-w-0 flex-col justify-between gap-2 rounded-xl border border-border bg-surface p-3 text-left shadow-card"
             >
               <span className="flex flex-col items-start gap-1">
-                {index < mainCount && <Badge variant="info">প্রধান</Badge>}
+                {index < mainCount && <Badge variant="info">{isMarket ? "মালিক" : "প্রধান"}</Badge>}
                 <span className="block w-full text-sm font-medium wrap-break-word">{person.name || labelFor(index)}</span>
               </span>
               {isDone ? (
@@ -428,7 +507,7 @@ const PublicFormFlow = ({ token, form, onDone }) => {
                   সম্পূর্ণ
                 </span>
               ) : (
-                <span className="text-xs text-muted">{isFull(index) ? "তথ্য বাকি" : "ঐচ্ছিক"}</span>
+                <span className="text-xs text-muted">{isFull(index) || isFamily(index) ? "তথ্য বাকি" : "ঐচ্ছিক"}</span>
               )}
             </button>
           );
@@ -442,17 +521,23 @@ const PublicFormFlow = ({ token, form, onDone }) => {
             className="flex min-h-28 flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-border p-3 text-sm text-muted"
           >
             <Plus className="h-5 w-5" aria-hidden="true" />
-            {form.occupantType === "Shop" ? "অংশীদার যোগ করুন" : "সদস্য যোগ করুন"}
+            {isMarket ? "পরিবারের সদস্য যোগ করুন" : form.occupantType === "Shop" ? "অংশীদার যোগ করুন" : "সদস্য যোগ করুন"}
           </button>
         )}
       </div>
 
       <p className="text-sm text-muted">
-        সর্বোচ্চ {toBanglaNumber(maxMembers)} জন।
-        {othersFull ? " যাঁরা থাকবেন, সবার তথ্য দিন।" : " প্রধানদের তথ্য লাগবে, বাকিদের তথ্য না দিলেও চলবে।"}
+        {isMarket ? (
+          `দরকারে যোগাযোগের জন্য পরিবারের ${toBanglaNumber(maxMembers - 1)} জন পর্যন্ত দিতে পারেন।`
+        ) : (
+          <>
+            সর্বোচ্চ {toBanglaNumber(maxMembers)} জন।
+            {othersFull ? " যাঁরা থাকবেন, সবার তথ্য দিন।" : " প্রধানদের তথ্য লাগবে, বাকিদের তথ্য না দিলেও চলবে।"}
+          </>
+        )}
       </p>
 
-      {!othersFull && (
+      {asksTotal && (
         <Input
           id="totalPeople"
           type="number"
@@ -476,7 +561,7 @@ const PublicFormFlow = ({ token, form, onDone }) => {
           onClick={() => open({ name: "extra" })}
           className="flex min-h-14 items-center justify-between gap-3 rounded-xl border border-border bg-surface px-3 text-left shadow-card"
         >
-          <span className="text-sm font-medium">অন্যান্য তথ্য</span>
+          <span className="text-sm font-medium">{extraTitle}</span>
           <span className="flex shrink-0 items-center gap-1 text-xs text-muted">
             {isExtraComplete && <Check className="h-4 w-4" aria-hidden="true" />}
             <ChevronRight className="h-4 w-4" aria-hidden="true" />

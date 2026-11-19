@@ -1,7 +1,7 @@
 'use client';
 
 import { apiSlice } from "@/redux/api/apiSlice";
-import { PAYMENTS, PAYMENT_ACTION, PAYMENT_ADVANCE, PAYMENT_ADVANCE_SUMMARY, PAYMENT_RECEIPTS, PUBLIC_RECEIPT } from "@/utils/url";
+import { PAYMENTS, PAYMENT_ACTION, PAYMENT_ADVANCE, PAYMENT_ADVANCE_SUMMARY, PAYMENT_DEPOSIT, PAYMENT_RECEIPTS, PUBLIC_RECEIPT } from "@/utils/url";
 
 // টাকা নিলে বিল, বাড়ির টেবিল ও ড্যাশবোর্ড সব বদলায়
 const CHANGED_TAGS = ["Payment", "Bill", "Unit", "Tenancy", "Property"];
@@ -39,6 +39,12 @@ export const paymentApi = apiSlice.injectEndpoints({
       invalidatesTags: CHANGED_TAGS,
     }),
 
+    //4b. MARKET — অগ্রিম, সিকিউরিটি বা পজিশন মানি
+    payDeposit: builder.mutation({
+      query: (body) => ({ url: PAYMENT_DEPOSIT, method: 'POST', body }),
+      invalidatesTags: CHANGED_TAGS,
+    }),
+
     //5. CANCEL
     voidPayment: builder.mutation({
       query: ({ id, reason }) => ({ url: PAYMENT_ACTION(id, "void"), method: 'POST', body: { reason } }),
@@ -65,6 +71,7 @@ export const {
   useGetAdvanceSummaryQuery,
   usePayBillMutation,
   usePayAdvanceMutation,
+  usePayDepositMutation,
   useVoidPaymentMutation,
   useMarkSlipSentMutation,
   useGetPublicReceiptQuery,

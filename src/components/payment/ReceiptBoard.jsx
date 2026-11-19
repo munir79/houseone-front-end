@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useWorkspace } from "@/hooks/useWorkspace";
 import Link from "next/link";
 import { Check, ChevronLeft, ChevronRight, Download, FileText, Search, Send, Smartphone, Wallet } from "lucide-react";
 import { toast } from "sonner";
@@ -18,7 +19,7 @@ import { monthLabel, monthOptions } from "@/lib/billOptions";
 import { cn } from "@/lib/cn";
 import { downloadCsv } from "@/lib/csv";
 import { formatMoney } from "@/lib/formatMoney";
-import { PAYMENT_METHODS, methodLabel } from "@/lib/paymentOptions";
+import { PAYMENT_METHODS, depositName, isDeposit, methodLabel } from "@/lib/paymentOptions";
 import { formatDate } from "@/lib/tenancyOptions";
 import { toBanglaNumber } from "@/lib/toBanglaNumber";
 import { useGetReceiptsQuery, useLazyGetReceiptsQuery } from "@/redux/features/payment/paymentApi";
@@ -27,6 +28,8 @@ const KINDS = [
   { value: "", label: "All" },
   { value: "Bill", label: "Rent" },
   { value: "Advance", label: "Advance" },
+  { value: "Security", label: "সিকিউরিটি" },
+  { value: "Position", label: "পজিশন মানি" },
   { value: "Refund", label: "Refund" },
 ];
 const STATUS_OPTIONS = [
@@ -39,7 +42,7 @@ const PERIODS = { current: "এই মাস", last: "গত মাস", older: 
 const SEARCH_DELAY_MS = 350;
 
 // কোন বাবদ — ভাড়া হলে কোন মাসের
-const purposeOf = (row) => (row.kind === "Refund" ? "Advance ফেরত" : row.kind === "Advance" ? "Advance" : `${monthLabel(row.month)} ভাড়া`);
+const purposeOf = (row) => (row.kind === "Refund" ? "Advance ফেরত" : isDeposit(row.kind) ? depositName(row) : `${monthLabel(row.month)} ভাড়া`);
 
 // স্লিপ পাঠানো হয়েছে কি না — লেখা নয়, বোতাম; চাপলে রসিদ খোলে, পাঠানো হয় রসিদ দেখে
 const SlipButton = ({ row, onOpen }) => {
@@ -135,14 +138,15 @@ const ReceiptBoard = ({ properties = [], propertyId: fixedPropertyId }) => {
   }, [searchText]);
 
   // RTK Query মান দেখে মেলায়, তাই নতুন Object এ আবার Request যায় না
-  const filters = Object.fromEntries(Object.entries({ month, propertyId, kind, method, status, search }).filter(([, value]) => value));
+  const { world } = useWorkspace();
+  const filters = Object.fromEntries(Object.entries({ month, propertyId, kind, method, status, search, world: propertyId ? "" : world }).filter(([, value]) => value));
   const { data, isLoading, isFetching } = useGetReceiptsQuery({ ...filters, page });
   const [loadAll, { isFetching: isExporting }] = useLazyGetReceiptsQuery();
 
   const result = data?.data;
   const rows = result?.rows || [];
   const summary = result?.summary;
-  const houseOptions = [{ value: "", label: "All houses" }, ...properties.map(({ _id, name }) => ({ value: _id, label: name }))];
+  const houseOptions = [{ value: "", label: world === "market" ? "সব মার্কেট" : "All houses" }, ...properties.map(({ _id, name }) => ({ value: _id, label: name }))];
   const openRow = rows.find(({ _id }) => _id === openId);
 
   const change = (setter) => (value) => {

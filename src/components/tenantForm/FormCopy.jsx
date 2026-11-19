@@ -6,17 +6,30 @@ import { toast } from "sonner";
 import TermsCard from "./TermsCard";
 import TenantIssues from "@/components/issue/TenantIssues";
 import Button from "@/components/ui/Button";
-import Card from "@/components/ui/Card";
+import PdfSheet, { SheetRows, SheetSection } from "@/components/ui/PdfSheet";
+import { businessTypeLabel } from "@/lib/marketOptions";
 import { downloadPdf } from "@/lib/pdf";
 import { formatDate } from "@/lib/tenancyOptions";
-import { FORM_TYPE_LABELS } from "@/lib/tenantFormOptions";
+import { FORM_TYPE_LABELS, formLink } from "@/lib/tenantFormOptions";
 import { toBanglaNumber } from "@/lib/toBanglaNumber";
 
-// জমা দেওয়ার পরে ভাড়াটিয়ার কপি — NID এর শেষ ৪ সংখ্যা, কোনো ছবি নেই
+// একজন মানুষের সব তথ্য — NID শুধু শেষ ৪ সংখ্যা, কোনো ছবি নয়
+const personRows = (person) => [
+  ["মোবাইল", person.phone],
+  ["সম্পর্ক", person.relation],
+  ["পেশা", person.occupation],
+  ["কর্মস্থল", person.workplace],
+  ["ঠিকানা", person.permanentAddress],
+  ["NID", person.nidLast4 && `শেষ ৪ সংখ্যা ${person.nidLast4}`],
+];
+
+// জমা দেওয়ার পরে ভাড়াটিয়া বা ব্যবসায়ীর কপি — watermark, QR আর PDF সহ
 const FormCopy = ({ token, form, justSubmitted }) => {
   const { copy, terms } = form;
   const copyRef = useRef(null);
   const [isDownloading, setIsDownloading] = useState(false);
+  const isMarket = copy.isMarket;
+  const [main, ...others] = copy.people;
 
   const handleDownload = async () => {
     setIsDownloading(true);
@@ -45,47 +58,83 @@ const FormCopy = ({ token, form, justSubmitted }) => {
 
       {copy.canReport && <TenantIssues token={token} />}
 
-      <div ref={copyRef} data-form-copy className="flex flex-col gap-4 bg-background p-1">
-        <div className="text-center">
-          <h1 className="text-xl font-bold">তথ্য ও সম্মতির কপি</h1>
-          <p className="text-sm text-muted">
-            {form.propertyName}, {form.unitName} · {FORM_TYPE_LABELS[form.occupantType]}
-          </p>
-          <p className="text-sm text-muted">
-            ফর্ম নম্বর {copy.formNumber} · {formatDate(copy.submittedAt)}
-          </p>
-        </div>
-
+      <PdfSheet
+        ref={copyRef}
+        title="তথ্য ও সম্মতির কপি"
+        subtitle={`${form.propertyName}, ${form.unitName} · ${isMarket ? "দোকান" : FORM_TYPE_LABELS[form.occupantType]} · জমা ${formatDate(copy.submittedAt)}`}
+        watermark={`${form.propertyName} · ${copy.formNumber}`}
+        docId={copy.formNumber}
+        qrValue={formLink(token)}
+        qrLabel="Scan করে কপি দেখুন"
+        footerNote={`${isMarket ? "ব্যবসায়ী" : "ভাড়াটিয়া"} এই তথ্য দিয়েছেন ও নিয়মে সম্মতি দিয়েছেন। এটি স্ট্যাম্প করা চুক্তিপত্র নয়।`}
+      >
         {terms && <TermsCard terms={terms} />}
 
-        <Card className="flex flex-col gap-2">
-          <h2 className="text-base font-bold">যাঁরা থাকবেন (মোট {toBanglaNumber(copy.totalPeople)} জন)</h2>
-          {copy.companyName && <p className="text-sm">প্রতিষ্ঠান: {copy.companyName}</p>}
-          <ul className="flex flex-col gap-1 text-sm">
-            {copy.people.map(({ name, relation, isMain, nidLast4 }, index) => (
-              <li key={index}>
-                <span className="font-semibold">{name}</span>
-                {isMain && " (প্রধান দায়িত্বশীল)"}
-                {relation && ` · ${relation}`}
-                {nidLast4 && ` · NID শেষ ৪ সংখ্যা ${nidLast4}`}
-              </li>
-            ))}
-          </ul>
-        </Card>
+        {isMarket && (
+          <SheetSection title="ব্যবসা">
+            <SheetRows
+              rows={[
+                ["ব্যবসার নাম", copy.companyName],
+                ["ধরন", businessTypeLabel(copy)],
+                ["Trade License", copy.tradeLicense],
+                ["Trade License এর ছবি", copy.hasTradeLicensePhoto ? "দেওয়া হয়েছে" : ""],
+              ]}
+            />
+          </SheetSection>
+        )}
+
+        {main && (
+          <SheetSection title={isMarket ? "ব্যবসার মালিক" : "প্রধান দায়িত্বশীল"}>
+            <p className="text-base font-bold">{main.name}</p>
+            <SheetRows rows={personRows(main)} />
+          </SheetSection>
+        )}
+
+        {others.length > 0 && (
+          <SheetSection title={isMarket ? "পরিবারের সদস্য (জরুরি যোগাযোগ)" : `অন্যরা (মোট ${toBanglaNumber(copy.totalPeople)} জন থাকবেন)`}>
+            <ul className="flex flex-col gap-3">
+              {others.map((person, index) => (
+                <li key={index} className="flex flex-col gap-1">
+                  <p className="text-sm font-bold">
+                    {person.name}
+                    {person.isMain && !isMarket && " (প্রধান দায়িত্বশীল)"}
+                  </p>
+                  <SheetRows rows={personRows(person)} />
+                </li>
+              ))}
+            </ul>
+          </SheetSection>
+        )}
+
+        {!isMarket && (copy.companyName || copy.tradeLicense || copy.emergencyName) && (
+          <SheetSection title="অন্যান্য তথ্য">
+            <SheetRows
+              rows={[
+                ["প্রতিষ্ঠান", copy.companyName],
+                ["Trade License", copy.tradeLicense],
+                ["জরুরি যোগাযোগ", [copy.emergencyName, copy.emergencyPhone].filter(Boolean).join(", ")],
+              ]}
+            />
+          </SheetSection>
+        )}
+
+        {copy.answers?.length > 0 && (
+          <SheetSection title="প্রশ্নের উত্তর">
+            <SheetRows rows={copy.answers.map(({ question, answer }) => [question, answer])} />
+          </SheetSection>
+        )}
 
         {copy.rules.length > 0 && (
-          <Card className="flex flex-col gap-2">
-            <h2 className="text-base font-bold">বাড়ির নিয়ম</h2>
+          <SheetSection title={isMarket ? "মার্কেটের নিয়ম" : "বাড়ির নিয়ম"}>
             <ol className="flex list-decimal flex-col gap-1 pl-5 text-sm">
               {copy.rules.map((rule, index) => (
                 <li key={index}>{rule}</li>
               ))}
             </ol>
-          </Card>
+            {copy.rulesAcceptedAt && <p className="text-xs text-neutral-500">{formatDate(copy.rulesAcceptedAt)} তারিখে সম্মতি দিয়েছেন</p>}
+          </SheetSection>
         )}
-
-        <p className="text-center text-sm text-muted">ভাড়াটিয়া এই হিসাব ও নিয়মে সম্মতি দিয়েছেন। এটি স্ট্যাম্প করা চুক্তিপত্র নয়। HouseOne থেকে তৈরি।</p>
-      </div>
+      </PdfSheet>
     </div>
   );
 };

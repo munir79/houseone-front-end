@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useWorkspace } from "@/hooks/useWorkspace";
 import { CalendarClock, ChevronLeft, ChevronRight, CircleDollarSign, Download, Paperclip, Plus, Receipt, Trash2, TrendingUp, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import ExpenseFormModal from "./ExpenseFormModal";
@@ -132,7 +133,8 @@ const ExpenseBoard = ({ properties, propertyId: fixedPropertyId }) => {
   const month = period === "current" ? currentOption.value : period === "last" ? lastOption.value : olderMonth;
   const propertyId = fixedPropertyId || house;
   // RTK Query মান দেখে মেলায়, তাই নতুন Object এ আবার Request যায় না
-  const filters = Object.fromEntries(Object.entries({ month, propertyId, category, status }).filter(([, value]) => value));
+  const { world } = useWorkspace();
+  const filters = Object.fromEntries(Object.entries({ month, propertyId, category, status, world: propertyId ? "" : world }).filter(([, value]) => value));
 
   const { data, isLoading, isFetching } = useGetExpensesQuery({ ...filters, page });
   const [loadAll, { isFetching: isExporting }] = useLazyGetExpensesQuery();
@@ -142,7 +144,12 @@ const ExpenseBoard = ({ properties, propertyId: fixedPropertyId }) => {
   const rows = result?.rows || [];
   const summary = result?.summary;
   const categories = result?.categories || [];
-  const houseOptions = [{ value: "", label: "All houses" }, ...properties.map(({ _id, name }) => ({ value: _id, label: name })), { value: "general", label: "সাধারণ খরচ" }];
+  // সাধারণ খরচ (কোনো সম্পদের নয়) বাড়ির জগতে থাকে
+  const houseOptions = [
+    { value: "", label: world === "market" ? "সব মার্কেট" : "All houses" },
+    ...properties.map(({ _id, name }) => ({ value: _id, label: name })),
+    ...(world === "market" ? [] : [{ value: "general", label: "সাধারণ খরচ" }]),
+  ];
   const categoryOptions = [{ value: "", label: "সব ধরন" }, ...categories.map((item) => ({ value: item, label: item }))];
 
   const change = (setter) => (value) => {

@@ -2,6 +2,7 @@
 
 import { apiSlice } from "@/redux/api/apiSlice";
 import {
+  PUBLIC_CONTRACT,
   TENANCIES,
   TENANCY_BY_ID,
   TENANCY_END,
@@ -57,6 +58,21 @@ export const tenancyApi = apiSlice.injectEndpoints({
     updateTenancy: builder.mutation({
       query: ({ id, ...body }) => ({ url: TENANCY_BY_ID(id), method: 'PATCH', body }),
       invalidatesTags: CHANGED_TAGS,
+    }),
+
+    //6b. MARKET — চুক্তি নবায়ন, চুক্তিপত্রের ছবি
+    renewContract: builder.mutation({
+      query: ({ id, months }) => ({ url: `${TENANCY_BY_ID(id)}/renew`, method: 'POST', body: { months } }),
+      invalidatesTags: CHANGED_TAGS,
+    }),
+
+    getContractDocuments: builder.mutation({
+      query: (id) => `${TENANCY_BY_ID(id)}/contract-documents`,
+    }),
+
+    // QR থেকে চুক্তি যাচাই — লগইন ছাড়া
+    verifyContract: builder.query({
+      query: (code) => PUBLIC_CONTRACT(code),
     }),
 
     //7. NOTICE
@@ -140,6 +156,9 @@ export const {
   useGetUnitTenanciesQuery,
   useCreateTenancyMutation,
   useUpdateTenancyMutation,
+  useRenewContractMutation,
+  useVerifyContractQuery,
+  useGetContractDocumentsMutation,
   useGiveNoticeMutation,
   useCancelNoticeMutation,
   useEndTenancyMutation,

@@ -8,7 +8,7 @@ export const listingApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     //1. MY LISTINGS — stats ও ৭ দিনের হিসাবসহ
     getMyListings: builder.query({
-      query: () => LISTINGS,
+      query: (world) => ({ url: LISTINGS, params: world ? { world } : undefined }),
       providesTags: ["Listing"],
     }),
 

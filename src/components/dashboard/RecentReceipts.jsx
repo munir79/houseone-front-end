@@ -7,7 +7,7 @@ import ReceiptModal from "@/components/payment/ReceiptModal";
 import Card from "@/components/ui/Card";
 import { monthLabel } from "@/lib/billOptions";
 import { formatMoney } from "@/lib/formatMoney";
-import { methodLabel } from "@/lib/paymentOptions";
+import { depositName, isDeposit, methodLabel } from "@/lib/paymentOptions";
 import { formatDate } from "@/lib/tenancyOptions";
 
 // সর্বশেষ টাকা নেওয়া — চাপলে রসিদ খোলে
@@ -34,7 +34,7 @@ const RecentReceipts = ({ payments, allHref = "/receipts" }) => {
                 <span className="min-w-0">
                   <span className="block text-sm font-medium wrap-break-word">{payment.tenantName}</span>
                   <span className="block text-xs text-muted">
-                    {payment.unitName} · {payment.kind === "Advance" ? "Advance" : monthLabel(payment.month)} · {methodLabel(payment.method)} · {formatDate(payment.paidAt)}
+                    {payment.unitName} · {isDeposit(payment.kind) ? depositName(payment) : monthLabel(payment.month)} · {methodLabel(payment.method)} · {formatDate(payment.paidAt)}
                   </span>
                 </span>
                 <span className="shrink-0 text-sm font-bold tabular-nums">{formatMoney(payment.amount)}</span>

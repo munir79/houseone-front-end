@@ -29,7 +29,8 @@ export const emptyPerson = () => ({
 
 export const visibleSteps = (fields) => PERSON_STEPS.filter((step) => step.key === "personal" || step.fields.some((field) => fields[field] !== "Off"));
 
-export const personLabel = (index, { mainCount, occupantType }) => {
+export const personLabel = (index, { mainCount, occupantType, isMarket = false }) => {
+  if (isMarket) return index === 0 ? "ব্যবসার মালিক" : `পরিবারের সদস্য ${toBanglaNumber(index)}`;
   if (index < mainCount) return `প্রধান দায়িত্বশীল ${toBanglaNumber(index + 1)}`;
   return `${occupantType === "Shop" ? "অংশীদার" : "সদস্য"} ${toBanglaNumber(index + 1)}`;
 };
@@ -68,8 +69,17 @@ export const stepErrors = (stepKey, person, fields, isFull) => {
   return errors;
 };
 
-export const isPersonComplete = (person, fields, isFull) =>
-  PERSON_STEPS.every((step) => Object.keys(stepErrors(step.key, person, fields, isFull)).length === 0);
+// মার্কেটের ফর্মে পরিবারের সদস্য — শুধু নাম, সম্পর্ক ও মোবাইল, তিনটিই লাগে
+export const familyErrors = (person) => {
+  const errors = {};
+  if (!person.name.trim()) errors.name = "নাম লিখুন";
+  if (!person.relation.trim()) errors.relation = "সম্পর্ক লিখুন";
+  if (!PHONE_REGEX.test(person.phone.trim())) errors.phone = "সঠিক মোবাইল নম্বর লিখুন, যেমন 01712345678";
+  return errors;
+};
+
+export const isPersonComplete = (person, fields, isFull, isFamily = false) =>
+  isFamily ? Object.keys(familyErrors(person)).length === 0 : PERSON_STEPS.every((step) => Object.keys(stepErrors(step.key, person, fields, isFull)).length === 0);
 
 // ঐচ্ছিক সদস্যের কার্ড খালি রেখে দিলে সেটা জমা হয় না
 export const isBlankPerson = (person) =>
@@ -78,9 +88,12 @@ export const isBlankPerson = (person) =>
   !person.nidBack &&
   !person.photo;
 
-export const extraErrors = (extra, fields) => {
+export const extraErrors = (extra, fields, isMarket = false) => {
   const errors = {};
   if (fields.companyName === "Required" && !extra.companyName.trim()) errors.companyName = "প্রতিষ্ঠান বা দোকানের নাম লিখুন";
+  if (isMarket && fields.companyName === "Required" && !extra.businessType) errors.businessType = "ব্যবসার ধরন বেছে নিন";
+  if (isMarket && extra.businessType === "Other" && fields.companyName === "Required" && !extra.businessTypeOther.trim()) errors.businessTypeOther = "কী ব্যবসা, লিখুন";
+  if (isMarket && fields.tradeLicensePhoto === "Required" && !extra.tradeLicensePhoto) errors.tradeLicensePhoto = "Trade License এর ছবি দিন";
   if (fields.tradeLicense === "Required" && !extra.tradeLicense.trim()) errors.tradeLicense = "Trade License নম্বর লিখুন";
   if (fields.emergency === "Required" && !extra.emergencyName.trim()) errors.emergencyName = "জরুরি যোগাযোগের নাম লিখুন";
   if (fields.emergency === "Required" && !extra.emergencyPhone.trim()) errors.emergencyPhone = "জরুরি যোগাযোগের মোবাইল লিখুন";

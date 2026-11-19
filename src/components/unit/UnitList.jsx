@@ -21,6 +21,7 @@ import Skeleton from "@/components/ui/Skeleton";
 import { formatMoney } from "@/lib/formatMoney";
 import { billStatus, currentMonth } from "@/lib/billOptions";
 import { OCCUPANT_TYPE_OPTIONS } from "@/lib/tenancyOptions";
+import { businessTypeLabel } from "@/lib/marketOptions";
 import { toBanglaNumber } from "@/lib/toBanglaNumber";
 import { unitActivity } from "@/lib/unitActivity";
 import { floorName } from "@/lib/unitOptions";
@@ -77,15 +78,20 @@ const ThisMonth = ({ unit, bill, onCreateBill, onPay }) => {
   );
 };
 
-const tenantTypeLabel = ({ tenancy, preferredTenant, type }) => {
+const tenantTypeLabel = ({ tenancy, preferredTenant, type }, isMarket = false) => {
+  // মার্কেটে দোকানের ব্যবসার ধরন, খালি হলে "খালি দোকান"
+  if (isMarket) return tenancy ? businessTypeLabel(tenancy.market) || "দোকান" : "খালি দোকান";
   if (tenancy) return tenancy.occupantType;
   return preferredTenant && preferredTenant !== "Any" ? `${preferredTenant} চাই` : type;
 };
 
 // পুরো সারি ইউনিটের Link, শুধু কাজের Badge আলাদা Link — সরাসরি ফর্ম বা ভাড়াটিয়ার পেজে যায়
-const UnitRow = ({ propertyId, unit, bill, onCreateBill, onPay }) => {
+const UnitRow = ({ propertyId, unit, bill, onCreateBill, onPay, isMarket = false }) => {
   const activity = unitActivity(unit);
-  const typeLabel = tenantTypeLabel(unit);
+  const typeLabel = tenantTypeLabel(unit, isMarket);
+  // মার্কেটে দোকানের নাম — ভাড়া হলে ব্যবসার নাম, যাতে নম্বর দেখে খুঁজতে না হয়
+  const shopName = isMarket ? unit.tenancy?.market?.businessName : null;
+  const statusLabel = isMarket ? (unit.status === "Vacant" ? "খালি" : "ভাড়া দেওয়া") : unit.status;
   // ভাড়াটিয়া থাকলে তাঁর আসল ভাড়া, খালি হলে ফ্ল্যাটের ভাড়া
   const rent = unit.tenancy?.rent ?? unit.rent;
 
@@ -95,18 +101,19 @@ const UnitRow = ({ propertyId, unit, bill, onCreateBill, onPay }) => {
         <span className="min-w-0">
           <Link href={`/properties/${propertyId}/units/${unit._id}`} className="block text-sm font-semibold wrap-break-word after:absolute after:inset-0">
             {unit.name}
+            {shopName && <span data-shop-name className="font-semibold text-primary"> · {shopName}</span>}
           </Link>
           {unit.tenancy && (
             <span className="block text-sm wrap-break-word text-muted">
               {unit.tenancy.tenantName}
-              {unit.tenancy.peopleCount > 1 && ` · মোট ${toBanglaNumber(unit.tenancy.peopleCount)} জন`}
+              {!isMarket && unit.tenancy.peopleCount > 1 && ` · মোট ${toBanglaNumber(unit.tenancy.peopleCount)} জন`}
             </span>
           )}
           <span className="block text-xs text-muted xl:hidden">
             {floorName(unit.floor)}
             {unit.block && ` · ব্লক ${unit.block}`}
             {unit.sizeSqft ? ` · ${toBanglaNumber(unit.sizeSqft)} বর্গফুট` : ""} · {typeLabel} · {formatMoney(rent)}
-            {unit.tenancy && ` · Advance ${formatMoney(unit.tenancy.advance)}`}
+            {unit.tenancy && ` · ${isMarket ? "অগ্রিম" : "Advance"} ${formatMoney(unit.tenancy.advance)}`}
           </span>
           <span className="hidden text-xs text-muted xl:block">
             {floorName(unit.floor)}
@@ -127,7 +134,7 @@ const UnitRow = ({ propertyId, unit, bill, onCreateBill, onPay }) => {
           <ThisMonth unit={unit} bill={bill} onCreateBill={onCreateBill} onPay={onPay} />
         </span>
         <span className="flex shrink-0 flex-col items-end gap-1 xl:flex-row xl:flex-wrap xl:items-center xl:justify-start">
-          <Badge variant={unit.status === "Vacant" ? "warning" : "success"}>{unit.status}</Badge>
+          <Badge variant={unit.status === "Vacant" ? "warning" : "success"}>{statusLabel}</Badge>
           {unit.tenancy && (
             <span className="xl:hidden">
               <ThisMonth unit={unit} bill={bill} onCreateBill={onCreateBill} onPay={onPay} />
@@ -187,7 +194,8 @@ const UnitList = ({ property, initialFilter = "All" }) => {
         if (filter === RENT_PENDING) return isRentPending(unit);
         return filter === "All" || unit.status === filter;
       })
-      .filter((unit) => !text || unit.name.toLowerCase().includes(text))
+      // মার্কেটে দোকান নম্বর বা ব্যবসার নাম দিয়ে খোঁজা
+      .filter((unit) => !text || unit.name.toLowerCase().includes(text) || (unit.tenancy?.market?.businessName ?? "").toLowerCase().includes(text))
       .sort(SORTERS[sort]);
   }, [units, activeType, filter, search, sort]);
 
@@ -236,7 +244,8 @@ const UnitList = ({ property, initialFilter = "All" }) => {
           </div>
         </div>
 
-        {typeOptions.length > 0 && (
+        {/* মার্কেটে সবই দোকান — ধরনের ভাগ লাগে না */}
+        {!isMarket && typeOptions.length > 0 && (
           <div>
             <SegmentedControl
               label="Filter by tenant type"
@@ -253,7 +262,7 @@ const UnitList = ({ property, initialFilter = "All" }) => {
             compact
             type="search"
             aria-label="Search units"
-            placeholder={isMarket ? "দোকান নম্বর খুঁজুন" : "ইউনিটের নাম খুঁজুন"}
+            placeholder={isMarket ? "দোকান নম্বর বা দোকানের নাম খুঁজুন" : "ইউনিটের নাম খুঁজুন"}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             suffix={<Search className="h-4 w-4 shrink-0 text-muted" aria-hidden="true" />}
@@ -308,12 +317,12 @@ const UnitList = ({ property, initialFilter = "All" }) => {
       ) : (
         <>
           <div className={`hidden border-b border-border bg-background px-4 py-2 text-xs font-medium text-muted ${ROW_COLUMNS}`}>
-            <span>Unit</span>
-            <span>Type</span>
-            <span>Rent</span>
-            <span>Advance</span>
-            <span>This Month</span>
-            <span>Status</span>
+            <span>{isMarket ? "দোকান" : "Unit"}</span>
+            <span>{isMarket ? "ব্যবসার ধরন" : "Type"}</span>
+            <span>{isMarket ? "ভাড়া" : "Rent"}</span>
+            <span>{isMarket ? "অগ্রিম" : "Advance"}</span>
+            <span>{isMarket ? "এই মাস" : "This Month"}</span>
+            <span>{isMarket ? "অবস্থা" : "Status"}</span>
             <span />
           </div>
           <ul className="divide-y divide-border">
@@ -322,6 +331,7 @@ const UnitList = ({ property, initialFilter = "All" }) => {
                 key={unit._id}
                 propertyId={property._id}
                 unit={unit}
+                isMarket={isMarket}
                 bill={unit.tenancy && billByTenancy.get(unit.tenancy._id)}
                 onCreateBill={() => setBillingTenancy(unit.tenancy._id)}
                 onPay={() => setPayingId(billByTenancy.get(unit.tenancy._id)?._id)}

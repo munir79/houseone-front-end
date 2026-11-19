@@ -11,7 +11,7 @@ import SegmentedControl from "@/components/ui/SegmentedControl";
 import Select from "@/components/ui/Select";
 import Skeleton from "@/components/ui/Skeleton";
 import { getErrorMessage } from "@/lib/getErrorMessage";
-import { FIELD_STATE_OPTIONS, FORM_FIELDS, FORM_TYPES, MAIN_COUNT_OPTIONS } from "@/lib/tenantFormOptions";
+import { FIELD_STATE_OPTIONS, FORM_FIELDS, FORM_TYPES, MAIN_COUNT_OPTIONS, MARKET_FIELD_LABELS, MARKET_FORM_FIELDS } from "@/lib/tenantFormOptions";
 import { useGetFormSettingsQuery, useUpdateFormSettingsMutation } from "@/redux/features/tenantForm/tenantFormApi";
 
 const MAX_QUESTIONS = 5;
@@ -19,10 +19,15 @@ const MAX_RULES = 15;
 
 const SettingsEditor = ({ propertyId, initial }) => {
   const [types, setTypes] = useState(initial);
-  const [type, setType] = useState("Family");
+  // মার্কেটে শুধু দোকানের ফর্ম — ব্যবসায়ী আর পরিবারের ১–২ জন, সংখ্যা ঠিক করা থাকে
+  const isMarket = Boolean(initial.Shop?.market);
+  const [type, setType] = useState(isMarket ? "Shop" : "Family");
   const [updateSettings, { isLoading }] = useUpdateFormSettingsMutation();
 
   const current = types[type];
+  const fieldList = isMarket
+    ? MARKET_FORM_FIELDS.map((key) => ({ key, label: MARKET_FIELD_LABELS[key] ?? FORM_FIELDS.find((field) => field.key === key).label }))
+    : FORM_FIELDS.filter(({ marketOnly }) => !marketOnly);
 
   const change = (update) => setTypes((prev) => ({ ...prev, [type]: { ...prev[type], ...update } }));
 
@@ -46,15 +51,21 @@ const SettingsEditor = ({ propertyId, initial }) => {
   return (
     <Card flush className="overflow-hidden">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border p-3 sm:p-4">
-        <SegmentedControl label="Tenant type" options={FORM_TYPES} value={type} onChange={setType} />
+        {isMarket ? <h2 className="text-base font-bold">ব্যবসায়ীর ফর্ম</h2> : <SegmentedControl label="Tenant type" options={FORM_TYPES} value={type} onChange={setType} />}
         <Button size="sm" isLoading={isLoading} onClick={handleSave}>
           Save Settings
         </Button>
       </div>
 
       <div className="flex flex-col gap-5 p-4 sm:p-5">
-        <p className="text-sm text-muted">ভাড়াটিয়া কোন তথ্য দেবেন ঠিক করুন। নাম ও মোবাইল সবসময় লাগবে। Off করলে সেই ঘর ফর্মে দেখাবে না।</p>
+        <p className="text-sm text-muted">
+          {isMarket
+            ? "ব্যবসায়ী কোন তথ্য দেবেন ঠিক করুন। নাম ও মোবাইল সবসময় লাগবে, আর পরিবারের ১–২ জনের নাম, সম্পর্ক ও মোবাইল। Off করলে সেই ঘর ফর্মে দেখাবে না।"
+            : "ভাড়াটিয়া কোন তথ্য দেবেন ঠিক করুন। নাম ও মোবাইল সবসময় লাগবে। Off করলে সেই ঘর ফর্মে দেখাবে না।"}
+        </p>
 
+        {!isMarket && (
+        <>
         <div className="grid max-w-md grid-cols-2 gap-4">
           <Input
             id="maxMembers"
@@ -82,9 +93,11 @@ const SettingsEditor = ({ propertyId, initial }) => {
           checked={current.othersFull}
           onChange={(e) => change({ othersFull: e.target.checked })}
         />
+        </>
+        )}
 
         <div className="grid gap-x-6 gap-y-3 md:grid-cols-2">
-          {FORM_FIELDS.map(({ key, label }) => (
+          {fieldList.map(({ key, label }) => (
             <div key={key} className="flex items-center justify-between gap-3">
               <span className="min-w-0 text-sm">{label}</span>
               <Select
@@ -132,8 +145,8 @@ const SettingsEditor = ({ propertyId, initial }) => {
 
         <div className="flex flex-col gap-2 border-t border-border pt-4">
           <div>
-            <p className="text-sm font-medium">বাড়ির নিয়ম</p>
-            <p className="text-sm text-muted">ভাড়াটিয়া জমা দেওয়ার আগে পড়ে সম্মতি দেবেন। সংখ্যা, সময় বা পুরো লেখা বদলাতে পারবেন।</p>
+            <p className="text-sm font-medium">{isMarket ? "মার্কেটের নিয়ম" : "বাড়ির নিয়ম"}</p>
+            <p className="text-sm text-muted">{isMarket ? "ব্যবসায়ী" : "ভাড়াটিয়া"} জমা দেওয়ার আগে পড়ে সম্মতি দেবেন। সংখ্যা, সময় বা পুরো লেখা বদলাতে পারবেন।</p>
           </div>
           {current.rules.map((rule, index) => (
             <div key={index} className="flex items-center gap-2">

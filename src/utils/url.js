@@ -103,8 +103,10 @@ export const ACCESS = API_BASE_URL + 'access';
 export const PROPERTY_ACTIVITY = (id) => API_BASE_URL + `property/${id}/activity`;
 export const PAYMENT_ADVANCE = API_BASE_URL + 'payment/advance';
 export const PAYMENT_ADVANCE_SUMMARY = (tenancyId) => API_BASE_URL + `payment/advance/${tenancyId}`;
+export const PAYMENT_DEPOSIT = API_BASE_URL + 'payment/deposit';
 export const PAYMENT_ACTION = (id, action) => API_BASE_URL + `payment/${id}/${action}`;
 export const PUBLIC_RECEIPT = (token) => API_BASE_URL + `public/receipt/${token}`;
+export const PUBLIC_CONTRACT = (code) => API_BASE_URL + `public/contract/${code}`;
 
 // Complain & Needs
 export const ISSUES = API_BASE_URL + 'issue';

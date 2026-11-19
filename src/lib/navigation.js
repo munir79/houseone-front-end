@@ -22,6 +22,22 @@ export const rememberWorld = (world) => {
     // storage বন্ধ — শুধু এবার মনে থাকে না
   }
 };
+// শেষ বাছা জগৎ — profile এর toggle বা যে সম্পদে ঢুকলেন
+export const rememberedWorld = () => {
+  try {
+    const world = localStorage.getItem(LAST_WORLD_KEY);
+    return world === "market" || world === "house" ? world : null;
+  } catch {
+    return null;
+  }
+};
+
+// জগৎ বদল — পুরো পাতা নতুন করে, আগের জগতের পুরনো তথ্য Cache এ থাকে না
+export const switchWorld = (world) => {
+  rememberWorld(world);
+  window.location.assign(homeOf(world));
+};
+
 // login এর পর কোথায় — শেষবার মার্কেটে থাকলে মার্কেটের Dashboard
 export const landingPath = () => {
   try {
