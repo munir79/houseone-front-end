@@ -7,6 +7,7 @@ import { BarChart3, BellRing, Briefcase, Building2, CircleAlert, Home, PiggyBank
 import CollectionChart from "@/components/dashboard/CollectionChart";
 import AssetGlance from "@/components/dashboard/AssetGlance";
 import LeavingSoon from "@/components/dashboard/LeavingSoon";
+import MarketAlerts from "@/components/market/MarketAlerts";
 import PageHero from "@/components/dashboard/PageHero";
 import RecentReceipts from "@/components/dashboard/RecentReceipts";
 import AccessInviteList from "@/components/access/AccessInviteList";
@@ -143,7 +144,7 @@ const NeedsActionCard = ({ needsAction }) => {
 };
 
 // এই মাসের আদায়ের কার্ডে লক্ষ্য ও ফ্ল্যাটের Progress
-const CollectedExtra = ({ thisMonth }) => {
+const CollectedExtra = ({ thisMonth, unitWord = "ফ্ল্যাট" }) => {
   const percent = thisMonth.flats ? Math.round((thisMonth.paidFlats / thisMonth.flats) * 100) : 0;
   return (
     <div className="flex flex-col gap-1.5">
@@ -152,7 +153,7 @@ const CollectedExtra = ({ thisMonth }) => {
       </div>
       <p className="text-xs text-muted sm:text-sm">
         <span className="whitespace-nowrap">লক্ষ্য {formatMoney(thisMonth.target)}</span>
-        {thisMonth.isEstimate && " (আনুমানিক)"} · <span className="whitespace-nowrap">{toBanglaNumber(thisMonth.paidFlats)}/{toBanglaNumber(thisMonth.flats)} ফ্ল্যাট</span>
+        {thisMonth.isEstimate && " (আনুমানিক)"} · <span className="whitespace-nowrap">{toBanglaNumber(thisMonth.paidFlats)}/{toBanglaNumber(thisMonth.flats)} {unitWord}</span>
       </p>
     </div>
   );
@@ -214,7 +215,7 @@ const DashboardView = ({ world = "house" }) => {
             value: formatMoney(money?.thisMonth.collected || 0),
             icon: Wallet,
             onClick: () => router.push("/billing"),
-            extra: money && money.thisMonth.flats > 0 ? <CollectedExtra thisMonth={money.thisMonth} /> : null,
+            extra: money && money.thisMonth.flats > 0 ? <CollectedExtra thisMonth={money.thisMonth} unitWord={world === "market" ? "দোকান" : "ফ্ল্যাট"} /> : null,
             highlight: money && money.thisMonth.flats > 0 && money.thisMonth.paidFlats === money.thisMonth.flats,
           },
           { key: "due", label: `${monthName} বাকি`, value: formatMoney(money?.thisMonth.due || 0), hint: money?.thisMonth.dueFlats ? `${money.thisMonth.dueFlats} ${text.unit}` : undefined, icon: CircleAlert, tone: "amber", onClick: () => router.push("/billing") },
@@ -266,6 +267,7 @@ const DashboardView = ({ world = "house" }) => {
             </div>
           </Card>
 
+          {world === "market" && <MarketAlerts />}
           <LeavingSoon items={leavingSoon} />
         </div>
       </div>

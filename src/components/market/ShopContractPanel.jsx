@@ -12,7 +12,7 @@ import Card from "@/components/ui/Card";
 import Modal from "@/components/ui/Modal";
 import { formatMoney } from "@/lib/formatMoney";
 import { getErrorMessage } from "@/lib/getErrorMessage";
-import { DEPOSIT_LABELS, formatMonths } from "@/lib/marketOptions";
+import { DEPOSIT_LABELS, formatMonths, fromMonthLabel } from "@/lib/marketOptions";
 import { formatDate } from "@/lib/tenancyOptions";
 import { toBanglaNumber } from "@/lib/toBanglaNumber";
 import { useGetContractDocumentsMutation } from "@/redux/features/tenancy/tenancyApi";
@@ -95,6 +95,7 @@ const ShopContractPanel = ({ tenancy, onOpenInstallments }) => {
             {market.increase?.amount > 0 ? `${market.increase.everyYears === 1 ? "প্রতি বছর" : `প্রতি ${toBanglaNumber(market.increase.everyYears)} বছরে`} ${formatMoney(market.increase.amount)}` : "নিয়ম নেই"}
           </Row>
           <Row label="অগ্রিম">{market.advanceMonths > 0 ? `${toBanglaNumber(market.advanceMonths)} মাসের, ${formatMoney(tenancy.advance)}` : formatMoney(tenancy.advance)}</Row>
+          {market.nextRent && <Row label="নতুন ভাড়া">{`${fromMonthLabel(market.nextRent.fromMonth)} থেকে ${formatMoney(market.nextRent.amount)}`}</Row>}
         </dl>
         <div className="flex flex-wrap gap-2">
           <Button size="sm" onClick={() => setIsDocumentOpen(true)}>
@@ -109,6 +110,26 @@ const ShopContractPanel = ({ tenancy, onOpenInstallments }) => {
           )}
         </div>
       </Card>
+
+      {market.increaseHistory?.length > 0 && (
+        <Card flush className="overflow-hidden">
+          <h2 className="border-b border-border px-4 py-3 text-base font-bold">ভাড়া বৃদ্ধির ইতিহাস</h2>
+          <ul data-increase-history className="divide-y divide-border">
+            {[...market.increaseHistory].reverse().map((item) => (
+              <li key={`${item.dueOn}-${item.decidedAt}`} className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-sm">
+                <span>
+                  {item.action === "Applied" ? `${formatMoney(item.oldRent)} থেকে ${formatMoney(item.newRent)} (${fromMonthLabel(item.fromMonth)} থেকে)` : `এবার বাড়ানো হয়নি (${formatMoney(item.oldRent)} ছিল)`}
+                  <span className="block text-xs text-muted">
+                    {formatDate(item.decidedAt)}
+                    {item.decidedByName ? ` · ${item.decidedByName}` : ""}
+                  </span>
+                </span>
+                <Badge variant={item.action === "Applied" ? "success" : "primary"}>{item.action === "Applied" ? "বেড়েছে" : "বাদ"}</Badge>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
 
       <Card flush className="overflow-hidden">
         <h2 className="border-b border-border px-4 py-3 text-base font-bold">জমার টাকা</h2>

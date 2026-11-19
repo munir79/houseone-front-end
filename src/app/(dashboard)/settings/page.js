@@ -36,6 +36,9 @@ const TYPE_LABELS = {
   TenantFormSubmitted: { label: "ফর্ম জমা হয়েছে", description: "ভাড়াটিয়া ফর্ম জমা দিলে" },
   IssueReported: { label: "অভিযোগ বা প্রয়োজন", description: "ভাড়াটিয়া জানালে" },
   MemberRequest: { label: "নতুন সদস্য অপেক্ষায়", description: "সদস্য নিজে তথ্য দিলে" },
+  InstallmentDue: { label: "পজিশন মানির কিস্তি", description: "৩ দিন আগে, কিস্তির দিনে, আর পেরোলে প্রতি সপ্তাহে" },
+  RentIncreaseDue: { label: "ভাড়া বৃদ্ধির সময়", description: "চুক্তির নিয়মে বাড়ার ৩০ দিন আগে" },
+  ContractRenewDue: { label: "চুক্তি শেষ হচ্ছে", description: "দোকানের চুক্তি শেষের ৩০ দিন আগে" },
 };
 
 const Section = ({ title, description, children, ...props }) => (

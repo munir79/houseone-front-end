@@ -6,6 +6,12 @@ import { PROPERTIES, PROPERTY_ASSETS, PROPERTY_BY_ID, PROPERTY_CONTACTS, PROPERT
 export const propertyApi = apiSlice.injectEndpoints({
   overrideExisting: true,
   endpoints: (builder) => ({
+    // মার্কেটে একসাথে সার্ভিস চার্জ — apply না দিলে শুধু আগে দেখা
+    changeServiceCharge: builder.mutation({
+      query: ({ id, ...body }) => ({ url: `${PROPERTY_BY_ID(id)}/service-charge`, method: "POST", body }),
+      invalidatesTags: (result, error, { apply }) => (apply ? ["Unit", "Tenancy", "Property"] : []),
+    }),
+
     //1. MY HOUSES
     getProperties: builder.query({
       query: (params) => ({ url: PROPERTIES, params }),
@@ -98,6 +104,7 @@ export const propertyApi = apiSlice.injectEndpoints({
 });
 
 export const {
+  useChangeServiceChargeMutation,
   useGetPropertiesQuery,
   useGetMyAssetsQuery,
   useGetPropertySummaryQuery,

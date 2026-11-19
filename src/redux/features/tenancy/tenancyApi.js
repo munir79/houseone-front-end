@@ -70,6 +70,18 @@ export const tenancyApi = apiSlice.injectEndpoints({
       query: (id) => `${TENANCY_BY_ID(id)}/contract-documents`,
     }),
 
+    // ভাড়া বৃদ্ধির সিদ্ধান্ত — রাজি, অঙ্ক বদলে রাজি, বা এবার বাদ
+    decideIncrease: builder.mutation({
+      query: ({ id, ...body }) => ({ url: `${TENANCY_BY_ID(id)}/increase`, method: 'POST', body }),
+      invalidatesTags: CHANGED_TAGS,
+    }),
+
+    // মার্কেটের মনে করানো — কিস্তি, ভাড়া বৃদ্ধি, নবায়ন
+    getMarketAlerts: builder.query({
+      query: (params) => ({ url: `${TENANCIES}/market-alerts`, params }),
+      providesTags: ["Tenancy", "Payment"],
+    }),
+
     // QR থেকে চুক্তি যাচাই — লগইন ছাড়া
     verifyContract: builder.query({
       query: (code) => PUBLIC_CONTRACT(code),
@@ -157,6 +169,8 @@ export const {
   useCreateTenancyMutation,
   useUpdateTenancyMutation,
   useRenewContractMutation,
+  useDecideIncreaseMutation,
+  useGetMarketAlertsQuery,
   useVerifyContractQuery,
   useGetContractDocumentsMutation,
   useGiveNoticeMutation,

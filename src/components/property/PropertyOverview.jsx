@@ -5,6 +5,7 @@ import { BarChart3, CheckCircle2, CircleAlert, PiggyBank, Plus, ReceiptText, Tre
 import HouseStats from "./HouseStats";
 import CollectionChart from "@/components/dashboard/CollectionChart";
 import LeavingSoon from "@/components/dashboard/LeavingSoon";
+import MarketAlerts from "@/components/market/MarketAlerts";
 import PageHero from "@/components/dashboard/PageHero";
 import RecentReceipts from "@/components/dashboard/RecentReceipts";
 import UnitList, { NEEDS_ACTION, RENT_PENDING } from "@/components/unit/UnitList";
@@ -111,6 +112,7 @@ const PropertyOverview = ({ property, badge, menu, onAddAsset }) => {
 
         <div className="flex min-w-0 flex-col gap-4">
           {money ? <RecentReceipts payments={money.recent} allHref={propertyPath(id, "billing?view=receipts")} /> : <Skeleton className="h-44 w-full rounded-2xl" />}
+          {isMarket && <MarketAlerts propertyId={id} />}
           <LeavingSoon items={tenancySummaryData?.data?.leavingSoon} />
           {onAddAsset && (
             <Button data-add-asset variant="outline" size="sm" onClick={onAddAsset} className="w-fit">

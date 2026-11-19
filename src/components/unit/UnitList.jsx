@@ -2,10 +2,11 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { CheckCircle2, ChevronRight, LayoutGrid, ListChecks, Plus, ReceiptText, Search, SearchX, Store, Zap } from "lucide-react";
+import { CheckCircle2, ChevronRight, LayoutGrid, ListChecks, Plus, ReceiptText, Search, SearchX, Store, Wrench, Zap } from "lucide-react";
 import BulkSetupModal from "./BulkSetupModal";
 import QuickAddUnitsModal from "./QuickAddUnitsModal";
 import ShopsSetupModal from "./ShopsSetupModal";
+import ServiceChargeModal from "@/components/market/ServiceChargeModal";
 import UnitFormModal from "./UnitFormModal";
 import GenerateBillsModal from "@/components/bill/GenerateBillsModal";
 import SendBillButton from "@/components/bill/SendBillButton";
@@ -32,6 +33,12 @@ export const NEEDS_ACTION = "Needs Action";
 // এই মাসের বিল হয়নি বা টাকা বাকি
 export const RENT_PENDING = "Rent Pending";
 const ALL_TYPES = "All Types";
+
+const MARKET_SORT_OPTIONS = [
+  { value: "floor", label: "সাজান: তলা" },
+  { value: "rent", label: "সাজান: ভাড়া" },
+  { value: "name", label: "সাজান: দোকান নম্বর" },
+];
 
 const SORT_OPTIONS = [
   { value: "floor", label: "Sort: Floor" },
@@ -158,6 +165,7 @@ const UnitList = ({ property, initialFilter = "All" }) => {
   const [isQuickOpen, setIsQuickOpen] = useState(false);
   const [isShopsOpen, setIsShopsOpen] = useState(false);
   const [isBulkOpen, setIsBulkOpen] = useState(false);
+  const [isServiceOpen, setIsServiceOpen] = useState(false);
   const [justCreated, setJustCreated] = useState(0);
   const [filter, setFilter] = useState(initialFilter);
   const [occupantType, setOccupantType] = useState(ALL_TYPES);
@@ -173,10 +181,14 @@ const UnitList = ({ property, initialFilter = "All" }) => {
 
   const units = useMemo(() => data?.data || [], [data]);
   const actionCount = useMemo(() => units.filter((unit) => unitActivity(unit)?.needsAction).length, [units]);
-  const actionLabel = actionCount > 0 ? `${NEEDS_ACTION} (${actionCount})` : NEEDS_ACTION;
   const pendingCount = useMemo(() => units.filter(isRentPending).length, [units]);
-  const pendingLabel = pendingCount > 0 ? `${RENT_PENDING} (${pendingCount})` : RENT_PENDING;
-  const FILTER_LABELS = { [NEEDS_ACTION]: actionLabel, [RENT_PENDING]: pendingLabel };
+  // মার্কেটে সব লেখা বাংলায়; সংখ্যা থাকলে পাশে
+  const BASE_LABELS =
+    property.kind === "market"
+      ? { All: "সব", Vacant: "খালি", Occupied: "ভাড়া দেওয়া", [RENT_PENDING]: "ভাড়া বাকি", [NEEDS_ACTION]: "কাজ বাকি" }
+      : { All: "All", Vacant: "Vacant", Occupied: "Occupied", [RENT_PENDING]: RENT_PENDING, [NEEDS_ACTION]: NEEDS_ACTION };
+  const withCount = (key, count) => (count > 0 ? `${BASE_LABELS[key]} (${count})` : BASE_LABELS[key]);
+  const FILTER_LABELS = { ...BASE_LABELS, [NEEDS_ACTION]: withCount(NEEDS_ACTION, actionCount), [RENT_PENDING]: withCount(RENT_PENDING, pendingCount) };
 
   // গণনাও এখানেই, ফিল্টারও — শূন্য ধরন দেখানো হয় না
   const typeOptions = useMemo(() => {
@@ -225,7 +237,7 @@ const UnitList = ({ property, initialFilter = "All" }) => {
         <div className="flex flex-wrap items-center justify-between gap-2">
           <SegmentedControl
             label="Filter units"
-            options={["All", "Vacant", "Occupied", pendingLabel, actionLabel]}
+            options={["All", "Vacant", "Occupied", RENT_PENDING, NEEDS_ACTION].map((key) => FILTER_LABELS[key])}
             value={FILTER_LABELS[filter] ?? filter}
             onChange={(next) => setFilter(Object.keys(FILTER_LABELS).find((key) => FILTER_LABELS[key] === next) ?? next)}
           />
@@ -234,6 +246,12 @@ const UnitList = ({ property, initialFilter = "All" }) => {
               <Button size="sm" onClick={() => setIsBulkOpen(true)}>
                 <ListChecks className="h-4 w-4" aria-hidden="true" />
                 Bulk Setup
+              </Button>
+            )}
+            {units.length > 0 && isMarket && (
+              <Button variant="outline" size="sm" onClick={() => setIsServiceOpen(true)}>
+                <Wrench className="h-4 w-4" aria-hidden="true" />
+                সার্ভিস চার্জ বদল
               </Button>
             )}
             {units.length > 0 && !isFlats && quickAddButton}
@@ -272,7 +290,7 @@ const UnitList = ({ property, initialFilter = "All" }) => {
             id="unitSort"
             compact
             aria-label="Sort units"
-            options={SORT_OPTIONS}
+            options={isMarket ? MARKET_SORT_OPTIONS : SORT_OPTIONS}
             value={sort}
             onChange={(e) => setSort(e.target.value)}
             className="w-full sm:w-40"
@@ -309,9 +327,13 @@ const UnitList = ({ property, initialFilter = "All" }) => {
       ) : shownUnits.length === 0 ? (
         <EmptyState
           icon={SearchX}
-          title={filter === NEEDS_ACTION || filter === RENT_PENDING ? "All caught up" : "No unit found"}
+          title={filter === NEEDS_ACTION || filter === RENT_PENDING ? (isMarket ? "সব কাজ শেষ" : "All caught up") : isMarket ? "কোনো দোকান পাওয়া যায়নি" : "No unit found"}
           description={
-            filter === RENT_PENDING ? "এই মাসের সব বিল তৈরি হয়েছে, সব ভাড়াও আদায় হয়েছে।" : filter === NEEDS_ACTION ? "এই বাড়িতে এখন আপনার কোনো কাজ বাকি নেই।" : "এই ফিল্টারে কোনো ইউনিট নেই।"
+            filter === RENT_PENDING
+              ? "এই মাসের সব বিল তৈরি হয়েছে, সব ভাড়াও আদায় হয়েছে।"
+              : filter === NEEDS_ACTION
+                ? `এই ${isMarket ? "মার্কেটে" : "বাড়িতে"} এখন আপনার কোনো কাজ বাকি নেই।`
+                : `এই ফিল্টারে কোনো ${isMarket ? "দোকান" : "ইউনিট"} নেই।`
           }
         />
       ) : (
@@ -348,6 +370,7 @@ const UnitList = ({ property, initialFilter = "All" }) => {
         <UnitFormModal propertyId={property._id} totalFloors={property.totalFloors} isMarket={isMarket} basements={property.basementFloors ?? 0} blocks={property.blocks ?? []} onClose={() => setIsAddOpen(false)} />
       )}
 
+      {isServiceOpen && <ServiceChargeModal property={property} units={units} onClose={() => setIsServiceOpen(false)} />}
       {isShopsOpen && <ShopsSetupModal property={property} onCreated={setJustCreated} onClose={() => setIsShopsOpen(false)} />}
       {isQuickOpen && (
         <QuickAddUnitsModal

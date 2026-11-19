@@ -124,3 +124,27 @@ export const contractBody = (contract) => {
     },
   };
 };
+
+// ============================================================
+// ব্যবসায়ীকে WhatsApp এ জানানো — লেখা তৈরি থাকে, মালিক চাপলে পাঠান
+// ============================================================
+const BD_ZONE = "Asia/Dhaka";
+const taka = (amount) => `৳${Number(amount).toLocaleString("en-IN")}`;
+const shortDate = (date) => new Date(date).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: BD_ZONE });
+const monthText = (month) => {
+  const [year, number] = month.split("-").map(Number);
+  return new Date(year, number - 1, 1).toLocaleDateString("en-GB", { month: "long", year: "numeric" });
+};
+
+export const whatsappLink = (phone, text) => `https://wa.me/88${phone}?text=${encodeURIComponent(text)}`;
+
+export const installmentMessage = ({ businessName, unitName, propertyName, index, amount, dueDate, isLate }) =>
+  `${businessName || "জনাব"}, আপনার দোকান ${unitName}-এর পজিশন মানির ${toBanglaNumber(index + 1)}নং কিস্তি ${taka(amount)} ${shortDate(dueDate)} তারিখে দেওয়ার কথা${isLate ? " (তারিখ পেরিয়ে গেছে)" : ""}। অনুগ্রহ করে সময়মতো দিন। — ${propertyName}`;
+
+export const increaseMessage = ({ businessName, unitName, propertyName, oldRent, newRent, fromMonth }) =>
+  `${businessName || "জনাব"}, চুক্তি অনুযায়ী ${monthText(fromMonth)} থেকে দোকান ${unitName}-এর মাসিক ভাড়া ${taka(oldRent)} থেকে ${taka(newRent)} হবে। — ${propertyName}`;
+
+export const serviceChargeMessage = ({ businessName, unitName, propertyName, current, next }) =>
+  `${businessName || "জনাব"}, পরের বিল থেকে দোকান ${unitName}-এর সার্ভিস চার্জ ${taka(current)} থেকে ${taka(next)} হবে। — ${propertyName}`;
+
+export const fromMonthLabel = monthText;

@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Banknote, CalendarClock, CalendarDays, ChevronRight, Clock, FileSignature, KeyRound, Link2, LogOut, MessageCircle, Pencil, Phone, Receipt, SearchX, Store, User, Users } from "lucide-react";
+import { ArrowLeft, Banknote, CalendarClock, CalendarDays, ChevronRight, Clock, FileSignature, TrendingUp, KeyRound, Link2, LogOut, MessageCircle, Pencil, Phone, Receipt, SearchX, Store, User, Users } from "lucide-react";
 import { toast } from "sonner";
 import TenancyBills from "@/components/bill/TenancyBills";
 import EditContractModal from "@/components/market/EditContractModal";
+import IncreaseModal from "@/components/market/IncreaseModal";
 import RenewContractModal from "@/components/market/RenewContractModal";
 import InstallmentsPanel from "@/components/market/InstallmentsPanel";
 import ShopContractPanel from "@/components/market/ShopContractPanel";
@@ -123,6 +124,7 @@ const TenancyDetails = ({ tenancyId, embedded = false, extraTabs = [], leading =
   const [editingSection, setEditingSection] = useState(null);
   const [isLinkOpen, setIsLinkOpen] = useState(false);
   const [isRenewOpen, setIsRenewOpen] = useState(false);
+  const [isIncreaseOpen, setIsIncreaseOpen] = useState(false);
 
   const { data, error, isLoading } = useGetTenancyQuery(tenancyId);
   const { data: billsData } = useGetTenancyBillsQuery(tenancyId);
@@ -281,6 +283,26 @@ const TenancyDetails = ({ tenancyId, embedded = false, extraTabs = [], leading =
           </div>
           <Button size="sm" onClick={() => setIsRenewOpen(true)}>
             নবায়ন করুন
+          </Button>
+        </div>
+      )}
+
+      {/* চুক্তির নিয়মে ভাড়া বাড়ার সময় — মালিক না বললে বাড়ে না */}
+      {isShop && isActive && tenancy.increaseDue && (
+        <div data-increase-due className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-info/30 bg-info-soft px-4 py-3">
+          <div className="flex min-w-0 items-start gap-2 text-info-foreground">
+            <TrendingUp className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
+            <div className="min-w-0">
+              <p className="text-base font-bold">
+                ভাড়া বৃদ্ধির সময় · {formatDate(tenancy.increaseDue.dueOn)}
+              </p>
+              <p className="text-sm">
+                নিয়ম অনুযায়ী {formatMoney(tenancy.increaseDue.currentRent)} থেকে {formatMoney(tenancy.increaseDue.suggestedRent)}। আপনি রাজি হলে তবেই বাড়বে।
+              </p>
+            </div>
+          </div>
+          <Button size="sm" onClick={() => setIsIncreaseOpen(true)}>
+            সিদ্ধান্ত নিন
           </Button>
         </div>
       )}
@@ -543,6 +565,7 @@ const TenancyDetails = ({ tenancyId, embedded = false, extraTabs = [], leading =
 
       {isEditing && (isShop ? <EditContractModal tenancy={tenancy} onClose={() => setIsEditing(false)} /> : <EditTenancyModal tenancy={tenancy} onClose={() => setIsEditing(false)} />)}
       {isRenewOpen && <RenewContractModal tenancy={tenancy} onClose={() => setIsRenewOpen(false)} />}
+      {isIncreaseOpen && <IncreaseModal tenancy={tenancy} onClose={() => setIsIncreaseOpen(false)} />}
       {editingSection && <EditSectionModal tenant={tenant} section={editingSection} onClose={() => setEditingSection(null)} />}
 
       {isLinkOpen && (

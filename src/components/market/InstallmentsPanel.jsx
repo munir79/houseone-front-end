@@ -1,15 +1,15 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Banknote, CheckCircle2, Clock, Wallet } from "lucide-react";
+import { Banknote, CheckCircle2, Clock, MessageCircle, Wallet } from "lucide-react";
 import ReceiveDepositModal from "./ReceiveDepositModal";
 import Badge from "@/components/ui/Badge";
-import Button from "@/components/ui/Button";
+import Button, { buttonClasses } from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import Skeleton from "@/components/ui/Skeleton";
 import StatStrip from "@/components/ui/StatStrip";
 import { formatMoney } from "@/lib/formatMoney";
-import { INSTALLMENT_STATUS } from "@/lib/marketOptions";
+import { INSTALLMENT_STATUS, installmentMessage, whatsappLink } from "@/lib/marketOptions";
 import { formatDate } from "@/lib/tenancyOptions";
 import { toBanglaNumber } from "@/lib/toBanglaNumber";
 import { useGetPaymentsQuery } from "@/redux/features/payment/paymentApi";
@@ -82,10 +82,25 @@ const InstallmentsPanel = ({ tenancy }) => {
                       {isLate && <Badge variant="danger">তারিখ পেরিয়েছে</Badge>}
                       <Badge variant={status.variant}>{item.status === "Partial" ? `${formatMoney(item.amount - item.paid)} বাকি` : status.label}</Badge>
                       {isActive && isNext && (
-                        <Button size="sm" variant="outline" onClick={() => setReceiving({ due: position.due, suggested: item.amount - item.paid })}>
-                          <Wallet className="h-4 w-4" aria-hidden="true" />
-                          টাকা নিন
-                        </Button>
+                        <>
+                          <a
+                            data-installment-whatsapp
+                            href={whatsappLink(
+                              tenancy.tenantPhone,
+                              installmentMessage({ businessName: tenancy.market.businessName, unitName: tenancy.unitName, propertyName: tenancy.propertyName, index, amount: item.amount - item.paid, dueDate: item.dueDate, isLate })
+                            )}
+                            target="_blank"
+                            rel="noreferrer"
+                            className={buttonClasses({ variant: "outline", size: "sm" })}
+                          >
+                            <MessageCircle className="h-4 w-4" aria-hidden="true" />
+                            মনে করান
+                          </a>
+                          <Button size="sm" variant="outline" onClick={() => setReceiving({ due: position.due, suggested: item.amount - item.paid })}>
+                            <Wallet className="h-4 w-4" aria-hidden="true" />
+                            টাকা নিন
+                          </Button>
+                        </>
                       )}
                     </div>
                   </div>

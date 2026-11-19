@@ -80,8 +80,8 @@ const GenerateBillsModal = ({ month, propertyId, tenancyId, onClose }) => {
                 <div className="flex items-start justify-between gap-3">
                   <Checkbox
                     id={`bill-${row.tenancyId}`}
-                    label={row.tenantName}
-                    description={`${row.unitName}, ${row.propertyName}`}
+                    label={row.isShop ? row.businessName || row.tenantName : row.tenantName}
+                    description={row.isShop ? `${row.unitName} দোকান · ${row.tenantName}` : `${row.unitName}, ${row.propertyName}`}
                     checked={input.include}
                     onChange={(e) => change(row, { include: e.target.checked })}
                   />
@@ -111,13 +111,18 @@ const GenerateBillsModal = ({ month, propertyId, tenancyId, onClose }) => {
                           type="number"
                           inputMode="numeric"
                           min="0"
-                          label={`Advance থেকে কাটুন (হাতে আছে ${formatMoney(row.advanceLeft)})`}
+                          label={`${row.isShop ? "অগ্রিম ভাড়া" : "Advance"} থেকে কাটুন (হাতে আছে ${formatMoney(row.advanceLeft)})`}
                           value={input.advance}
                           onChange={(e) => change(row, { advance: e.target.value })}
                         />
                       )}
-                      <Input id={`extraName-${row.tenancyId}`} label="বাড়তি বা ছাড় (ঐচ্ছিক)" placeholder="যেমন: মেরামত" value={input.extraName} onChange={(e) => change(row, { extraName: e.target.value })} />
-                      <Input id={`extraAmount-${row.tenancyId}`} type="number" inputMode="numeric" label="টাকা (ছাড় হলে − দিন)" value={input.extraAmount} onChange={(e) => change(row, { extraAmount: e.target.value })} />
+                      {/* দোকানের বিলে শুধু ভাড়া আর সার্ভিস চার্জ — বাড়তি লাইন নেই */}
+                      {!row.isShop && (
+                        <>
+                          <Input id={`extraName-${row.tenancyId}`} label="বাড়তি বা ছাড় (ঐচ্ছিক)" placeholder="যেমন: মেরামত" value={input.extraName} onChange={(e) => change(row, { extraName: e.target.value })} />
+                          <Input id={`extraAmount-${row.tenancyId}`} type="number" inputMode="numeric" label="টাকা (ছাড় হলে − দিন)" value={input.extraAmount} onChange={(e) => change(row, { extraAmount: e.target.value })} />
+                        </>
+                      )}
                     </div>
                   </>
                 )}
